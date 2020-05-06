@@ -1,53 +1,26 @@
-# New Project Template
+# Cloud KMS OpenSSL Engine
 
-This repository contains a template that can be used to seed a repository for a
-new Google open source project.
+This repository contains an [OpenSSL 
+Engine](https://raw.githubusercontent.com/openssl/openssl/master/README.ENGINE) 
+that uses [Google Cloud Key Management Service](https://cloud.google.com/kms) 
+and [Google Cloud HSM](https://cloud.google.com/hsm) to perform cryptographic 
+operations.
 
-See [go/releasing](http://go/releasing) (available externally at
-https://opensource.google/docs/releasing/) for more information about
-releasing a new Google open source project.
+## Overview
 
-This template uses the Apache license, as is Google's default.  See the
-documentation for instructions on using alternate license.
+An OpenSSL engine enables OpenSSL to delegate cryptographic operations to an 
+alternative implementation while still allowing OpenSSL users to use the OpenSSL 
+API. This allows applications that use OpenSSL to benefit from alternative 
+cryptographic implementations without having to be modified.
 
-## How to use this template
+Google Cloud KMS is a cloud-hosted key management service that lets users manage 
+and use cryptographic keys for their cloud services the same way they do 
+on-premises. Google Cloud HSM is a cloud-hosted hardware security module (HSM) 
+service on Google Cloud Platform. With Cloud HSM, users can host encryption keys 
+and perform cryptographic operations in FIPS 140-2 Level 3 certified HSMs.
 
-1. Check it out from GitHub.
-    * There is no reason to fork it.
-1. Create a new local repository and copy the files from this repo into it.
-1. Modify README.md and docs/contributing.md to represent your project, not the
-   template project.
-1. Develop your new project!
-
-``` shell
-git clone https://github.com/google/new-project
-mkdir my-new-thing
-cd my-new-thing
-git init
-cp -r ../new-project/* .
-git add *
-git commit -a -m 'Boilerplate for new Google open source project'
-```
-
-## Source Code Headers
-
-Every file containing source code must include copyright and license
-information. This includes any JS/CSS files that you might be serving out to
-browsers. (This is to help well-intentioned people avoid accidental copying that
-doesn't comply with the license.)
-
-Apache header:
-
-    Copyright 2020 Google LLC
-
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
-
-        https://www.apache.org/licenses/LICENSE-2.0
-
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+The respository contains an OpenSSL engine that allows users to use Cloud KMS 
+and Cloud HSM as a drop-in replacement for OpenSSL's default cryptography 
+implementation. This allows, for example, an HTTPS web server that uses OpenSSL 
+to make use of a private key that is protected by and never leaves an HSM 
+running on Google Cloud Platform.
