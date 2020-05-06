@@ -19,8 +19,8 @@ on-premises. Google Cloud HSM is a cloud-hosted hardware security module (HSM)
 service on Google Cloud Platform. With Cloud HSM, users can host encryption keys 
 and perform cryptographic operations in FIPS 140-2 Level 3 certified HSMs.
 
-The respository contains an OpenSSL engine that allows users to use Cloud KMS 
-and Cloud HSM as a drop-in replacement for OpenSSL's default cryptography 
+The repository contains an OpenSSL engine that allows users to use Cloud KMS and 
+Cloud HSM as a drop-in replacement for OpenSSL's default cryptography 
 implementation. This allows, for example, an HTTPS web server that uses OpenSSL 
 to make use of a private key that is protected by and never leaves an HSM 
 running on Google Cloud Platform.
