@@ -1,12 +1,13 @@
-# Cloud KMS OpenSSL Engine
+# Cloud KMS Open Source Tools
+This repository contains open source tools to be used with [Google Cloud Key 
+Management Service][kms]. These tools are described below.
 
-This repository contains an [OpenSSL 
-Engine](https://raw.githubusercontent.com/openssl/openssl/master/README.ENGINE) 
-that uses [Google Cloud Key Management Service](https://cloud.google.com/kms) 
-and [Google Cloud HSM](https://cloud.google.com/hsm) to perform cryptographic 
-operations.
+## Cloud KMS OpenSSL Engine
 
-## Overview
+This repository contains an [OpenSSL Engine][openssl-engine] that uses [Google 
+Cloud KMS][kms] and [Google Cloud HSM][hsm] to perform cryptographic operations.
+
+### Overview
 
 An OpenSSL engine enables OpenSSL to delegate cryptographic operations to an 
 alternative implementation while still allowing OpenSSL users to use the OpenSSL 
@@ -24,3 +25,8 @@ Cloud HSM as a drop-in replacement for OpenSSL's default cryptography
 implementation. This allows, for example, an HTTPS web server that uses OpenSSL 
 to make use of a private key that is protected by and never leaves an HSM 
 running on Google Cloud Platform.
+
+[kms]: https://cloud.google.com/kms
+[hsm]: https://cloud.google.com/hsm
+[openssl-engine]: 
+https://raw.githubusercontent.com/openssl/openssl/master/README.ENGINE
