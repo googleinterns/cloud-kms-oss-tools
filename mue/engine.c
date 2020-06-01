@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 #include <openssl/engine.h>
-#include "wrapper.h"
 
 static const char *engine_id = "mue";
 static const char *engine_name = "A minimum engine";
