@@ -2,6 +2,8 @@
 This repository contains open source tools to be used with [Google Cloud Key 
 Management Service][kms]. These tools are described below.
 
+**This is not an officially supported Google product.**
+
 ## Cloud KMS OpenSSL Engine
 
 This repository contains an [OpenSSL Engine][openssl-engine] that uses [Google 
