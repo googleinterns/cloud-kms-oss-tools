@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "engine",
@@ -27,4 +27,24 @@ cc_library(
     name = "rand",
     srcs = ["rand.cc"],
     hdrs = ["rand.h"],
+)
+
+cc_test(
+    name = "rand_test",
+    srcs = ["rand_test.cc"],
+    deps = [
+        ":rand",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "engine_test",
+    srcs = ["engine_test.cc"],
+    deps = [
+        ":engine",
+        "@gtest",
+        "@gtest//:gtest_main",
+    ],
 )
