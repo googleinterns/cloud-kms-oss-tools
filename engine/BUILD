@@ -13,13 +13,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+cc_binary(
+    name = "engine.so",
+    srcs = ["main.c"],
+    linkshared = 1,
+    linkstatic = 1,
+    linkopts = ["-lcrypto"],
+    deps = [":wrapper"],
+)
 
 cc_library(
-    name = "engine",
-    srcs = ["main.c", "wrapper.cc"],
+    name = "wrapper",
+    srcs = ["wrapper.cc"],
     hdrs = ["wrapper.h"],
-    linkopts = ["-lcrypto"],
     deps = [":rand"],
 )
 
@@ -42,8 +50,9 @@ cc_test(
 cc_test(
     name = "engine_test",
     srcs = ["engine_test.cc"],
+    linkopts = ["-lcrypto"],
     deps = [
-        ":engine",
+        ":engine.so",
         "@gtest",
         "@gtest//:gtest_main",
     ],
