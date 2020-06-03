@@ -38,9 +38,9 @@ static int hsm_engine_init(ENGINE *e)
     return 1;
 }
 
-static int bind_engine(ENGINE * e, const char *id)
+static int bind_helper(ENGINE *e, const char *id)
 {
-    // might need to do ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL),
+    // TODO: might need to do ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL),
     // but not sure why (see eng_rdrand.c from openssl codebase)
     if (!ENGINE_set_id(e, hsm_engine_id) ||
         !ENGINE_set_name(e, hsm_engine_name) ||
@@ -52,4 +52,4 @@ static int bind_engine(ENGINE * e, const char *id)
 }
 
 IMPLEMENT_DYNAMIC_CHECK_FN();
-IMPLEMENT_DYNAMIC_BIND_FN(bind_engine);
+IMPLEMENT_DYNAMIC_BIND_FN(bind_helper);
