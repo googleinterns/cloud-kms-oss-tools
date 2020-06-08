@@ -20,11 +20,8 @@
 namespace engine {
 
 int RandMethod::bytes(unsigned char *buffer, int num) {
-    if (buffer) {
-        std::memset(buffer, 1, num);
+        std::memset(buffer, 60, num);
         return num;
-    }
-    return 0;
 }
 
 int RandMethod::status() {

@@ -17,11 +17,11 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 cc_binary(
     name = "engine.so",
-    srcs = ["main.c"],
+    srcs = ["main.cc"],
     linkshared = 1,
     linkstatic = 1,
     linkopts = ["-lcrypto"],
-    deps = [":wrapper"],
+    deps = [":rand"],
 )
 
 cc_library(
