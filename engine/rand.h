@@ -13,21 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef ENGINE_RAND_H_
 #define ENGINE_RAND_H_
 
-namespace engine
-{
+namespace engine {
 
-class RandMethod
-{
-public:
-    // void seed();
-    static int bytes(unsigned char *buf, int num);
-    // void cleanup();
-    // void add();
-    // int pseudorand();
-    static int status();
+// Implements OpenSSL's RAND_METHOD interface.
+//
+// Used as a minimal example for testing. Should be removed at some point.
+class RandMethod {
+ public:
+  static int bytes(unsigned char *buf, int num);
+  static int status();
 };
 
 }  // namespace engine

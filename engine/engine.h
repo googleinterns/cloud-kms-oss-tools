@@ -13,19 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef ENGINE_WRAPPER_H_
-#define ENGINE_WRAPPER_H_
 
-#ifdef __cplusplus
-extern "C"
-{
-#endif  // __cplusplus
+#ifndef ENGINE_ENGINE_H_
+#define ENGINE_ENGINE_H_
 
-int rand_method_bytes(unsigned char *buf, int num);
-int rand_method_status(void);
+#include "openssl/engine.h"
 
-#ifdef __cplusplus
-}  // extern "C"
-#endif  // __cplusplus
+namespace engine {
 
-#endif  // ENGINE_WRAPPER_H
+class Engine {
+ public:
+  // Engine is not copyable.
+  Engine(const Engine&) = delete;
+  void operator=(const Engine&) = delete;
+
+  // Initializes the OpenSSL ENGINE struct.
+  static int BindOpenSSLEngine(ENGINE *e);
+
+ private:
+  static const char *kEngineId;
+  static const char *kEngineName;
+
+  Engine() {}
+
+  static int OpenSSLInit(ENGINE *e);
+};
+
+}  // namespace engine
+
+#endif  // ENGINE_ENGINE_H_

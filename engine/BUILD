@@ -12,29 +12,55 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+#
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 cc_binary(
     name = "engine.so",
     srcs = ["main.cc"],
-    linkshared = 1,
-    linkstatic = 1,
-    linkopts = ["-lcrypto"],
-    deps = [":rand"],
+    linkshared = 1,  # Reason for `linkshared` and `linkstatic`: all dependencies must
+    linkstatic = 1,  # must be statically linked in order for OpenSSL to use the engine.
+    deps = [
+        ":engine",
+    ],
 )
 
 cc_library(
-    name = "wrapper",
-    srcs = ["wrapper.cc"],
-    hdrs = ["wrapper.h"],
-    deps = [":rand"],
+    name = "engine",
+    srcs = ["engine.cc"],
+    hdrs = ["engine.h"],
+    deps = [
+        ":openssl",
+        ":rand",
+        ":error",
+    ],
+)
+
+cc_library(
+    name = "error",
+    srcs = ["error/error_handler.cc"],
+    hdrs = [
+        "error/error_codes.h",
+        "error/error_strings.h",
+        "error/error_handler.h",
+        "error/utils/error_utils.h",
+    ],
+    deps = [
+        ":openssl",
+    ],
 )
 
 cc_library(
     name = "rand",
     srcs = ["rand.cc"],
     hdrs = ["rand.h"],
+    deps = [
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
+    ],
 )
 
 cc_test(
@@ -42,18 +68,22 @@ cc_test(
     srcs = ["rand_test.cc"],
     deps = [
         ":rand",
-        "@gtest",
-        "@gtest//:gtest_main",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
-cc_test(
-    name = "engine_test",
-    srcs = ["engine_test.cc"],
-    linkopts = ["-lcrypto"],
-    deps = [
-        ":engine.so",
-        "@gtest",
-        "@gtest//:gtest_main",
+# Builds OpenSSL. Include ":openssl" as a dependency to a target where the -lcrypto
+# linker flag would otherwise be necessary. See https://stackoverflow.com/a/58106111
+# for reference.
+configure_make(
+    name = "openssl",
+    configure_command = "config",
+    configure_options = [
+        "no-shared",
+    ],
+    lib_source = "@openssl//:all",
+    static_libraries = [
+        "libssl.a",
+        "libcrypto.a",
     ],
 )

@@ -14,45 +14,30 @@
  * limitations under the License.
  */
 
-// We don't need to wrap this in extern "C" since it's already done so in OpenSSL
-#include <openssl/engine.h>
-
-#include "rand.h"
+#include "openssl/engine.h"
+#include "engine/engine.h"
 
 namespace engine {
-    static const char *hsm_engine_id = "gcloudhsm";
-    static const char *hsm_engine_name = "Test engine for Cloud HSM";
 
-    // Implements OpenSSL's RAND_METHOD declaration.
-    static const RAND_METHOD hsm_rand_method = {
-        NULL,                   // seed
-        RandMethod::bytes,      // bytes
-        NULL,                   // cleanup
-        NULL,                   // add
-        NULL,                   // pseudorand
-        RandMethod::status      // status
-    };
-
-    static int hsm_engine_init(ENGINE *e)
-    {
-        printf("Engine init\n");
-        return 1;
-    }
-
-    static int bind_helper(ENGINE *e, const char *id) {
-        // TODO: might need to do ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL),
-        // but not sure why (see eng_rdrand.c from openssl codebase)
-        if (!ENGINE_set_id(e, engine::hsm_engine_id) ||
-            !ENGINE_set_name(e, engine::hsm_engine_name) ||
-            !ENGINE_set_init_function(e, engine::hsm_engine_init) ||
-            !ENGINE_set_RAND(e, &engine::hsm_rand_method)) {
-            return 0;
-        }
-        return 1;
-    }
+// Binds the Cloud KMS engine implementations to the input ENGINE struct from
+// OpenSSL. Returns 1 on success and 0 if an error occured.
+//
+// This is the main entry point from OpenSSL into the Cloud KMS Engine. OpenSSL
+// calls this function when the engine shared object is loaded and passes it a
+// fresh, non-null ENGINE struct. It is our code's responsibility to initialize
+// the input struct using OpenSSL's ENGINE_set_* API functions.
+int bind_function(ENGINE *e, const char *id) {
+  return Engine::BindOpenSSLEngine(e);
 }
 
+}  // namespace engine
+
+// extern "C" is necessary here to avoid name-mangling of the functions
+// defined by the OpenSSL macros, which are written in pure C.
 extern "C" {
-    IMPLEMENT_DYNAMIC_CHECK_FN();
-    IMPLEMENT_DYNAMIC_BIND_FN(engine::bind_helper);
+  // The macros below are defined in OpenSSL. They are needed so that OpenSSL
+  // recognizes our library as an OpenSSL engine and so OpenSSL knows which
+  // function in our library will bind our code to OpenSSL's ENGINE struct.
+  IMPLEMENT_DYNAMIC_CHECK_FN();
+  IMPLEMENT_DYNAMIC_BIND_FN(engine::bind_function);
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include <openssl/engine.h>
 
 #include "engine/rand.h"
@@ -22,7 +23,7 @@ namespace engine {
 namespace {
 
 TEST(RandTest, CorrectStatus) {
-    EXPECT_EQ(RandMethod::status(), 1);
+  EXPECT_EQ(RandMethod::status(), 1);
 }
 
 }  // namespace
