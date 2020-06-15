@@ -15,16 +15,10 @@
  */
 
 #include "openssl/engine.h"
+#include "engine/wrapper.h"
 
-#include "engine/rand.h"
-#include "gtest/gtest.h"
-
-namespace engine {
-namespace {
-
-TEST(RandTest, CorrectStatus) {
-  EXPECT_EQ(RandMethod::status(), 1);
-}
-
-}  // namespace
-}  // namespace hello
+// The macros below are defined in OpenSSL. They are needed so that OpenSSL
+// recognizes our library as an OpenSSL engine and so OpenSSL knows which
+// function in our library will bind our code to OpenSSL's ENGINE struct.
+IMPLEMENT_DYNAMIC_CHECK_FN();
+IMPLEMENT_DYNAMIC_BIND_FN(bind_function);

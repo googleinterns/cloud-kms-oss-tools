@@ -16,7 +16,8 @@
 
 #include "engine/engine.h"
 
-#include <openssl/engine.h>
+#include "openssl/engine.h"
+
 #include "engine/rand.h"
 #include "engine/error/error_handler.h"
 

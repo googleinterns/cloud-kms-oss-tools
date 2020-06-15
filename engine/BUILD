@@ -19,10 +19,11 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 cc_binary(
     name = "engine.so",
-    srcs = ["main.cc"],
+    srcs = ["main.c", "wrapper.h", "wrapper.cc"],
     linkshared = 1,  # Reason for `linkshared` and `linkstatic`: all dependencies must
     linkstatic = 1,  # must be statically linked in order for OpenSSL to use the engine.
     deps = [
+        "@boringssl//:ssl",
         ":engine",
     ],
 )
@@ -32,7 +33,7 @@ cc_library(
     srcs = ["engine.cc"],
     hdrs = ["engine.h"],
     deps = [
-        ":openssl",
+        "@boringssl//:ssl",
         ":rand",
         ":error",
     ],
@@ -48,7 +49,7 @@ cc_library(
         "error/utils/error_utils.h",
     ],
     deps = [
-        ":openssl",
+        "@boringssl//:ssl",
     ],
 )
 
@@ -57,6 +58,7 @@ cc_library(
     srcs = ["rand.cc"],
     hdrs = ["rand.h"],
     deps = [
+        "@boringssl//:ssl",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
@@ -74,16 +76,16 @@ cc_test(
 
 # Builds OpenSSL. Include ":openssl" as a dependency to a target where the -lcrypto
 # linker flag would otherwise be necessary. See https://stackoverflow.com/a/58106111
-# for reference.
-configure_make(
-    name = "openssl",
-    configure_command = "config",
-    configure_options = [
-        "no-shared",
-    ],
-    lib_source = "@openssl//:all",
-    static_libraries = [
-        "libssl.a",
-        "libcrypto.a",
-    ],
-)
+# # for reference.
+# configure_make(
+#     name = "openssl",
+#     configure_command = "config",
+#     configure_options = [
+#         "no-shared",
+#     ],
+#     lib_source = "@openssl//:all",
+#     static_libraries = [
+#         "libssl.a",
+#         "libcrypto.a",
+#     ],
+# )
