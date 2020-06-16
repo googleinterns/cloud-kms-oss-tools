@@ -21,7 +21,7 @@ cc_binary(
     name = "engine.so",
     srcs = ["main.c", "wrapper.h", "wrapper.cc", "engine.cc", "engine.h"],
     linkshared = 1,
-    linkstatic = 0,  # Don't statically link kms.so to avoid symbol conflicts.
+    linkstatic = 1,
     linkopts = ["-lcrypto"],
     deps = [
         ":kms",
