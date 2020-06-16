@@ -19,12 +19,12 @@ load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 cc_binary(
     name = "engine.so",
-    srcs = ["main.c", "wrapper.h", "wrapper.cc"],
-    linkshared = 1,  # Reason for `linkshared` and `linkstatic`: all dependencies must
-    linkstatic = 1,  # must be statically linked in order for OpenSSL to use the engine.
+    srcs = ["main.c", "wrapper.h", "wrapper.cc", "engine.cc", "engine.h"],
+    linkshared = 1,
+    linkstatic = 0,  # Don't statically link kms.so to avoid symbol conflicts.
+    linkopts = ["-lcrypto"],
     deps = [
-        "@boringssl//:ssl",
-        ":engine",
+        ":kms",
     ],
 )
 
@@ -33,46 +33,49 @@ cc_library(
     srcs = ["engine.cc"],
     hdrs = ["engine.h"],
     deps = [
-        "@boringssl//:ssl",
-        ":rand",
-        ":error",
+        ":kms",
     ],
 )
 
-cc_library(
-    name = "error",
-    srcs = ["error/error_handler.cc"],
-    hdrs = [
-        "error/error_codes.h",
-        "error/error_strings.h",
-        "error/error_handler.h",
-        "error/utils/error_utils.h",
-    ],
-    deps = [
-        "@boringssl//:ssl",
-    ],
-)
-
-cc_library(
-    name = "rand",
-    srcs = ["rand.cc"],
+cc_import(
+    name = "kms",
     hdrs = ["rand.h"],
+    shared_library = ":kms.so",
+)
+
+cc_binary(
+    name = "kms.so",
+    srcs = [
+        "rand.cc",
+        "rand.h"
+    ],
+    linkshared = 1,
     deps = [
-        "@boringssl//:ssl",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
     ],
 )
 
-cc_test(
-    name = "rand_test",
-    srcs = ["rand_test.cc"],
-    deps = [
-        ":rand",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
+# cc_library(
+#     name = "rand",
+#     srcs = ["rand.cc"],
+#     hdrs = ["rand.h"],
+#     deps = [
+#         "@com_github_grpc_grpc//:grpc++",
+#         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
+#         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
+#     ],
+# )
+
+# cc_test(
+#     name = "rand_test",
+#     srcs = ["rand_test.cc"],
+#     deps = [
+#         ":rand",
+#         "@com_google_googletest//:gtest_main",
+#     ],
+# )
 
 # Builds OpenSSL. Include ":openssl" as a dependency to a target where the -lcrypto
 # linker flag would otherwise be necessary. See https://stackoverflow.com/a/58106111

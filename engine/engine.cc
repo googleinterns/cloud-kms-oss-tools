@@ -16,10 +16,9 @@
 
 #include "engine/engine.h"
 
-#include "openssl/engine.h"
+#include <openssl/engine.h>
 
 #include "engine/rand.h"
-#include "engine/error/error_handler.h"
 
 namespace engine {
 
@@ -48,8 +47,6 @@ int Engine::BindOpenSSLEngine(ENGINE *e) {
   }
 
   // Load error strings.
-  error::ErrorHandler& handler = error::ErrorHandler::getInstance();
-  handler.LoadErrorStrings();
 
   return 1;
 }

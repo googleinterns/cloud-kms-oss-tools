@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include "openssl/engine.h"
-
 #include "engine/rand.h"
 #include "gtest/gtest.h"
 

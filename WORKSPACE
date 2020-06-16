@@ -41,18 +41,20 @@ See https://stackoverflow.com/a/58106111 for reference.
 # This overrides @boringssl in grpc_deps. Then, it defines the :ssl target so
 # that when gRPC is built and refers to @boringssl//:ssl, it uses the local
 # OpenSSL installation instead.
-new_local_repository(
-    name = "boringssl",
-    path = "/usr/include/openssl",
-    build_file_content = """
-package(default_visibility = ["//visibility:public"])
-cc_library(
-    name = "ssl",
-    hdrs = glob(["**/*.h"])
-)
-"""
-)
-
+#
+# See https://github.com/bazelbuild/bazel/issues/8846 for reference on this
+# syntax.
+# new_local_repository(
+#     name = "boringssl",
+#     path = "/usr/include/openssl",
+#     build_file_content = """
+# package(default_visibility = ["//visibility:public"])
+# cc_library(
+#     name = "ssl",
+#     hdrs = glob(["**/*.h"])
+# )
+# """
+# )
 
 # `rules_foreign_cc` library needed for `configure_make`.
 http_archive(

@@ -17,7 +17,7 @@
 #ifndef ENGINE_ENGINE_H_
 #define ENGINE_ENGINE_H_
 
-#include "openssl/engine.h"
+#include <openssl/engine.h>
 
 namespace engine {
 

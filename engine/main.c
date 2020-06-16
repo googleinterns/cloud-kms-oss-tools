@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 
-#include "openssl/engine.h"
+#include <openssl/engine.h>
+
 #include "engine/wrapper.h"
 
 // The macros below are defined in OpenSSL. They are needed so that OpenSSL

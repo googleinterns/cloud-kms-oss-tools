@@ -17,7 +17,7 @@
 
 #include "wrapper.h"
 
-#include "openssl/engine.h"
+#include <openssl/engine.h>
 
 #include "engine/engine.h"
 
