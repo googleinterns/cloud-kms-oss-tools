@@ -28,15 +28,6 @@ cc_binary(
     ],
 )
 
-cc_library(
-    name = "engine",
-    srcs = ["engine.cc"],
-    hdrs = ["engine.h"],
-    deps = [
-        ":kms",
-    ],
-)
-
 cc_import(
     name = "kms",
     hdrs = ["rand.h"],
