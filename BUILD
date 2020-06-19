@@ -14,16 +14,5 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_test")
-
-package(default_testonly = True)
-
-cc_test(
-    name = "engine_bind_test",
-    srcs = ["engine_bind_test.cc"],
-    deps = [
-        "//src/libengine:engine_bind",
-        "@com_google_googletest//:gtest_main",
-    ],
-    size = "small",
-)
+# Intentionally left blank. Purpose is to allow for `bazel build //...` and
+# `bazel test //...` to be run within the package without error.
