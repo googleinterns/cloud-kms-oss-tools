@@ -21,11 +21,13 @@
 namespace libengine {
 
 int EngineInit(ENGINE *e) {
+  // TODO(zesp): Initialize necessary ex_data on ENGINE.
   printf("Engine initialized!\n");
   return 1;
 }
 
 int EngineFinish(ENGINE *e) {
+  // TODO(zesp): Deallocate data initialized in EngineInit.
   return 1;
 }
 
