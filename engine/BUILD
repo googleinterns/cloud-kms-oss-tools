@@ -15,27 +15,25 @@
 #
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load("@rules_foreign_cc//tools/build_defs:configure.bzl", "configure_make")
 
 cc_binary(
-    name = "engine.so",
+    name = "libengine.so",
     srcs = ["main.c", "wrapper.h", "wrapper.cc", "engine.cc", "engine.h"],
     linkshared = 1,
-    linkstatic = 1,
+    linkstatic = 0,
     linkopts = ["-lcrypto"],
-    deps = [
-        ":kms",
-    ],
+    deps = [":libkms"],
+    visibility = ["//visibility:public"],
 )
 
 cc_import(
-    name = "kms",
+    name = "libkms",
     hdrs = ["rand.h"],
-    shared_library = ":kms.so",
+    shared_library = ":libkms.so",
 )
 
 cc_binary(
-    name = "kms.so",
+    name = "libkms.so",  # _Needs_ to be prefixed with "lib" and suffixed with ".so".
     srcs = [
         "rand.cc",
         "rand.h"

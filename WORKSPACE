@@ -57,16 +57,16 @@ See https://stackoverflow.com/a/58106111 for reference.
 # )
 
 # `rules_foreign_cc` library needed for `configure_make`.
-http_archive(
-    name = "rules_foreign_cc",
-    sha256 = "3b21a34d803f2355632434865c39d122a57bf3bf8bb2636e27b474aeac455e5c",
-    strip_prefix = "rules_foreign_cc-master",
-    url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
-)
+# http_archive(
+#     name = "rules_foreign_cc",
+#     sha256 = "3b21a34d803f2355632434865c39d122a57bf3bf8bb2636e27b474aeac455e5c",
+#     strip_prefix = "rules_foreign_cc-master",
+#     url = "https://github.com/bazelbuild/rules_foreign_cc/archive/master.zip",
+# )
 
-load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
+# load("@rules_foreign_cc//:workspace_definitions.bzl", "rules_foreign_cc_dependencies")
 
-rules_foreign_cc_dependencies()
+# rules_foreign_cc_dependencies()
 
 """
 Google Cloud C++ API dependencies.
