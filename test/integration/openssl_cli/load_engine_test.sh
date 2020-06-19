@@ -26,4 +26,4 @@ LIBENGINE_REL_PATH="${1}"
 # OpenSSL requires the path to the engine to be absolute.
 LIBENGINE_ABS_PATH="$(realpath "${LIBENGINE_REL_PATH}")"
 
-openssl engine -t -c "${LIBENGINE_ABS_PATH}"
+openssl engine -t "${LIBENGINE_ABS_PATH}"
