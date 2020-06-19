@@ -22,10 +22,10 @@
 namespace libengine {
 
 // Short name that identifies the engine to OpenSSL.
-const char *kEngineId = "gcloudkms";
+constexpr char kEngineId[] = "gcloudkms";
 
 // Longer, human-readable name for the OpenSSL engine.
-const char *kEngineName = "Google Cloud KMS Engine";
+constexpr char kEngineName[] = "Google Cloud KMS Engine";
 
 }  // namespace libengine
 

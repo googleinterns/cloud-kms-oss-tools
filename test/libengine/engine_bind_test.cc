@@ -40,12 +40,12 @@ class EngineBindTest : public ::testing::Test {
 
 TEST_F(EngineBindTest, SetsEngineId) {
   engine_bind(engine, NULL);
-  ASSERT_EQ(ENGINE_get_id(engine), kEngineId);
+  ASSERT_STREQ(ENGINE_get_id(engine), kEngineId);
 }
 
 TEST_F(EngineBindTest, SetsEngineName) {
   engine_bind(engine, NULL);
-  ASSERT_EQ(ENGINE_get_name(engine), kEngineName);
+  ASSERT_STREQ(ENGINE_get_name(engine), kEngineName);
 }
 
 TEST_F(EngineBindTest, SetsInitFunction) {
