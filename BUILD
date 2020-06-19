@@ -14,5 +14,5 @@
 # limitations under the License.
 #
 
-# Intentionally left blank. Purpose is to allow for `bazel build //...` and
-# `bazel test //...` to be run within the package without error.
+# Intentionally left blank. This file's existence allows `bazel build //...` and
+# `bazel test //...` to be run within the repository without error.
