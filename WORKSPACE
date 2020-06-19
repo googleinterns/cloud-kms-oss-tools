@@ -1,4 +1,4 @@
-# 
+#
 # Copyright 2020 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,15 +15,38 @@
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
+"""
+Google Cloud C++ API dependencies.
+"""
+
+# Import Google APIs with C++ rules.
 git_repository(
-    name = "gtest",
-    remote = "https://github.com/google/googletest",
-    branch = "v1.10.x",
+    name = "com_github_googleapis_google_cloud_cpp",
+    branch = "v1.14.x",
+    remote = "https://github.com/googleapis/google-cloud-cpp",
 )
 
-git_repository(
-    name = "abseil-cpp",
-    remote = "https://github.com/abseil/abseil-cpp",
-    commit = "c51510d1d87ebce8615ae1752fd5aca912f6cf4c",
-    shallow_since = "1587584588 -0400"
+# Load Google Cloud C++ API dependencies. This also imports other dependencies
+# (such as @com_google_googleapis, @com_github_googletest, and
+# @com_github_grpc_grpc).
+load("@com_github_googleapis_google_cloud_cpp//bazel:google_cloud_cpp_deps.bzl", "google_cloud_cpp_deps")
+
+google_cloud_cpp_deps()
+
+# Configure @com_google_googleapis to only compile C++ and gRPC libraries.
+load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
+
+switched_rules_by_language(
+    name = "com_google_googleapis_imports",
+    cc = True,  # Note: C++ support is only "Partially implemented".
+    grpc = True,
 )
+
+# Configure gRPC dependencies.
+load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
+
+grpc_deps()
+
+load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
+
+grpc_extra_deps()
