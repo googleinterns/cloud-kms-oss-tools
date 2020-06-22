@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-#include "src/libengine/engine_bind.h"
+#include "src/engine/engine_bind.h"
 
 #include <openssl/engine.h>
 
-#include "src/libengine/engine_name.h"
-#include "src/libengine/engine_setup.h"
+#include "src/engine/engine_name.h"
+#include "src/engine/engine_setup.h"
 
-namespace libengine {
+namespace kmsengine {
+namespace engine {
 
 extern "C" int EngineBind(ENGINE *e, const char *id) {
   // ENGINE_FLAGS_NO_REGISTER_ALL tells OpenSSL that our engine does not
@@ -36,4 +37,5 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
   return 1;
 }
 
-}  // namespace libengine
+}  // namespace engine
+}  // namespace kmsengine

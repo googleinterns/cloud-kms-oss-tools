@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#include "src/libengine/engine_setup.h"
+#include "src/engine/engine_setup.h"
 
 #include <openssl/engine.h>
 
-namespace libengine {
+namespace kmsengine {
+namespace engine {
 
 int EngineInit(ENGINE *e) {
   // TODO(zesp): Initialize necessary ex_data on ENGINE.
@@ -31,4 +32,5 @@ int EngineFinish(ENGINE *e) {
   return 1;
 }
 
-}  // namespace libengine
+}  // namespace engine
+}  // namespace kmsengine

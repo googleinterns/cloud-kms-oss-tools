@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef LIBENGINE_ENGINE_NAME_H_
-#define LIBENGINE_ENGINE_NAME_H_
+#ifndef KMSENGINE_ENGINE_ENGINE_NAME_H_
+#define KMSENGINE_ENGINE_ENGINE_NAME_H_
 
 #include <openssl/engine.h>
 
-namespace libengine {
+namespace kmsengine {
+namespace engine {
 
 // Short name that identifies the engine to OpenSSL.
 constexpr char kEngineId[] = "gcloudkms";
@@ -27,6 +28,7 @@ constexpr char kEngineId[] = "gcloudkms";
 // Longer, human-readable name for the OpenSSL engine.
 constexpr char kEngineName[] = "Google Cloud KMS Engine";
 
-}  // namespace libengine
+}  // namespace engine
+}  // namespace kmsengine
 
-#endif  // LIBENGINE_ENGINE_NAME_H_
+#endif  // KMSENGINE_ENGINE_ENGINE_NAME_H_

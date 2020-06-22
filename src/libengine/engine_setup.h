@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-#ifndef LIBENGINE_ENGINE_SETUP_H_
-#define LIBENGINE_ENGINE_SETUP_H_
+#ifndef KMSENGINE_ENGINE_ENGINE_SETUP_H_
+#define KMSENGINE_ENGINE_ENGINE_SETUP_H_
 
 #include <openssl/engine.h>
 
-namespace libengine {
+namespace kmsengine {
+namespace engine {
 
 // Initializes ENGINE substructures. Returns 1 on success and 0 if an error
 // occured.
@@ -34,6 +35,7 @@ int EngineInit(ENGINE *e);
 // Used as the finish_function in the OpenSSL engine..
 int EngineFinish(ENGINE *e);
 
-}  // namespace libengine
+}  // namespace engine
+}  // namespace kmsengine
 
-#endif  // LIBENGINE_ENGINE_SETUP_H_
+#endif  // KMSENGINE_ENGINE_ENGINE_SETUP_H_
