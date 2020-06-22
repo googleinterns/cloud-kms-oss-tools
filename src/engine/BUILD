@@ -14,9 +14,7 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
-
-package(default_visibility = ["//test:__subpackages__"])
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
 cc_binary(
     name = "libengine.so",
@@ -37,6 +35,16 @@ cc_library(
         ":engine_name",
     ],
     linkopts = ["-lcrypto"],
+)
+
+cc_test(
+    name = "engine_bind_test",
+    srcs = ["engine_bind_test.cc"],
+    deps = [
+        ":engine_bind",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
 )
 
 cc_library(

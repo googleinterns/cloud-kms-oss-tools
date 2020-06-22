@@ -17,10 +17,11 @@
 #include <openssl/engine.h>
 #include <gtest/gtest.h>
 
-#include "src/libengine/engine_bind.h"
-#include "src/libengine/engine_name.h"
+#include "src/engine/engine_bind.h"
+#include "src/engine/engine_name.h"
 
-namespace libengine {
+namespace kmsengine {
+namespace engine {
 namespace {
 
 // Test fixture for instantiating an OpenSSL ENGINE object.
@@ -64,4 +65,5 @@ TEST_F(EngineBindTest, SetsNoRegisterAllFlag) {
 }
 
 }  // namespace
-}  // namespace libengine
+}  // namespace engine
+}  // namespace kmsengine
