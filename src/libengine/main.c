@@ -22,4 +22,4 @@
 // recognizes our library as an OpenSSL engine and so OpenSSL knows which
 // function in our library will bind our code to OpenSSL's ENGINE struct.
 IMPLEMENT_DYNAMIC_CHECK_FN();
-IMPLEMENT_DYNAMIC_BIND_FN(engine_bind);
+IMPLEMENT_DYNAMIC_BIND_FN(EngineBind);

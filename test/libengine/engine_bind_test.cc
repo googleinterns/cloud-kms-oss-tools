@@ -39,29 +39,28 @@ class EngineBindTest : public ::testing::Test {
 };
 
 TEST_F(EngineBindTest, SetsEngineId) {
-  engine_bind(engine, NULL);
-  ASSERT_STREQ(ENGINE_get_id(engine), kEngineId);
+  EngineBind(engine, NULL);
+  EXPECT_STREQ(ENGINE_get_id(engine), kEngineId);
 }
 
 TEST_F(EngineBindTest, SetsEngineName) {
-  engine_bind(engine, NULL);
-  ASSERT_STREQ(ENGINE_get_name(engine), kEngineName);
+  EngineBind(engine, NULL);
+  EXPECT_STREQ(ENGINE_get_name(engine), kEngineName);
 }
 
 TEST_F(EngineBindTest, SetsInitFunction) {
-  engine_bind(engine, NULL);
-  ASSERT_NE(ENGINE_get_init_function(engine), nullptr);
+  EngineBind(engine, NULL);
+  EXPECT_NE(ENGINE_get_init_function(engine), nullptr);
 }
 
 TEST_F(EngineBindTest, SetsFinishFunction) {
-  engine_bind(engine, NULL);
-  ASSERT_NE(ENGINE_get_finish_function(engine), nullptr);
+  EngineBind(engine, NULL);
+  EXPECT_NE(ENGINE_get_finish_function(engine), nullptr);
 }
 
 TEST_F(EngineBindTest, SetsNoRegisterAllFlag) {
-  engine_bind(engine, NULL);
-  int flags = ENGINE_get_flags(engine);
-  ASSERT_TRUE(flags & ENGINE_FLAGS_NO_REGISTER_ALL);
+  EngineBind(engine, NULL);
+  EXPECT_TRUE(ENGINE_get_flags(engine) & ENGINE_FLAGS_NO_REGISTER_ALL);
 }
 
 }  // namespace

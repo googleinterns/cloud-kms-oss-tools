@@ -24,14 +24,14 @@ namespace libengine {
 // Initializes ENGINE substructures. Returns 1 on success and 0 if an error
 // occured.
 //
-// Directly called by OpenSSL. EngineBind is always called prior to calling
-// EngineInit.
+// Used as the init_function in the OpenSSL engine. EngineBind is always called
+// prior to calling EngineInit.
 int EngineInit(ENGINE *e);
 
 // Cleans up ENGINE substructures. Returns 1 on success and 0 if an error
 // occured.
 //
-// Directly called by OpenSSL.
+// Used as the finish_function in the OpenSSL engine..
 int EngineFinish(ENGINE *e);
 
 }  // namespace libengine

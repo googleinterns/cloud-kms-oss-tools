@@ -22,11 +22,8 @@
 #include "src/libengine/engine_setup.h"
 
 namespace libengine {
-namespace {
 
-// Binds the Cloud KMS engine implementations to the input ENGINE struct from
-// OpenSSL. Returns 1 on success and 0 if an error occured.
-int EngineBind(ENGINE *e) {
+extern "C" int EngineBind(ENGINE *e, const char *id) {
   // ENGINE_FLAGS_NO_REGISTER_ALL tells OpenSSL that our engine does not
   // supply implementations for all OpenSSL crypto methods.
   if (!ENGINE_set_id(e, kEngineId) ||
@@ -39,9 +36,4 @@ int EngineBind(ENGINE *e) {
   return 1;
 }
 
-}  // namespace
 }  // namespace libengine
-
-extern "C" int engine_bind(ENGINE *e, const char *id) {
-  return libengine::EngineBind(e);
-}

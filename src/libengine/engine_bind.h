@@ -17,12 +17,6 @@
 #ifndef LIBENGINE_ENGINE_BIND_H_
 #define LIBENGINE_ENGINE_BIND_H_
 
-// extern "C" is used to expose engine_bind as a pure C function to OpenSSL's
-// engine macros.
-#ifdef __cplusplus
-extern "C" {
-#endif  // __cplusplus
-
 #include <openssl/engine.h>
 
 // Binds the Cloud KMS engine implementations to the input ENGINE struct from
@@ -32,10 +26,15 @@ extern "C" {
 // calls this function when the engine shared object is loaded and passes it a
 // fresh, non-null ENGINE struct. Our code is responsible for initializing
 // the input struct using OpenSSL's ENGINE_set_* API functions.
-int engine_bind(ENGINE *e, const char *id);
-
+//
+// This function is exposed as a pure C name (via `extern "C"`) so that we can
+// pass the OpenSSL IMPLEMENT_DYNAMIC_BIND_FN macro a pure C name as opposed to
+// a C++ name. Passing a C++ name to the macro directly may cause C++'s
+// name-mangling to break the macro; for example, if the macro implementation
+// defines new functions based on the name of the input function.
 #ifdef __cplusplus
-}  // extern "C"
+extern "C"
 #endif  // __cplusplus
+int EngineBind(ENGINE *e, const char *id);
 
 #endif  // LIBENGINE_ENGINE_BIND_H_
