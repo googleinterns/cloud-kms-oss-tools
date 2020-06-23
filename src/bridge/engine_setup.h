@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_OPENSSL_INTERFACE_ENGINE_SETUP_H_
-#define KMSENGINE_OPENSSL_INTERFACE_ENGINE_SETUP_H_
+#ifndef KMSENGINE_BRIDGE_ENGINE_SETUP_H_
+#define KMSENGINE_BRIDGE_ENGINE_SETUP_H_
 
 #include <openssl/engine.h>
 
@@ -38,4 +38,4 @@ int EngineFinish(ENGINE *e);
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_OPENSSL_INTERFACE_ENGINE_SETUP_H_
+#endif  // KMSENGINE_BRIDGE_ENGINE_SETUP_H_

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_OPENSSL_INTERFACE_ENGINE_BIND_H_
-#define KMSENGINE_OPENSSL_INTERFACE_ENGINE_BIND_H_
+#ifndef KMSENGINE_BRIDGE_ENGINE_BIND_H_
+#define KMSENGINE_BRIDGE_ENGINE_BIND_H_
 
 #include <openssl/engine.h>
 
@@ -37,4 +37,4 @@ extern "C"
 #endif  // __cplusplus
 int EngineBind(ENGINE *e, const char *id);
 
-#endif  // KMSENGINE_OPENSSL_INTERFACE_ENGINE_BIND_H_
+#endif  // KMSENGINE_BRIDGE_ENGINE_BIND_H_

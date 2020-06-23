@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_OPENSSL_INTERFACE_ENGINE_NAME_H_
-#define KMSENGINE_OPENSSL_INTERFACE_ENGINE_NAME_H_
+#ifndef KMSENGINE_BRIDGE_ENGINE_NAME_H_
+#define KMSENGINE_BRIDGE_ENGINE_NAME_H_
 
 #include <openssl/engine.h>
 
@@ -31,4 +31,4 @@ constexpr char kEngineName[] = "Google Cloud KMS Engine";
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_OPENSSL_INTERFACE_ENGINE_NAME_H_
+#endif  // KMSENGINE_BRIDGE_ENGINE_NAME_H_
