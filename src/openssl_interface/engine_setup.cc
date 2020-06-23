@@ -14,28 +14,23 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_ENGINE_ENGINE_SETUP_H_
-#define KMSENGINE_ENGINE_ENGINE_SETUP_H_
+#include "src/openssl_interface/engine_setup.h"
 
 #include <openssl/engine.h>
 
 namespace kmsengine {
-namespace engine {
+namespace openssl_interface {
 
-// Initializes ENGINE substructures. Returns 1 on success and 0 if an error
-// occured.
-//
-// Used as the init_function in the OpenSSL engine. EngineBind is always called
-// prior to calling EngineInit.
-int EngineInit(ENGINE *e);
+int EngineInit(ENGINE *e) {
+  // TODO(zesp): Initialize necessary ex_data on ENGINE.
+  printf("Engine initialized!\n");
+  return 1;
+}
 
-// Cleans up ENGINE substructures. Returns 1 on success and 0 if an error
-// occured.
-//
-// Used as the finish_function in the OpenSSL engine..
-int EngineFinish(ENGINE *e);
+int EngineFinish(ENGINE *e) {
+  // TODO(zesp): Deallocate data initialized in EngineInit.
+  return 1;
+}
 
-}  // namespace engine
+}  // namespace openssl_interface
 }  // namespace kmsengine
-
-#endif  // KMSENGINE_ENGINE_ENGINE_SETUP_H_

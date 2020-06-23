@@ -17,11 +17,11 @@
 #include <openssl/engine.h>
 #include <gtest/gtest.h>
 
-#include "src/engine/engine_bind.h"
-#include "src/engine/engine_name.h"
+#include "src/openssl_interface/engine_bind.h"
+#include "src/openssl_interface/engine_name.h"
 
 namespace kmsengine {
-namespace engine {
+namespace openssl_interface {
 namespace {
 
 TEST(EngineBindTest, InitializesExpectedEngineStructFields) {
@@ -39,5 +39,5 @@ TEST(EngineBindTest, InitializesExpectedEngineStructFields) {
 }
 
 }  // namespace
-}  // namespace engine
+}  // namespace openssl_interface
 }  // namespace kmsengine

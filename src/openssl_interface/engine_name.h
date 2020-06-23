@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
+#ifndef KMSENGINE_OPENSSL_INTERFACE_ENGINE_NAME_H_
+#define KMSENGINE_OPENSSL_INTERFACE_ENGINE_NAME_H_
+
 #include <openssl/engine.h>
 
-#include "src/engine/engine_bind.h"
+namespace kmsengine {
+namespace openssl_interface {
 
-// The macros below are defined in OpenSSL. They are needed so that OpenSSL
-// recognizes our library as an OpenSSL engine and so OpenSSL knows which
-// function in our library will bind our code to OpenSSL's ENGINE struct.
-IMPLEMENT_DYNAMIC_CHECK_FN();
-IMPLEMENT_DYNAMIC_BIND_FN(EngineBind);
+// Short name that identifies the engine to OpenSSL.
+constexpr char kEngineId[] = "gcloudkms";
+
+// Longer, human-readable name for the OpenSSL engine.
+constexpr char kEngineName[] = "Google Cloud KMS Engine";
+
+}  // namespace openssl_interface
+}  // namespace kmsengine
+
+#endif  // KMSENGINE_OPENSSL_INTERFACE_ENGINE_NAME_H_

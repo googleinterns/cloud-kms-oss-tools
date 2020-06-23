@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-#include "src/engine/engine_setup.h"
-
 #include <openssl/engine.h>
 
-namespace kmsengine {
-namespace engine {
+#include "src/openssl_interface/engine_bind.h"
 
-int EngineInit(ENGINE *e) {
-  // TODO(zesp): Initialize necessary ex_data on ENGINE.
-  printf("Engine initialized!\n");
-  return 1;
-}
-
-int EngineFinish(ENGINE *e) {
-  // TODO(zesp): Deallocate data initialized in EngineInit.
-  return 1;
-}
-
-}  // namespace engine
-}  // namespace kmsengine
+// The macros below are defined in OpenSSL. They are needed so that OpenSSL
+// recognizes our library as an OpenSSL engine and so OpenSSL knows which
+// function in our library will bind our code to OpenSSL's ENGINE struct.
+IMPLEMENT_DYNAMIC_CHECK_FN();
+IMPLEMENT_DYNAMIC_BIND_FN(EngineBind);
