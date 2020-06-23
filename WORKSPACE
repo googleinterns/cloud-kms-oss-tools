@@ -28,8 +28,8 @@ git_repository(
 )
 
 # Load Google Cloud C++ API dependencies. This also imports other dependencies
-# (such as @com_google_googleapis, @com_github_googletest, and
-# @com_github_grpc_grpc).
+# (such as @com_google_googleapis, @com_github_googletest, @com_github_grpc_gpc,
+# @com_github_google_crc32c, and @com_google_absl).
 load("@com_github_googleapis_google_cloud_cpp//bazel:google_cloud_cpp_deps.bzl", "google_cloud_cpp_deps")
 
 google_cloud_cpp_deps()
