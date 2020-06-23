@@ -24,44 +24,18 @@ namespace kmsengine {
 namespace engine {
 namespace {
 
-// Test fixture for instantiating an OpenSSL ENGINE object.
-class EngineBindTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    engine = ENGINE_new();
-    ASSERT_NE(engine, nullptr);  // Sanity check for malloc errors.
-  }
+TEST(EngineBindTest, InitializesExpectedEngineStructFields) {
+  ENGINE *engine = ENGINE_new();
+  ASSERT_NE(engine, nullptr);  // Sanity check for malloc errors.
 
-  void TearDown() override {
-    ENGINE_free(engine);
-  }
-
-  ENGINE *engine;
-};
-
-TEST_F(EngineBindTest, SetsEngineId) {
   EngineBind(engine, NULL);
   EXPECT_STREQ(ENGINE_get_id(engine), kEngineId);
-}
-
-TEST_F(EngineBindTest, SetsEngineName) {
-  EngineBind(engine, NULL);
   EXPECT_STREQ(ENGINE_get_name(engine), kEngineName);
-}
-
-TEST_F(EngineBindTest, SetsInitFunction) {
-  EngineBind(engine, NULL);
   EXPECT_NE(ENGINE_get_init_function(engine), nullptr);
-}
-
-TEST_F(EngineBindTest, SetsFinishFunction) {
-  EngineBind(engine, NULL);
   EXPECT_NE(ENGINE_get_finish_function(engine), nullptr);
-}
-
-TEST_F(EngineBindTest, SetsNoRegisterAllFlag) {
-  EngineBind(engine, NULL);
   EXPECT_TRUE(ENGINE_get_flags(engine) & ENGINE_FLAGS_NO_REGISTER_ALL);
+
+  ENGINE_free(engine);
 }
 
 }  // namespace
