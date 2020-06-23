@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_OPENSSL_INTERFACE_ENGINE_SETUP_H_
-#define KMSENGINE_OPENSSL_INTERFACE_ENGINE_SETUP_H_
+#include "src/bridge/engine_bind.h"
 
 #include <openssl/engine.h>
 
+#include "src/bridge/engine_name.h"
+#include "src/bridge/engine_setup.h"
+
 namespace kmsengine {
-namespace openssl_interface {
+namespace bridge {
 
-// Initializes ENGINE substructures. Returns 1 on success and 0 if an error
-// occured.
-//
-// Used as the init_function in the OpenSSL engine. EngineBind is always called
-// prior to calling EngineInit.
-int EngineInit(ENGINE *e);
+extern "C" int EngineBind(ENGINE *e, const char *id) {
+  // ENGINE_FLAGS_NO_REGISTER_ALL tells OpenSSL that our engine does not
+  // supply implementations for all OpenSSL crypto methods.
+  if (!ENGINE_set_id(e, kEngineId) ||
+      !ENGINE_set_name(e, kEngineName) ||
+      !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
+      !ENGINE_set_init_function(e, EngineInit) ||
+      !ENGINE_set_finish_function(e, EngineFinish)) {
+    return 0;
+  }
+  return 1;
+}
 
-// Cleans up ENGINE substructures. Returns 1 on success and 0 if an error
-// occured.
-//
-// Used as the finish_function in the OpenSSL engine..
-int EngineFinish(ENGINE *e);
-
-}  // namespace openssl_interface
+}  // namespace bridge
 }  // namespace kmsengine
-
-#endif  // KMSENGINE_OPENSSL_INTERFACE_ENGINE_SETUP_H_

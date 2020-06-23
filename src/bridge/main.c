@@ -16,7 +16,7 @@
 
 #include <openssl/engine.h>
 
-#include "src/openssl_interface/engine_bind.h"
+#include "src/bridge/engine_bind.h"
 
 // The macros below are defined in OpenSSL. They are needed so that OpenSSL
 // recognizes our library as an OpenSSL engine and so OpenSSL knows which

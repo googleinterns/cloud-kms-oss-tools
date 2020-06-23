@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-#include "src/openssl_interface/engine_setup.h"
+#include "src/bridge/engine_setup.h"
 
 #include <openssl/engine.h>
 
 namespace kmsengine {
-namespace openssl_interface {
+namespace bridge {
 
 int EngineInit(ENGINE *e) {
   // TODO(zesp): Initialize necessary ex_data on ENGINE.
@@ -32,5 +32,5 @@ int EngineFinish(ENGINE *e) {
   return 1;
 }
 
-}  // namespace openssl_interface
+}  // namespace bridge
 }  // namespace kmsengine

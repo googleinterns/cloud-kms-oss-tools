@@ -14,21 +14,28 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_OPENSSL_INTERFACE_ENGINE_NAME_H_
-#define KMSENGINE_OPENSSL_INTERFACE_ENGINE_NAME_H_
+#ifndef KMSENGINE_OPENSSL_INTERFACE_ENGINE_SETUP_H_
+#define KMSENGINE_OPENSSL_INTERFACE_ENGINE_SETUP_H_
 
 #include <openssl/engine.h>
 
 namespace kmsengine {
-namespace openssl_interface {
+namespace bridge {
 
-// Short name that identifies the engine to OpenSSL.
-constexpr char kEngineId[] = "gcloudkms";
+// Initializes ENGINE substructures. Returns 1 on success and 0 if an error
+// occured.
+//
+// Used as the init_function in the OpenSSL engine. EngineBind is always called
+// prior to calling EngineInit.
+int EngineInit(ENGINE *e);
 
-// Longer, human-readable name for the OpenSSL engine.
-constexpr char kEngineName[] = "Google Cloud KMS Engine";
+// Cleans up ENGINE substructures. Returns 1 on success and 0 if an error
+// occured.
+//
+// Used as the finish_function in the OpenSSL engine..
+int EngineFinish(ENGINE *e);
 
-}  // namespace openssl_interface
+}  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_OPENSSL_INTERFACE_ENGINE_NAME_H_
+#endif  // KMSENGINE_OPENSSL_INTERFACE_ENGINE_SETUP_H_
