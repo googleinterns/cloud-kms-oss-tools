@@ -25,16 +25,9 @@ namespace kmsengine {
 namespace backing {
 namespace status {
 
-// Defines "reason codes" for possible error cases in our engine. Codes are
-// intended to be associated with human-readable error strings such that if our
-// engine signals to OpenSSL that an error occured due to reason with code
-// <code>, then OpenSSL will print out the human-readable string associated
-// with <code>.
-typedef absl::StatusCode StatusCode;
-
-std::string StatusCodeToString(StatusCode code) {
-  return absl::StatusCodeToString(code);
-}
+// Alias for absl::StatusCode. Used to define Status objects, which are in turn
+// used to define StatusOr<T> objects.
+using StatusCode = absl::StatusCode;
 
 }  // namespace status
 }  // namespace backing

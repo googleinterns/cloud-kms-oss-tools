@@ -36,6 +36,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/status/status.h"
 #include "src/backing/status/status_code.h"
 
 namespace kmsengine {
