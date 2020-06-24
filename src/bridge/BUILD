@@ -14,37 +14,36 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-cc_binary(
-    name = "libengine.so",
+package(default_visibility = ["//src:__subpackages__"])
+
+cc_library(
+    name = "bridge",
     srcs = ["main.c"],
-    deps = [":engine_bind"],
     linkopts = ["-lcrypto"],
-    linkshared = 1,  # Build as a shared object.
-    linkstatic = 0,
-    visibility = ["//visibility:public"],
+    deps = ["//src/bridge:engine_bind"],
 )
 
 cc_library(
     name = "engine_bind",
     srcs = ["engine_bind.cc"],
     hdrs = ["engine_bind.h"],
-    deps = [
-        ":engine_setup",
-        ":engine_name",
-    ],
     linkopts = ["-lcrypto"],
+    deps = [
+        ":engine_name",
+        ":engine_setup",
+    ],
 )
 
 cc_test(
     name = "engine_bind_test",
+    size = "small",
     srcs = ["engine_bind_test.cc"],
     deps = [
         ":engine_bind",
         "@com_google_googletest//:gtest_main",
     ],
-    size = "small",
 )
 
 cc_library(

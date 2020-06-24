@@ -16,23 +16,33 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
+package(default_visibility = ["//src:__subpackages__"])
+
+filegroup(
+    name = "headers",
+    srcs = glob(["**/*.h"]),
+)
+
 cc_library(
     name = "status_or",
-    hdrs = ["status_or.h"],
+    hdrs = [
+        "status_or.h",
+        "status_or_macros.h",
+    ],
     deps = [
-        ":status_code",
         ":status",
+        ":status_code",
     ],
 )
 
 cc_test(
     name = "status_or_test",
+    size = "small",
     srcs = ["status_or_test.cc"],
     deps = [
         ":status_or",
         "@com_google_googletest//:gtest_main",
     ],
-    size = "small",
 )
 
 cc_library(
@@ -44,12 +54,12 @@ cc_library(
 
 cc_test(
     name = "status_test",
+    size = "small",
     srcs = ["status_test.cc"],
     deps = [
         ":status",
         "@com_google_googletest//:gtest_main",
     ],
-    size = "small",
 )
 
 cc_library(

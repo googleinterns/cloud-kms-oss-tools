@@ -14,16 +14,25 @@
 # limitations under the License.
 #
 
-package(default_testonly = True)
+load("@rules_cc//cc:defs.bzl", "cc_binary")
 
-# sh_test rules cannot refer to non-sh_library or non-sh_binary dependencies in
-# the `deps` field. Thus, we include libengine.so as a `data` dependency. Then,
-# using Bazel's `rootpath` make variable, we retrieve the data path of
-# libengine.so and pass the path to the shell script as an argument via `args`.
-sh_test(
-    name = "load_engine_test",
-    size = "small",
-    srcs = ["load_engine_test.sh"],
-    args = ["$(rootpath //src:libengine.so)"],
-    data = ["//src:libengine.so"],
+package(default_visibility = ["//src:__subpackages__"])
+
+cc_import(
+    name = "backing",
+    hdrs = [":headers"],
+    shared_library = ":libkms.so",
+)
+
+filegroup(
+    name = "headers",
+    srcs = [
+        "//src/backing/status:headers",
+    ],
+)
+
+cc_binary(
+    name = "libkms.so",
+    linkshared = 1,  # Build as a shared object.
+    deps = ["//src/backing/status:status_or"],
 )
