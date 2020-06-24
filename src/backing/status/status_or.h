@@ -62,7 +62,7 @@
 //
 //  StatusOr<std::unique_ptr<Foo>> result = FooFactory::MakeNewFoo(arg);
 //  if (result.ok()) {
-//    std::unique_ptr<Foo> foo = result.ConsumeValueOrDie();
+//    std::unique_ptr<Foo> foo = result.ValueOrDie();
 //    foo->DoSomethingCool();
 //  } else {
 //    LOG(ERROR) << result.status();
@@ -151,8 +151,6 @@ class StatusOr {
   bool ok() const;
 
   // Returns a reference to our current value, or CHECK-fails if !this->ok().
-  // If you need to initialize a T object from the stored value,
-  // ConsumeValueOrDie() may be more efficient.
   const T& ValueOrDie() const;
   const T& value () const;
 
