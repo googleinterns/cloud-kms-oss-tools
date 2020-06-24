@@ -55,8 +55,7 @@ Status::Status(StatusCode error_code, std::string error_message)
 }
 
 Status::Status(const Status& other)
-    : error_code_(other.error_code_), error_message_(other.error_message_) {
-}
+    : error_code_(other.error_code_), error_message_(other.error_message_) {}
 
 Status& Status::operator=(const Status& other) {
   error_code_ = other.error_code_;
@@ -65,8 +64,7 @@ Status& Status::operator=(const Status& other) {
 }
 
 bool Status::operator==(const Status& x) const {
-  return error_code_ == x.error_code_ &&
-      error_message_ == x.error_message_;
+  return (error_code_ == x.error_code_) && (error_message_ == x.error_message_);
 }
 
 std::string Status::ToString() const {
@@ -76,8 +74,7 @@ std::string Status::ToString() const {
     if (error_message_.empty()) {
       return absl::StatusCodeToString(error_code_);
     } else {
-      return absl::StatusCodeToString(error_code_) + ":" +
-          error_message_;
+      return absl::StatusCodeToString(error_code_) + ":" + error_message_;
     }
   }
 }

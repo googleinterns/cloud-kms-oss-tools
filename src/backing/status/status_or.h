@@ -159,9 +159,7 @@ class StatusOr {
   T value_;
 };
 
-////////////////////////////////////////////////////////////////////////////////
-// Implementation details for StatusOr<T>
-
+// internal contains implementation details for StatusOr.
 namespace internal {
 
 class StatusOrHelper {
@@ -196,7 +194,8 @@ inline StatusOr<T>::StatusOr()
 template<typename T>
 inline StatusOr<T>::StatusOr(const Status& status) {
   if (status.ok()) {
-    status_ = Status(StatusCode::kInternal, "Status::kOkStatus is not a valid argument.");
+    status_ = Status(StatusCode::kInternal,
+                     "Status::kOkStatus is not a valid argument.");
   } else {
     status_ = status;
   }

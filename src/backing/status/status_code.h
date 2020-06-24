@@ -30,8 +30,6 @@ namespace status {
 // engine signals to OpenSSL that an error occured due to reason with code
 // <code>, then OpenSSL will print out the human-readable string associated
 // with <code>.
-//
-// See error_string.h for the human-readable error strings.
 typedef absl::StatusCode StatusCode;
 
 std::string StatusCodeToString(StatusCode code) {

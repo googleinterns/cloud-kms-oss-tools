@@ -56,17 +56,18 @@ limitations under the License.
     }                                       \
   } while (false)
 
-// Identifier concatenation helper macros.
+// Helper macros to create identifiers from concatenation.
 #define __KMSENGINE_MACRO_CONCAT_INNER(__x, __y) __x##__y
-#define __KMSENGINE_MACRO_CONCAT(__x, __y) __KMSENGINE_MACRO_CONCAT_INNER(__x, __y)
+#define __KMSENGINE_MACRO_CONCAT(__x, __y) \
+  __KMSENGINE_MACRO_CONCAT_INNER(__x, __y)
 
-// Implementation of KMSENGINE_ASSIGN_OR_RETURN that uses a unique temporary identifier
-// for avoiding collision in the enclosing scope.
+// Implementation of KMSENGINE_ASSIGN_OR_RETURN that uses a unique temporary
+// identifier for avoiding collision in the enclosing scope.
 #define __KMSENGINE_ASSIGN_OR_RETURN_IMPL(__lhs, __rhs, __name) \
-  auto __name = (__rhs);                                      \
-  if (!__name.ok()) {                 \
-    return __name.status();                                   \
-  }                                                           \
+  auto __name = (__rhs);                                        \
+  if (!__name.ok()) {                                           \
+    return __name.status();                                     \
+  }                                                             \
   __lhs = std::move(__name.ValueOrDie());
 
 // Early-returns the status if it is in error; otherwise, assigns the
@@ -74,7 +75,9 @@ limitations under the License.
 //
 // The right-hand-side expression is guaranteed to be evaluated exactly once.
 #define KMSENGINE_ASSIGN_OR_RETURN(__lhs, __rhs) \
-  __KMSENGINE_ASSIGN_OR_RETURN_IMPL(__lhs, __rhs,  \
-                           __KMSENGINE_MACRO_CONCAT(__status_or_value, __COUNTER__))
+  __KMSENGINE_ASSIGN_OR_RETURN_IMPL(             \
+    __lhs, __rhs,                                \
+    __KMSENGINE_MACRO_CONCAT(__status_or_value,  \
+                             __COUNTER__))
 
 #endif  // KMSENGINE_KMS_INTERFACE_STATUS_MACROS_H_
