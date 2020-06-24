@@ -28,12 +28,14 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#include "src/kms_interface/status/status.h"
+#include "src/backing/status/status.h"
 
 #include <ostream>
 #include <stdio.h>
 #include <string>
 #include <utility>
+
+#include "src/backing/status/status_code.h"
 
 namespace kmsengine {
 namespace backing {

@@ -38,14 +38,17 @@
 // The primary use-case for StatusOr<T> is as the return value of a
 // function which may fail.
 
-#ifndef GOOGLE_PROTOBUF_STUBS_STATUSOR_H_
-#define GOOGLE_PROTOBUF_STUBS_STATUSOR_H_
+#ifndef GOOGLE_PROTOBUF_STUBS_STATUS_OR_H_
+#define GOOGLE_PROTOBUF_STUBS_STATUS_OR_H_
+
+#include "src/backing/status/status_or.h"
 
 #include <new>
 #include <string>
 #include <utility>
 
-#include <google/protobuf/stubs/status.h>
+#include "src/backing/status/status.h"
+#include "src/backing/status/status_code.h"
 
 namespace kmsengine {
 namespace backing {
@@ -225,4 +228,4 @@ inline const T& StatusOr<T>::value() const {
 }  // namespace backing
 }  // namespace kmsengine
 
-#endif  // GOOGLE_PROTOBUF_STUBS_STATUSOR_H_
+#endif  // GOOGLE_PROTOBUF_STUBS_STATUS_OR_H_

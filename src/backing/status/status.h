@@ -33,6 +33,8 @@
 #include <iosfwd>
 #include <string>
 
+#include "src/backing/status/status_code.h"
+
 namespace kmsengine {
 namespace backing {
 namespace status {
