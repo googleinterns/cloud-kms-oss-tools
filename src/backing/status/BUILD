@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "status_or",
@@ -25,6 +25,16 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "status_or_test",
+    srcs = ["status_or_test.cc"],
+    deps = [
+        ":status_or",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)
+
 cc_library(
     name = "status",
     srcs = ["status.cc"],
@@ -32,7 +42,18 @@ cc_library(
     deps = [":status_code"],
 )
 
+cc_test(
+    name = "status_test",
+    srcs = ["status_test.cc"],
+    deps = [
+        ":status",
+        "@com_google_googletest//:gtest_main",
+    ],
+    size = "small",
+)
+
 cc_library(
     name = "status_code",
     hdrs = ["status_code.h"],
+    deps = ["@com_google_absl//absl/status"],
 )

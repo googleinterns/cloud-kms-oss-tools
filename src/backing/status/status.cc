@@ -41,17 +41,16 @@ namespace kmsengine {
 namespace backing {
 namespace status {
 
-const Status Status::OK = Status();
-const Status Status::CANCELLED = Status(StatusCode::kCancelled, "");
-const Status Status::UNKNOWN = Status(StatusCode::kUnknown, "");
+const Status Status::kOkStatus = Status();
+const Status Status::kCancelledStatus = Status(StatusCode::kCancelled, "");
+const Status Status::kUnknownStatus = Status(StatusCode::kUnknown, "");
 
-Status::Status() : error_code_(StatusCode::kOk) {
-}
+Status::Status() : error_code_(StatusCode::kOk) {}
 
 Status::Status(StatusCode error_code, std::string error_message)
     : error_code_(error_code) {
-  if (error_code != error::OK) {
-    error_message_ = error_message.ToString();
+  if (error_code != StatusCode::kOk) {
+    error_message_ = error_message;
   }
 }
 
@@ -70,14 +69,14 @@ bool Status::operator==(const Status& x) const {
       error_message_ == x.error_message_;
 }
 
-string Status::ToString() const {
-  if (error_code_ == error::OK) {
+std::string Status::ToString() const {
+  if (error_code_ == StatusCode::kOk) {
     return "OK";
   } else {
     if (error_message_.empty()) {
-      return StatusCodeToString(error_code_);
+      return absl::StatusCodeToString(error_code_);
     } else {
-      return StatusCodeToString(error_code_) + ":" +
+      return absl::StatusCodeToString(error_code_) + ":" +
           error_message_;
     }
   }

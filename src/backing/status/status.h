@@ -27,8 +27,8 @@
 // THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#ifndef GOOGLE_PROTOBUF_STUBS_STATUS_H_
-#define GOOGLE_PROTOBUF_STUBS_STATUS_H_
+#ifndef KMSENGINE_BACKING_STATUS_STATUS_H_
+#define KMSENGINE_BACKING_STATUS_STATUS_H_
 
 #include <iosfwd>
 #include <string>
@@ -39,13 +39,13 @@ namespace kmsengine {
 namespace backing {
 namespace status {
 
-class PROTOBUF_EXPORT Status {
+class Status {
  public:
   // Creates a "successful" status.
   Status();
 
   // Create a status in the canonical error space with the specified
-  // code, and error message.  If "code == 0", error_message is
+  // code, and error message.  If "code == StatusCode::kOk", error_message is
   // ignored and a Status object identical to Status::OK is
   // constructed.
   Status(StatusCode error_code, std::string error_message);
@@ -54,18 +54,18 @@ class PROTOBUF_EXPORT Status {
   ~Status() {}
 
   // Some pre-defined Status objects
-  static const Status OK;             // Identical to 0-arg constructor
-  static const Status CANCELLED;
-  static const Status UNKNOWN;
+  static const Status kOkStatus;             // Identical to 0-arg constructor
+  static const Status kCancelledStatus;
+  static const Status kUnknownStatus;
 
   // Accessor
   bool ok() const {
-    return error_code_ == error::OK;
+    return error_code_ == StatusCode::kOk;
   }
-  int error_code() const {
+  StatusCode error_code() const {
     return error_code_;
   }
-  error::Code code() const {
+  StatusCode code() const {
     return error_code_;
   }
   std::string error_message() const {
@@ -95,4 +95,4 @@ std::ostream& operator<<(std::ostream& os, const Status& x);
 }  // namespace backing
 }  // namespace kmsengine
 
-#endif  // GOOGLE_PROTOBUF_STUBS_STATUS_H_
+#endif  // KMSENGINE_BACKING_STATUS_STATUS_H_

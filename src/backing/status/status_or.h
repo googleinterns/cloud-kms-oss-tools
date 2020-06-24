@@ -37,9 +37,51 @@
 //
 // The primary use-case for StatusOr<T> is as the return value of a
 // function which may fail.
+//
+// Example client usage for a StatusOr<T>, where T is not a pointer:
+//
+//  StatusOr<float> result = DoBigCalculationThatCouldFail();
+//  if (result.ok()) {
+//    float answer = result.ValueOrDie();
+//    printf("Big calculation yielded: %f", answer);
+//  } else {
+//    LOG(ERROR) << result.status();
+//  }
+//
+// Example client usage for a StatusOr<T*>:
+//
+//  StatusOr<Foo*> result = FooFactory::MakeNewFoo(arg);
+//  if (result.ok()) {
+//    std::unique_ptr<Foo> foo(result.ValueOrDie());
+//    foo->DoSomethingCool();
+//  } else {
+//    LOG(ERROR) << result.status();
+//  }
+//
+// Example client usage for a StatusOr<std::unique_ptr<T>>:
+//
+//  StatusOr<std::unique_ptr<Foo>> result = FooFactory::MakeNewFoo(arg);
+//  if (result.ok()) {
+//    std::unique_ptr<Foo> foo = result.ConsumeValueOrDie();
+//    foo->DoSomethingCool();
+//  } else {
+//    LOG(ERROR) << result.status();
+//  }
+//
+// Example factory implementation returning StatusOr<T*>:
+//
+//  StatusOr<Foo*> FooFactory::MakeNewFoo(int arg) {
+//    if (arg <= 0) {
+//      return ::Status(::StatusCode::kInvalidArgument,
+//                            "Arg must be positive");
+//    } else {
+//      return new Foo(arg);
+//    }
+//  }
+//
 
-#ifndef GOOGLE_PROTOBUF_STUBS_STATUS_OR_H_
-#define GOOGLE_PROTOBUF_STUBS_STATUS_OR_H_
+#ifndef KMSENGINE_BACKING_STATUS_STATUS_OR_H_
+#define KMSENGINE_BACKING_STATUS_STATUS_OR_H_
 
 #include "src/backing/status/status_or.h"
 
@@ -59,7 +101,7 @@ class StatusOr {
   template<typename U> friend class StatusOr;
 
  public:
-  // Construct a new StatusOr with Status::UNKNOWN status
+  // Construct a new StatusOr with Status::kUnknownStatus status
   StatusOr();
 
   // Construct a new StatusOr with the given non-ok status. After calling
@@ -126,7 +168,7 @@ namespace internal {
 
 class StatusOrHelper {
  public:
-  static void Crash(const util::Status& status) {
+  static void Crash(const Status& status) {
     std::abort();
   }
 
@@ -150,13 +192,13 @@ struct StatusOrHelper::Specialize<T*> {
 
 template<typename T>
 inline StatusOr<T>::StatusOr()
-    : status_(util::Status::UNKNOWN) {
+    : status_(Status::kUnknownStatus) {
 }
 
 template<typename T>
 inline StatusOr<T>::StatusOr(const Status& status) {
   if (status.ok()) {
-    status_ = Status(StatusCode::kInternal, "StatusCode::kOk is not a valid argument.");
+    status_ = Status(StatusCode::kInternal, "Status::kOkStatus is not a valid argument.");
   } else {
     status_ = status;
   }
@@ -167,7 +209,7 @@ inline StatusOr<T>::StatusOr(const T& value) {
   if (internal::StatusOrHelper::Specialize<T>::IsValueNull(value)) {
     status_ = Status(StatusCode::kInternal, "nullptr is not a valid argument.");
   } else {
-    status_ = StatusCode::kOk;
+    status_ = Status::kOkStatus;
     value_ = value;
   }
 }
@@ -228,4 +270,4 @@ inline const T& StatusOr<T>::value() const {
 }  // namespace backing
 }  // namespace kmsengine
 
-#endif  // GOOGLE_PROTOBUF_STUBS_STATUS_OR_H_
+#endif  // KMSENGINE_BACKING_STATUS_STATUS_OR_H_
