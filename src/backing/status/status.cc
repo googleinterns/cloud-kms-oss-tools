@@ -30,8 +30,9 @@
 
 #include "src/backing/status/status.h"
 
-#include <ostream>
 #include <stdio.h>
+
+#include <ostream>
 #include <string>
 #include <utility>
 
