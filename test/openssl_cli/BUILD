@@ -24,6 +24,6 @@ sh_test(
     name = "load_engine_test",
     size = "small",
     srcs = ["load_engine_test.sh"],
-    args = ["$(rootpath //src/libengine:libengine.so)"],
-    data = ["//src/libengine:libengine.so"],
+    args = ["$(rootpath //src/bridge:libengine.so)"],
+    data = ["//src/bridge:libengine.so"],
 )
