@@ -23,17 +23,29 @@
 
 namespace kmsengine {
 namespace bridge {
+namespace {
+
+int EngineDestroy(ENGINE *e) {
+  error::UnloadErrorStringsFromOpenSSL();
+}
+
+}  // namespace
 
 extern "C" int EngineBind(ENGINE *e, const char *id) {
+
   // ENGINE_FLAGS_NO_REGISTER_ALL tells OpenSSL that our engine does not
   // supply implementations for all OpenSSL crypto methods.
   if (!ENGINE_set_id(e, kEngineId) ||
       !ENGINE_set_name(e, kEngineName) ||
       !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
       !ENGINE_set_init_function(e, EngineInit) ||
-      !ENGINE_set_finish_function(e, EngineFinish)) {
+      !ENGINE_set_finish_function(e, EngineFinish) ||
+      !ENGINE_set_destroy_function(e, EngineDestroy)) {
     return 0;
   }
+
+  error::LoadErrorStringsIntoOpenSSL();
+
   return 1;
 }
 
