@@ -1,0 +1,38 @@
+#
+# Copyright 2020 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//src:__subpackages__"])
+
+cc_library(
+    name = "error_handler",
+    srcs = ["error_handler.cc"],
+    hdrs = ["error_handler.h"],
+    deps = [":function_code", ":error_strings"],
+)
+
+cc_library(
+    name = "error_strings",
+    srcs = ["error_strings.cc"],
+    hdrs = ["error_strings.h"],
+    deps = [":function_code"],
+)
+
+cc_library(
+    name = "function_code",
+    hdrs = ["function_code.h"],
+)
