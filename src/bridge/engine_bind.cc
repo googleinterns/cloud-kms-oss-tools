@@ -25,6 +25,12 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+// Destroys the ENGINE context.
+//
+// This function should perform any cleanup of structures that were created in
+// EngineBind. It should also unload error strings.
+//
+// EngineFinish will have executed before EngineDestroy is called.
 int EngineDestroy(ENGINE *e) {
   error::UnloadErrorStringsFromOpenSSL();
 }
@@ -32,7 +38,6 @@ int EngineDestroy(ENGINE *e) {
 }  // namespace
 
 extern "C" int EngineBind(ENGINE *e, const char *id) {
-
   // ENGINE_FLAGS_NO_REGISTER_ALL tells OpenSSL that our engine does not
   // supply implementations for all OpenSSL crypto methods.
   if (!ENGINE_set_id(e, kEngineId) ||
@@ -45,7 +50,6 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
   }
 
   error::LoadErrorStringsIntoOpenSSL();
-
   return 1;
 }
 
