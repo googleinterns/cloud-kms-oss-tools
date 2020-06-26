@@ -21,25 +21,71 @@
 
 #include <openssl/err.h>
 
+#include "absl/status/status.h"
+#include "src/backing/status/status_code.h"
 #include "src/bridge/error/function_code.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace error {
 
-// Generates a vector of `ERR_STRING_DATA` structs that map `StatusCodes` to
-// human-readable error strings. These structs should be passed to OpenSSL as
-// an array in a call to `ERR_load_strings` to associate the strings with each
-// of the status codes.
-std::vector<ERR_STRING_DATA> MakeReasonErrorStrings();
+// Returns an Open-SSL friendly error code for the given StatusCode. Helper
+// function meant for constructing an ERR_STRING_DATA object.
+inline unsigned long PackReasonCode(StatusCode reason);
 
-// Generates a vector of `ERR_STRING_DATA` structs that map `StatusCodes` to
-// human-readable error strings. These structs should be passed to OpenSSL as
-// an array in a call to `ERR_load_strings` to associate the strings with each
-// of the status codes.
-std::vector<ERR_STRING_DATA> MakeFunctionErrorStrings() {
-  return kFunctionStrings;
-}
+// Returns an OpenSSL-friendly error code for the given FunctionCode. Helper
+// function meant for constructing an ERR_STRING_DATA object.
+inline unsigned long PackFunctionCode(FunctionCode func);
+
+// Map from StatusCodes to human-readable strings.
+const ERR_STRING_DATA kReasonStrings[] = {
+  {PackReasonCode(StatusCode::kOk),
+      absl::StatusCodeToString(StatusCode::kOk)}
+  {PackReasonCode(StatusCode::kCancelled),
+      absl::StatusCodeToString(StatusCode::kCancelled)}
+  {PackReasonCode(StatusCode::kUnknown),
+      absl::StatusCodeToString(StatusCode::kUnknown)}
+  {PackReasonCode(StatusCode::kInvalidArgument),
+      absl::StatusCodeToString(StatusCode::kInvalidArgument)}
+  {PackReasonCode(StatusCode::kDeadlineExceeded),
+      absl::StatusCodeToString(StatusCode::kDeadlineExceeded)}
+  {PackReasonCode(StatusCode::kNotFound),
+      absl::StatusCodeToString(StatusCode::kNotFound)}
+  {PackReasonCode(StatusCode::kAlreadyExists),
+      absl::StatusCodeToString(StatusCode::kAlreadyExists)}
+  {PackReasonCode(StatusCode::kPermissionDenied),
+      absl::StatusCodeToString(StatusCode::kPermissionDenied)}
+  {PackReasonCode(StatusCode::kResourceExhausted),
+      absl::StatusCodeToString(StatusCode::kResourceExhausted)}
+  {PackReasonCode(StatusCode::kFailedPrecondition),
+      absl::StatusCodeToString(StatusCode::kFailedPrecondition)}
+  {PackReasonCode(StatusCode::kAborted),
+      absl::StatusCodeToString(StatusCode::kAborted)}
+  {PackReasonCode(StatusCode::kOutOfRange),
+      absl::StatusCodeToString(StatusCode::kOutOfRange)}
+  {PackReasonCode(StatusCode::kUnimplemented),
+      absl::StatusCodeToString(StatusCode::kUnimplemented)}
+  {PackReasonCode(StatusCode::kInternal),
+      absl::StatusCodeToString(StatusCode::kInternal)}
+  {PackReasonCode(StatusCode::kUnavailable),
+      absl::StatusCodeToString(StatusCode::kUnavailable)}
+  {PackReasonCode(StatusCode::kDataLoss),
+      absl::StatusCodeToString(StatusCode::kDataLoss)}
+  {PackReasonCode(StatusCode::kUnauthenticated),
+      absl::StatusCodeToString(StatusCode::kUnauthenticated)}
+  {0, 0},
+};
+
+// Map from FunctionCodes to human-readable strings.
+const ERR_STRING_DATA kFunctionStrings[] = {
+  {PackFunctionCode(FunctionCode::kRsaPubEnc), "RsaPubEnc"},
+  {PackFunctionCode(FunctionCode::kRsaPubDec), "RsaPubDec"},
+  {PackFunctionCode(FunctionCode::kRsaPrivEnc), "RsaPrivEnc"},
+  {PackFunctionCode(FunctionCode::kRsaPrivDec), "RsaPrivDec"},
+  {PackFunctionCode(FunctionCode::kRsaSign), "RsaSign"},
+  {PackFunctionCode(FunctionCode::kRsaVerify), "RsaVerify"},
+  {0, 0},
+};
 
 }  // namespace error
 }  // namespace bridge

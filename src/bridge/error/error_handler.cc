@@ -20,6 +20,7 @@
 
 #include <openssl/err.h>
 
+#include "src/backing/status/status_code.h"
 #include "src/bridge/error/error_strings.h"
 #include "src/bridge/error/function_code.h"
 
@@ -27,20 +28,19 @@ namespace kmsengine {
 namespace bridge {
 namespace error {
 
-static const std::vector<ERR_STRING_DATA> reason_strings = MakeReasonStrings();
-static const std::vector<ERR_STRING_DATA> function_strings = MakeFunctionStrings();
-static const OpenSSLLibraryCodeHandler code_handler;
+// OpenSSL engines request a library code using ERR_get_next_error_library(3)
+// with which they can register engine-specific, human-readable error strings
+// with OpenSSL.
+static const int library_code = ERR_get_next_error_library();
 
 void LoadErrorStringsIntoOpenSSL() {
-  auto library_code = code_handler.GetLibraryCode();
-  ERR_load_strings(library_code, function_strings.data());
-  ERR_load_strings(library_code, reason_strings.data());
+  ERR_load_strings(library_code, kFunctionStrings);
+  ERR_load_strings(library_code, kReasonStrings);
 }
 
 void UnloadErrorStringsFromOpenSSL() {
-  auto library_code = code_handler.GetLibraryCode();
-  ERR_unload_strings(library_code, function_strings.data());
-  ERR_unload_strings(library_code, reason_strings.data());
+  ERR_unload_strings(library_code, kFunctionStrings);
+  ERR_unload_strings(library_code, kReasonStrings);
 }
 
 void ErrEngineError(FunctionCode function, StatusCode reason, char *file, int line) {

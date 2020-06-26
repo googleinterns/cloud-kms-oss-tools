@@ -19,7 +19,8 @@
 
 #include <stdio.h>
 
-#include <openssl/err.h>
+#include "src/backing/status/status_code.h"
+#include "src/bridge/error/function_code.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -64,7 +65,7 @@ void UnloadErrorStringsFromOpenSSL();
 // function `function` at file `file` on line `line`.
 //
 // KMSENGINE_ERROR should generally be used instead of ErrEngineError.
-void ErrEngineError(int function, int reason, char *file, int line);
+void ErrEngineError(FunctionCode function, StatusCode reason, char *file, int line);
 
 }  // namespace error
 }  // namespace bridge
