@@ -15,12 +15,16 @@
 
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
 
+"""
+Google Cloud C++ API dependencies.
+"""
+
 # Import Google APIs with C++ rules.
 git_repository(
     name = "com_github_googleapis_google_cloud_cpp",
     commit = "a09f1358b3420fec9848629d2255a84e39182c45",
-    remote = "https://github.com/googleapis/google-cloud-cpp",
     shallow_since = "1591023861 -0400",
+    remote = "https://github.com/googleapis/google-cloud-cpp",
 )
 
 # Load Google Cloud C++ API dependencies. This also imports other dependencies
@@ -47,5 +51,3 @@ grpc_deps()
 load("@com_github_grpc_grpc//bazel:grpc_extra_deps.bzl", "grpc_extra_deps")
 
 grpc_extra_deps()
-
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
