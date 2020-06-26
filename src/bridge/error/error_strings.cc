@@ -25,20 +25,23 @@ namespace kmsengine {
 namespace bridge {
 namespace error {
 
-inline unsigned long PackReasonCode(StatusCode reason) {
+unsigned long PackReasonCode(StatusCode reason) {
   // The first argument to ERR_PACK will be packed in by OpenSSL, so leave it
   // as 0. The second argument is a "function code" (left as 0 since the reason
   // strings are separately loaded from the function strings). The second
   // argument is a "reason code" defined by our engine.
-  return ERR_PACK(0, 0, static_cast<std::underlying_type<StatusCode>>(reason));
+  return ERR_PACK(0, 0,
+                  static_cast<std::underlying_type<StatusCode>::type>(reason));
 }
 
-inline unsigned long PackFunctionCode(FunctionCode func) {
+unsigned long PackFunctionCode(FunctionCode func) {
   // The first argument to ERR_PACK will be packed in by OpenSSL, so leave it
   // as 0. The second argument is a "function code" defined by our engine. The
   // third argument is a "reason code" (left as 0 since the reason strings are
   // separately loaded from the function strings).
-  return ERR_PACK(0, static_cast<std::underlying_type<FunctionCode>>(func), 0);
+  return ERR_PACK(0,
+                  static_cast<std::underlying_type<FunctionCode>::type>(func),
+                  0);
 }
 
 }  // namespace error

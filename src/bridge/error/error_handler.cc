@@ -34,20 +34,24 @@ namespace error {
 static const int library_code = ERR_get_next_error_library();
 
 void LoadErrorStringsIntoOpenSSL() {
-  ERR_load_strings(library_code, kFunctionStrings);
-  ERR_load_strings(library_code, kReasonStrings);
+  ERR_load_strings(library_code,
+                   const_cast<ERR_STRING_DATA*>(kFunctionStrings));
+  ERR_load_strings(library_code,
+                   const_cast<ERR_STRING_DATA*>(kReasonStrings));
 }
 
 void UnloadErrorStringsFromOpenSSL() {
-  ERR_unload_strings(library_code, kFunctionStrings);
-  ERR_unload_strings(library_code, kReasonStrings);
+  ERR_unload_strings(library_code,
+                     const_cast<ERR_STRING_DATA*>(kFunctionStrings));
+  ERR_unload_strings(library_code,
+                     const_cast<ERR_STRING_DATA*>(kReasonStrings));
 }
 
-void ErrEngineError(FunctionCode function, StatusCode reason, char *file, int line) {
-  auto library_code = code_handler.GetLibraryCode();
+void ErrEngineError(FunctionCode function, StatusCode reason, char *file,
+                    int line) {
   ERR_PUT_error(library_code,
-                static_cast<std::underlying_type<FunctionCode>>(function),
-                static_cast<std::underlying_type<StatusCode>>(reason),
+                static_cast<std::underlying_type<FunctionCode>::type>(function),
+                static_cast<std::underlying_type<StatusCode>::type>(reason),
                 file, line);
 }
 

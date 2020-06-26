@@ -21,7 +21,6 @@
 
 #include <openssl/err.h>
 
-#include "absl/status/status.h"
 #include "src/backing/status/status_code.h"
 #include "src/bridge/error/function_code.h"
 
@@ -31,48 +30,31 @@ namespace error {
 
 // Returns an Open-SSL friendly error code for the given StatusCode. Helper
 // function meant for constructing an ERR_STRING_DATA object.
-inline unsigned long PackReasonCode(StatusCode reason);
+unsigned long PackReasonCode(StatusCode reason);
 
 // Returns an OpenSSL-friendly error code for the given FunctionCode. Helper
 // function meant for constructing an ERR_STRING_DATA object.
-inline unsigned long PackFunctionCode(FunctionCode func);
+unsigned long PackFunctionCode(FunctionCode func);
 
 // Map from StatusCodes to human-readable strings.
 const ERR_STRING_DATA kReasonStrings[] = {
-  {PackReasonCode(StatusCode::kOk),
-      absl::StatusCodeToString(StatusCode::kOk)}
-  {PackReasonCode(StatusCode::kCancelled),
-      absl::StatusCodeToString(StatusCode::kCancelled)}
-  {PackReasonCode(StatusCode::kUnknown),
-      absl::StatusCodeToString(StatusCode::kUnknown)}
-  {PackReasonCode(StatusCode::kInvalidArgument),
-      absl::StatusCodeToString(StatusCode::kInvalidArgument)}
-  {PackReasonCode(StatusCode::kDeadlineExceeded),
-      absl::StatusCodeToString(StatusCode::kDeadlineExceeded)}
-  {PackReasonCode(StatusCode::kNotFound),
-      absl::StatusCodeToString(StatusCode::kNotFound)}
-  {PackReasonCode(StatusCode::kAlreadyExists),
-      absl::StatusCodeToString(StatusCode::kAlreadyExists)}
-  {PackReasonCode(StatusCode::kPermissionDenied),
-      absl::StatusCodeToString(StatusCode::kPermissionDenied)}
-  {PackReasonCode(StatusCode::kResourceExhausted),
-      absl::StatusCodeToString(StatusCode::kResourceExhausted)}
-  {PackReasonCode(StatusCode::kFailedPrecondition),
-      absl::StatusCodeToString(StatusCode::kFailedPrecondition)}
-  {PackReasonCode(StatusCode::kAborted),
-      absl::StatusCodeToString(StatusCode::kAborted)}
-  {PackReasonCode(StatusCode::kOutOfRange),
-      absl::StatusCodeToString(StatusCode::kOutOfRange)}
-  {PackReasonCode(StatusCode::kUnimplemented),
-      absl::StatusCodeToString(StatusCode::kUnimplemented)}
-  {PackReasonCode(StatusCode::kInternal),
-      absl::StatusCodeToString(StatusCode::kInternal)}
-  {PackReasonCode(StatusCode::kUnavailable),
-      absl::StatusCodeToString(StatusCode::kUnavailable)}
-  {PackReasonCode(StatusCode::kDataLoss),
-      absl::StatusCodeToString(StatusCode::kDataLoss)}
-  {PackReasonCode(StatusCode::kUnauthenticated),
-      absl::StatusCodeToString(StatusCode::kUnauthenticated)}
+  {PackReasonCode(StatusCode::kOk), "ok"},
+  {PackReasonCode(StatusCode::kCancelled), "cancelled"},
+  {PackReasonCode(StatusCode::kUnknown), "unknown"},
+  {PackReasonCode(StatusCode::kInvalidArgument), "invalid argument"},
+  {PackReasonCode(StatusCode::kDeadlineExceeded), "deadline exceeded"},
+  {PackReasonCode(StatusCode::kNotFound), "not found"},
+  {PackReasonCode(StatusCode::kAlreadyExists), "already exists"},
+  {PackReasonCode(StatusCode::kPermissionDenied), "permission denied"},
+  {PackReasonCode(StatusCode::kResourceExhausted), "resource exhausted"},
+  {PackReasonCode(StatusCode::kFailedPrecondition), "failed precondition"},
+  {PackReasonCode(StatusCode::kAborted), "aborted"},
+  {PackReasonCode(StatusCode::kOutOfRange), "out of range"},
+  {PackReasonCode(StatusCode::kUnimplemented), "unimplemented"},
+  {PackReasonCode(StatusCode::kInternal), "internal"},
+  {PackReasonCode(StatusCode::kUnavailable), "unavailable"},
+  {PackReasonCode(StatusCode::kDataLoss), "data loss"},
+  {PackReasonCode(StatusCode::kUnauthenticated), "unauthenticated"},
   {0, 0},
 };
 

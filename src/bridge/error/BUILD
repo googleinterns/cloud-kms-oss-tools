@@ -22,14 +22,22 @@ cc_library(
     name = "error_handler",
     srcs = ["error_handler.cc"],
     hdrs = ["error_handler.h"],
-    deps = [":function_code", ":error_strings"],
+    deps = [
+        ":error_strings",
+        ":function_code",
+        "//src/backing/status:status_code",
+
+    ],
 )
 
 cc_library(
     name = "error_strings",
     srcs = ["error_strings.cc"],
     hdrs = ["error_strings.h"],
-    deps = [":function_code"],
+    deps = [":function_code",
+
+        "//src/backing/status:status_code",
+    ],
 )
 
 cc_library(
