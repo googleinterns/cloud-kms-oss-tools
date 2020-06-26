@@ -22,15 +22,13 @@
 #include "absl/status/status.h"
 
 namespace kmsengine {
-namespace backing {
-namespace status {
 
 // Alias for absl::StatusCode. Used to define Status objects, which are in turn
 // used to define StatusOr<T> objects.
+//
+// Defined at the top-level namespace for convenience.
 using StatusCode = absl::StatusCode;
 
-}  // namespace status
-}  // namespace backing
 }  // namespace kmsengine
 
 #endif  // KMSENGINE_KMS_INTERFACE_STATUS_STATUS_CODE_H_
