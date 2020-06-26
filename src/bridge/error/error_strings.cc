@@ -28,7 +28,7 @@ namespace error {
 unsigned long PackReasonCode(StatusCode reason) {
   // The first argument to ERR_PACK will be packed in by OpenSSL, so leave it
   // as 0. The second argument is a "function code" (left as 0 since the reason
-  // strings are separately loaded from the function strings). The second
+  // strings are separately loaded from the function strings). The third
   // argument is a "reason code" defined by our engine.
   return ERR_PACK(0, 0,
                   static_cast<std::underlying_type<StatusCode>::type>(reason));
