@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BRIDGE_ERROR_ERROR_HANDLER_H_
-#define KMSENGINE_BRIDGE_ERROR_ERROR_HANDLER_H_
+#ifndef KMSENGINE_BRIDGE_ERROR_ERROR_H_
+#define KMSENGINE_BRIDGE_ERROR_ERROR_H_
 
 #include <stdio.h>
 
@@ -71,4 +71,4 @@ void ErrEngineError(FunctionCode function, StatusCode reason, char *file, int li
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BRIDGE_ERROR_ERROR_HANDLER_H_
+#endif  // KMSENGINE_BRIDGE_ERROR_ERROR_H_
