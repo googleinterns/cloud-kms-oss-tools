@@ -19,9 +19,9 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
-    name = "error_handler",
-    srcs = ["error_handler.cc"],
-    hdrs = ["error_handler.h"],
+    name = "error",
+    srcs = ["error.cc"],
+    hdrs = ["error.h"],
     deps = [
         ":error_strings",
         ":function_code",

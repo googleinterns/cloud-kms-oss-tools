@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/bridge/error/error_handler.h"
+#include "src/bridge/error/error.h"
 
 #include <stdio.h>
 

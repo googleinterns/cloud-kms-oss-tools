@@ -33,6 +33,7 @@ cc_library(
     deps = [
         ":engine_name",
         ":engine_setup",
+        "//src/bridge/error",
     ],
 )
 

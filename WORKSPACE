@@ -23,8 +23,8 @@ Google Cloud C++ API dependencies.
 git_repository(
     name = "com_github_googleapis_google_cloud_cpp",
     commit = "a09f1358b3420fec9848629d2255a84e39182c45",
-    shallow_since = "1591023861 -0400",
     remote = "https://github.com/googleapis/google-cloud-cpp",
+    shallow_since = "1591023861 -0400",
 )
 
 # Load Google Cloud C++ API dependencies. This also imports other dependencies

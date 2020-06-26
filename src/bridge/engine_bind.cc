@@ -20,6 +20,7 @@
 
 #include "src/bridge/engine_name.h"
 #include "src/bridge/engine_setup.h"
+#include "src/bridge/error/error.h"
 
 namespace kmsengine {
 namespace bridge {
