@@ -26,7 +26,6 @@ cc_library(
         ":error_strings",
         ":function_code",
         "//src/backing/status:status_code",
-
     ],
 )
 
@@ -34,9 +33,19 @@ cc_library(
     name = "error_strings",
     srcs = ["error_strings.cc"],
     hdrs = ["error_strings.h"],
-    deps = [":function_code",
-
+    deps = [
+        ":function_code",
         "//src/backing/status:status_code",
+    ],
+)
+
+cc_test(
+    name = "error_strings_test",
+    size = "small",
+    srcs = ["error_strings_test.cc"],
+    deps = [
+        ":error_strings",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
