@@ -31,8 +31,8 @@ using ::kmsengine::backing::client::testing_util::IsProtoEqual;
 using ::kmsengine::backing::client::testing_util::FakeSystemClock;
 
 TEST(GrpcClientTest, SetupClientContextSetsDeadline) {
-  // In the CI environment grpc::GoogleDefaultCredentials() may assert. Use the
-  // insecure credentials to initialize the options in any unit test.
+  // In the CI environment `grpc::GoogleDefaultCredentials()` may assert. Use
+  // the insecure credentials to initialize the options in any unit test.
   auto credentials = grpc::InsecureChannelCredentials();
   GrpcClientOptions options(credentials);
   auto timeout_duration = std::chrono::milliseconds(150);
