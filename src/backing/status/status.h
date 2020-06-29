@@ -39,7 +39,8 @@ using StatusCode = google::cloud::StatusCode;
 using Status = google::cloud::Status;
 
 // Holds a value or a `Status` indicating why there is no value.
-using StatusOr = google::cloud::StatusOr;
+template<typename T>
+using StatusOr<T> = google::cloud::StatusOr<T>;
 
 }  // namespace kmsengine
 
