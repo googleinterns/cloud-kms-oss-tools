@@ -53,11 +53,15 @@ class GrpcClientOptions {
 
   // Getter and setter for the `grpc::ChannelCredentials` used when making
   // requests with a `GrpcClient`.
-  std::shared_ptr<grpc::ChannelCredentials> GetCredentials() const;
-  void SetCredentials(std::shared_ptr<grpc::ChannelCredentials> credentials);
+  std::shared_ptr<grpc::ChannelCredentials> credentials() const;
+  void set_credentials(std::shared_ptr<grpc::ChannelCredentials> credentials);
 
   // Getter and setter for the timeout duration used to set deadlines when
   // making gRPC requests.
+  //
+  // While the underlying time duration is stored as `std::chrono::nanoseconds`,
+  // the setter will accept and implicitly convert any type of
+  // `std::chrono::duration`.
   //
   // If timeout = nullopt, then no deadline will be set when making requests.
   // This means RPC calls will always take as long as the server is still
@@ -65,16 +69,16 @@ class GrpcClientOptions {
   // unbounded time. (However, gRPC's "keepalive" mechanism will automatically
   // terminate requests early if the API endpoint is unavailable or the network
   // connection is dropped.)
-  absl::optional<std::chrono::milliseconds> GetTimeoutDuration() const;
-  void SetTimeoutDuration(absl::optional<std::chrono::milliseconds> duration);
+  absl::optional<std::chrono::nanoseconds> timeout_duration() const;
+  void set_timeout_duration(absl::optional<std::chrono::nanoseconds> duration);
 
   // Getter and setter for the HTTP endpoint where API requests are sent.
-  std::string const& GetApiEndpoint() const;
-  void SetApiEndpoint(std::string endpoint);
+  std::string const& api_endpoint() const;
+  void set_api_endpoint(std::string endpoint);
 
  private:
   std::shared_ptr<grpc::ChannelCredentials> credentials_;
-  absl::optional<std::chrono::milliseconds> timeout_duration_;
+  absl::optional<std::chrono::nanoseconds> timeout_duration_;
   std::string api_endpoint_;
 };
 

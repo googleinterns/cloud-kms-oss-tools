@@ -42,30 +42,30 @@ GrpcClientOptions::GrpcClientOptions(
 }
 
 std::shared_ptr<grpc::ChannelCredentials>
-    GrpcClientOptions::GetCredentials() const {
+    GrpcClientOptions::credentials() const {
   return credentials_;
 }
 
-void GrpcClientOptions::SetCredentials(
+void GrpcClientOptions::set_credentials(
     std::shared_ptr<grpc::ChannelCredentials> credentials) {
   credentials_ = std::move(credentials);
 }
 
-absl::optional<std::chrono::milliseconds>
-    GrpcClientOptions::GetTimeoutDuration() const {
+absl::optional<std::chrono::nanoseconds>
+    GrpcClientOptions::timeout_duration() const {
   return timeout_duration_;
 }
 
-void GrpcClientOptions::SetTimeoutDuration(
-    absl::optional<std::chrono::milliseconds> duration) {
+void GrpcClientOptions::set_timeout_duration(
+    absl::optional<std::chrono::nanoseconds> duration) {
   timeout_duration_ = duration;
 }
 
-std::string const& GrpcClientOptions::GetApiEndpoint() const {
+std::string const& GrpcClientOptions::api_endpoint() const {
   return api_endpoint_;
 }
 
-void GrpcClientOptions::SetApiEndpoint(std::string endpoint) {
+void GrpcClientOptions::set_api_endpoint(std::string endpoint) {
   api_endpoint_ = std::move(endpoint);
 }
 

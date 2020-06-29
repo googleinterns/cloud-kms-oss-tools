@@ -45,8 +45,8 @@ namespace {
 // GrpcClient's constructor initializer list.
 std::shared_ptr<google::cloud::kms::v1::KeyManagementService::Stub>
     CreateStub(GrpcClientOptions const& options) {
-  auto channel = grpc::CreateChannel(options.GetApiEndpoint(),
-                                     options.GetCredentials());
+  auto channel = grpc::CreateChannel(options.api_endpoint(),
+                                     options.credentials());
   return google::cloud::kms::v1::KeyManagementService::NewStub(channel);
 }
 
@@ -68,7 +68,7 @@ GrpcClient::GrpcClient(GrpcClientOptions const& options)
 #define KMSENGINE_MAKE_CLIENT_CONTEXT(__context_name)                      \
   grpc::ClientContext __context_name;                                      \
   do {                                                                     \
-    auto duration = this->client_options_.GetTimeoutDuration();            \
+    auto duration = this->client_options_.timeout_duration();              \
     if (duration.has_value()) {                                            \
       auto deadline = std::chrono::system_clock::now() + duration.value(); \
       __context_name.set_deadline(deadline);                               \

@@ -28,6 +28,16 @@ namespace {
 
 using ::kmsengine::backing::client::testing_util::IsProtoEqual;
 
+TEST(GrpcClientTest, SetupClientContextSetsDeadline) {
+  // In the CI environment grpc::GoogleDefaultCredentials() may assert. Use the
+  // insecure credentials to initialize the options in any unit test.
+  auto credentials = grpc::InsecureChannelCredentials();
+  GrpcClientOptions options(credentials);
+  options.set_timeout_duration(std::chrono::milliseconds(150));
+
+  GrpcClient client(options);
+}
+
 TEST(GrpcClientTest, AsymmetricSignRequestWithSha256DigestToProto) {
   Digest digest(DigestType::kSha256, "my256digest");
   AsymmetricSignRequest request("my-key", digest);

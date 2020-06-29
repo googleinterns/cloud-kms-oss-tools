@@ -42,6 +42,23 @@ class GrpcClient : Client {
   GrpcClient(const GrpcClient& other) = default;
   GrpcClient& operator=(const GrpcClient& other) = default;
 
+  // Instantiates a `grpc::ClientContext` for use in making gRPC calls based on
+  // settings from the `GrpcClientOptions` with this `GrpcClient`.
+  //
+  // This method does not directly return a `grpc::ClientContext` instance
+  // since `grpc::ClientContext` is non-movable. (See related discussion at
+  // https://github.com/grpc/grpc/issues/16680.) Instead, callers are expected
+  // to instantiate a fresh instance themselves and pass a raw pointer to the
+  // instance to `SetupClientContext`.
+  //
+  // Example:
+  //
+  //    grpc::ClientContext context;
+  //    SetupClientContext(&context);
+  //    stub_->SomeRequest(&context, ...);
+  //
+  void SetupClientContext(grpc::ClientContext *context);
+
   // Overriden methods from the ApiClient interface.
   StatusOr<AsymmetricSignResponse> AsymmetricSign(
       AsymmetricSignRequest const& request) override;

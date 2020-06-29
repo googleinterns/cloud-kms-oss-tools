@@ -34,12 +34,12 @@ TEST(GrpcClientOptionsTest, CredentialsRoundtrip) {
   // insecure credentials to initialize the options in any unit test.
   auto expected = grpc::InsecureChannelCredentials();
   GrpcClientOptions options(expected);
-  EXPECT_EQ(options.GetCredentials(), expected);
+  EXPECT_EQ(options.credentials(), expected);
 
   auto other_credentials = grpc::InsecureChannelCredentials();
-  EXPECT_NE(options.GetCredentials(), other_credentials);
-  options.SetCredentials(other_credentials);
-  EXPECT_EQ(options.GetCredentials(), other_credentials);
+  EXPECT_NE(options.credentials(), other_credentials);
+  options.set_credentials(other_credentials);
+  EXPECT_EQ(options.credentials(), other_credentials);
 }
 
 TEST(GrpcClientOptionsTest, TimeoutDurationRoundtrip) {
@@ -47,16 +47,20 @@ TEST(GrpcClientOptionsTest, TimeoutDurationRoundtrip) {
   GrpcClientOptions options(grpc::InsecureChannelCredentials());
 
   // Check default was initially set.
-  EXPECT_EQ(options.GetTimeoutDuration(), kDefaultTimeoutDuration);
+  EXPECT_EQ(options.timeout_duration(), kDefaultTimeoutDuration);
 
-  options.SetTimeoutDuration(std::chrono::milliseconds(100));
-  EXPECT_EQ(options.GetTimeoutDuration(), std::chrono::milliseconds(100));
+  options.set_timeout_duration(std::chrono::nanoseconds(100));
+  EXPECT_EQ(options.timeout_duration(), std::chrono::nanoseconds(100));
 
-  options.SetTimeoutDuration(std::chrono::seconds(5));
-  EXPECT_EQ(options.GetTimeoutDuration(), std::chrono::seconds(5));
+  // Check allows implicit `std::chrono::duration` conversions.
+  options.set_timeout_duration(std::chrono::milliseconds(99999));
+  EXPECT_EQ(options.timeout_duration(), std::chrono::milliseconds(99999));
 
-  options.SetTimeoutDuration(absl::nullopt);
-  EXPECT_EQ(options.GetTimeoutDuration(), absl::nullopt);
+  options.set_timeout_duration(std::chrono::seconds(5));
+  EXPECT_EQ(options.timeout_duration(), std::chrono::seconds(5));
+
+  options.set_timeout_duration(absl::nullopt);
+  EXPECT_EQ(options.timeout_duration(), absl::nullopt);
 }
 
 TEST(GrpcClientOptionsTest, ApiEndpointRoundtrip) {
@@ -64,13 +68,13 @@ TEST(GrpcClientOptionsTest, ApiEndpointRoundtrip) {
   GrpcClientOptions options(grpc::InsecureChannelCredentials());
 
   // Check default was initially set.
-  EXPECT_EQ(options.GetApiEndpoint(), kDefaultApiEndpoint);
+  EXPECT_EQ(options.api_endpoint(), kDefaultApiEndpoint);
 
-  options.SetApiEndpoint("https://example.com");
-  EXPECT_EQ(options.GetApiEndpoint(), "https://example.com");
+  options.set_api_endpoint("https://example.com");
+  EXPECT_EQ(options.api_endpoint(), "https://example.com");
 
-  options.SetApiEndpoint("invalid_endpoint");
-  EXPECT_EQ(options.GetApiEndpoint(), "invalid_endpoint");
+  options.set_api_endpoint("invalid_endpoint");
+  EXPECT_EQ(options.api_endpoint(), "invalid_endpoint");
 }
 
 }  // namespace
