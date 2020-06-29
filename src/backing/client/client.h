@@ -19,6 +19,7 @@
 
 #include "src/backing/client/asymmetric_sign_request.h"
 #include "src/backing/client/asymmetric_sign_response.h"
+#include "src/backing/status/status.h"
 
 namespace kmsengine {
 namespace backing {
@@ -27,7 +28,7 @@ namespace client {
 // Defines the interface used to communicate with the Google Cloud KMS API.
 class Client {
  public:
-  virtual ~Client() = 0;
+  virtual ~Client() = default;
 
   // Signs data using the CryptoKeyVersion with name
   // `AsymmetricSignRequest::KeyName()`. Produces a signature that can be
