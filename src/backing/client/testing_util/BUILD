@@ -19,6 +19,22 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src/backing/client:__subpackages__"])
 
 cc_library(
+    name = "fake_clock",
+    hdrs = ["fake_clock.h"],
+    deps = ["//src/backing/client:clock"]
+)
+
+cc_test(
+    name = "fake_clock_test",
+    size = "small",
+    srcs = ["fake_clock_test.cc"],
+    deps = [
+        ":fake_clock",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "is_proto_equal",
     srcs = ["is_proto_equal.cc"],
     hdrs = ["is_proto_equal.h"],
