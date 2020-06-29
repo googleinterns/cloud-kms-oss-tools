@@ -29,7 +29,7 @@ enum class DigestType : int {
   kSha256 = 1,
   kSha384 = 2,
   kSha512 = 3,
-}
+};
 
 }  // namespace client
 }  // namespace backing

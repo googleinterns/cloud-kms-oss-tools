@@ -27,9 +27,9 @@ namespace {
 TEST(AsymmetricSignRequestTest, ConstructorSetsExpectedFields) {
   Digest digest(DigestType::kSha256, "some-digest");
   AsymmetricSignRequest request("my-key-name", digest);
-  EXPECT_EQ(request.KeyName(), "my-key-name");
-  EXPECT_EQ(request.Digest().Type(), DigestType::kSha256);
-  EXPECT_EQ(request.Digest().Bytes(), "some-digest");
+  EXPECT_EQ(request.key_name(), "my-key-name");
+  EXPECT_EQ(request.digest().type(), DigestType::kSha256);
+  EXPECT_EQ(request.digest().bytes(), "some-digest");
 }
 
 }  // namespace

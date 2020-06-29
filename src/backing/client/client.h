@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BACKING_CLIENT_API_CLIENT_H_
-#define KMSENGINE_BACKING_CLIENT_API_CLIENT_H_
+#ifndef KMSENGINE_BACKING_CLIENT_CLIENT_H_
+#define KMSENGINE_BACKING_CLIENT_CLIENT_H_
 
 #include "src/backing/client/asymmetric_sign_request.h"
 #include "src/backing/client/asymmetric_sign_response.h"
@@ -43,4 +43,4 @@ class Client {
 }  // namespace backing
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BACKING_CLIENT_API_CLIENT_H_
+#endif  // KMSENGINE_BACKING_CLIENT_CLIENT_H_

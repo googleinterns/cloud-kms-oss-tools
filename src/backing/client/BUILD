@@ -18,11 +18,6 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:__subpackages__"])
 
-filegroup(
-    name = "headers",
-    srcs = glob(["**/*.h"]),
-)
-
 cc_library(
     name = "grpc_client",
     srcs = ["grpc_client.cc"],
@@ -79,21 +74,19 @@ cc_library(
     deps = [
         ":asymmetric_sign_request",
         ":asymmetric_sign_response",
-        ":digest",
-        ":digest_type",
     ],
 )
 
 cc_library(
     name = "asymmetric_sign_request",
-    hdrs = "asymmetric_sign_request.h",
+    hdrs = ["asymmetric_sign_request.h"],
     deps = [":digest"],
 )
 
 cc_test(
     name = "asymmetric_sign_request_test",
-    hdrs = "asymmetric_sign_request_test.cc",
     size = "small",
+    srcs = ["asymmetric_sign_request_test.cc"],
     deps = [
         ":asymmetric_sign_request",
         "@com_google_googletest//:gtest_main",
@@ -102,13 +95,13 @@ cc_test(
 
 cc_library(
     name = "asymmetric_sign_response",
-    hdrs = "asymmetric_sign_response.h",
+    hdrs = ["asymmetric_sign_response.h"],
 )
 
 cc_test(
     name = "asymmetric_sign_response_test",
-    hdrs = "asymmetric_sign_response_test.cc",
     size = "small",
+    srcs = ["asymmetric_sign_response_test.cc"],
     deps = [
         ":asymmetric_sign_response",
         "@com_google_googletest//:gtest_main",
@@ -117,14 +110,14 @@ cc_test(
 
 cc_library(
     name = "digest",
-    hdrs = "digest.h",
+    hdrs = ["digest.h"],
     deps = [":digest_type"],
 )
 
 cc_test(
     name = "digest_test",
-    hdrs = "digest_test.cc",
     size = "small",
+    srcs = ["digest_test.cc"],
     deps = [
         ":digest",
         "@com_google_googletest//:gtest_main",
@@ -133,15 +126,17 @@ cc_test(
 
 cc_library(
     name = "digest_type",
-    hdrs = "digest_type.h",
+    hdrs = ["digest_type.h"],
 )
 
 cc_test(
     name = "digest_type_test",
-    hdrs = "digest_type_test.cc",
     size = "small",
+    srcs = ["digest_type_test.cc"],
     deps = [
         ":digest_type",
+        "@com_google_googleapis//:googleapis_system_includes",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
         "@com_google_googletest//:gtest_main",
     ],
 )

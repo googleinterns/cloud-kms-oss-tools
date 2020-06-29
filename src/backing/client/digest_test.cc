@@ -25,20 +25,20 @@ namespace {
 
 TEST(DigestTest, ConstructorSetsExpectedFieldsForSha256) {
   Digest digest(DigestType::kSha256, "my-256-digest");
-  EXPECT_EQ(digest.Type(), DigestType::kSha256);
-  EXPECT_STREQ(digest.Bytes(), "my-256-digest");
+  EXPECT_EQ(digest.type(), DigestType::kSha256);
+  EXPECT_EQ(digest.bytes(), "my-256-digest");
 }
 
 TEST(DigestTest, ConstructorSetsExpectedFieldsForSha384) {
   Digest digest(DigestType::kSha384, "my-384-digest");
-  EXPECT_EQ(digest.Type(), DigestType::kSha384);
-  EXPECT_STREQ(digest.Bytes(), "my-384-digest");
+  EXPECT_EQ(digest.type(), DigestType::kSha384);
+  EXPECT_EQ(digest.bytes(), "my-384-digest");
 }
 
 TEST(DigestTest, ConstructorSetsExpectedFieldsForSha512) {
   Digest digest(DigestType::kSha512, "my-512-digest");
-  EXPECT_EQ(digest.Type(), DigestType::kSha512);
-  EXPECT_STREQ(digest.Bytes(), "my-512-digest");
+  EXPECT_EQ(digest.type(), DigestType::kSha512);
+  EXPECT_EQ(digest.bytes(), "my-512-digest");
 }
 
 }  // namespace

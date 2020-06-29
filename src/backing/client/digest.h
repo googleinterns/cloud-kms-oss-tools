@@ -34,8 +34,8 @@ class Digest {
   Digest(DigestType type, std::string bytes) : type_(std::move(type)),
                                                bytes_(std::move(bytes)) {}
 
-  DigestType const& Type() const { return type_; }
-  std::string const& Bytes() const { return bytes_; }
+  DigestType const& type() const { return type_; }
+  std::string const& bytes() const { return bytes_; }
 
  private:
   DigestType type_;
