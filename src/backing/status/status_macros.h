@@ -63,6 +63,10 @@
 #ifndef KMSENGINE_KMS_INTERFACE_STATUS_MACROS_H_
 #define KMSENGINE_KMS_INTERFACE_STATUS_MACROS_H_
 
+#include "src/backing/status/status.h"
+
+namespace kmsengine {
+
 // Early-returns the status if it is in error; otherwise, proceeds.
 //
 // The argument expression is guaranteed to be evaluated exactly once.
@@ -92,10 +96,15 @@
 // right-hand-side expression to the left-hand-side expression.
 //
 // The right-hand-side expression is guaranteed to be evaluated exactly once.
+//
+// Note: KMSENGINE_ASSIGN_OR_RETURN expands into multiple statements; it cannot
+// be used in a single statement (for example, within an `if` statement).
 #define KMSENGINE_ASSIGN_OR_RETURN(__lhs, __rhs) \
   __KMSENGINE_ASSIGN_OR_RETURN_IMPL(             \
     __lhs, __rhs,                                \
     __KMSENGINE_MACRO_CONCAT(__status_or_value,  \
                              __COUNTER__))
+
+}  // namespace kmsengine
 
 #endif  // KMSENGINE_KMS_INTERFACE_STATUS_MACROS_H_
