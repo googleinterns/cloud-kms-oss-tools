@@ -21,8 +21,6 @@
 #include <string>
 #include <utility>
 
-#include <crc32c/crc32c.h>
-#include <google/cloud/grpc_error_delegate.h>
 #include <google/cloud/kms/v1/resources.grpc.pb.h>
 #include <google/cloud/kms/v1/resources.pb.h>
 #include <google/cloud/kms/v1/service.grpc.pb.h>
@@ -30,12 +28,13 @@
 #include <grpcpp/grpcpp.h>
 
 #include "absl/types/optional.h"
-#include "google/cloud/status_or.h"
 #include "src/backing/client/client.h"
 #include "src/backing/client/asymmetric_sign_request.h"
 #include "src/backing/client/asymmetric_sign_response.h"
 #include "src/backing/client/grpc_client_options.h"
 #include "src/backing/client/digest.h"
+#include "src/backing/status/status.h"
+#include "google/cloud/grpc_error_delegate.h"
 
 namespace kmsengine {
 namespace backing {
@@ -46,7 +45,7 @@ namespace {
 // GrpcClient's constructor initializer list.
 std::shared_ptr<google::cloud::kms::v1::KeyManagementService::Stub>
     CreateStub(GrpcClientOptions const& options) {
-  auto channel = grpc::CreateChannel(options.GetEndpoint(),
+  auto channel = grpc::CreateChannel(options.GetApiEndpoint(),
                                      options.GetCredentials());
   return google::cloud::kms::v1::KeyManagementService::NewStub(channel);
 }
@@ -57,24 +56,28 @@ GrpcClient::GrpcClient(GrpcClientOptions const& options)
     : stub_(CreateStub(options)), client_options_(options) {
 }
 
-grpc::ClientContext GrpcClient::MakeClientContext() {
-  grpc::ClientContext context;
-
-  // Set optional deadline. If no timeout is set, then RPC calls will always
-  // take as long as the server is still processing the call (if the
-  // connection drops, the RPC will end due to gRPC's `keepalive` mechanism).
-  absl::optional<auto> duration = client_options_.GetTimeoutDuration();
-  if (duration.has_value()) {
-    auto deadline = std::chrono::system_clock::now() + duration.value();
-    context.set_deadline(deadline);
-  }
-
-  return context;
-}
+// Instantiates a `grpc::ClientContext` for use in making gRPC calls based on
+// settings from the `GrpcClientOptions` with this `GrpcClient`.
+//
+// This macro should only be used within instance methods (not statics).
+//
+// Needs to be a macro since grpc::ClientContext is non-movable. See
+// https://github.com/grpc/grpc/issues/16680 for context.
+//
+// The do-while serves to keep intermediary variables within scope of the macro.
+#define KMSENGINE_MAKE_CLIENT_CONTEXT(__context_name)                      \
+  grpc::ClientContext __context_name;                                      \
+  do {                                                                     \
+    auto duration = this->client_options_.GetTimeoutDuration();            \
+    if (duration.has_value()) {                                            \
+      auto deadline = std::chrono::system_clock::now() + duration.value(); \
+      __context_name.set_deadline(deadline);                               \
+    }                                                                      \
+  } while (false)
 
 StatusOr<AsymmetricSignResponse> GrpcClient::AsymmetricSign(
     AsymmetricSignRequest const& request) {
-  grpc::ClientContext context = MakeClientContext();
+  KMSENGINE_MAKE_CLIENT_CONTEXT(context);
   auto proto_request = ToProto(request);
   google::cloud::kms::v1::AsymmetricSignResponse response;
 
@@ -86,25 +89,29 @@ StatusOr<AsymmetricSignResponse> GrpcClient::AsymmetricSign(
   return FromProto(std::move(response));
 }
 
+#undef KMSENGINE_MAKE_CLIENT_CONTEXT
+
 google::cloud::kms::v1::AsymmetricSignRequest GrpcClient::ToProto(
     AsymmetricSignRequest request) {
   google::cloud::kms::v1::AsymmetricSignRequest proto_request;
-  proto_request.set_name(std::move(request.KeyName()));
-  proto_request.set_allocated_digest(std::move(ToProto(request.Digest())));
+  proto_request.set_name(std::move(request.key_name()));
+
+  google::cloud::kms::v1::Digest *proto_digest = proto_request.mutable_digest();
+  proto_digest->CopyFrom(ToProto(request.digest()));
   return proto_request;
 }
 
 google::cloud::kms::v1::Digest GrpcClient::ToProto(Digest digest) {
   google::cloud::kms::v1::Digest proto_digest;
-  auto bytes = std::move(digest.Bytes());
-  switch (digest.Type()) {
-    case kSha256:
+  auto bytes = std::move(digest.bytes());
+  switch (digest.type()) {
+    case DigestType::kSha256:
       proto_digest.set_sha256(bytes);
       break;
-    case kSha384:
+    case DigestType::kSha384:
       proto_digest.set_sha384(bytes);
       break;
-    case kSha512:
+    case DigestType::kSha512:
       proto_digest.set_sha512(bytes);
       break;
   }
@@ -115,31 +122,6 @@ AsymmetricSignResponse GrpcClient::FromProto(
     google::cloud::kms::v1::AsymmetricSignResponse proto_response) {
   return AsymmetricSignResponse(proto_response.signature());
 }
-
-// std::string GrpcClient::Crc32cFromProto(
-//     google::protobuf::UInt32Value const& v) {
-//   auto endian_encoded = google::cloud::internal::EncodeBigEndian(v.value());
-//   return Base64Encode(endian_encoded);
-// }
-
-// std::uint32_t GrpcClient::Crc32cToProto(std::string const& v) {
-//   auto decoded = Base64Decode(v);
-//   return google::cloud::internal::DecodeBigEndian<std::uint32_t>(
-//              std::string(decoded.begin(), decoded.end()))
-//       .value();
-// }
-
-// std::string GrpcClient::MD5FromProto(std::string const& v) {
-//   if (v.empty()) return {};
-//   auto binary = internal::HexDecode(v);
-//   return internal::Base64Encode(binary);
-// }
-
-// std::string GrpcClient::MD5ToProto(std::string const& v) {
-//   if (v.empty()) return {};
-//   auto binary = internal::Base64Decode(v);
-//   return internal::HexEncode(binary);
-// }
 
 }  // namespace client
 }  // namespace backing

@@ -29,8 +29,6 @@ namespace kmsengine {
 namespace backing {
 namespace client {
 
-constexpr char kDefaultApiEndpoint[] = "https://cloudkms.googleapis.com";
-
 // Describes the configuration for a `client::GrpcClient` object.
 class GrpcClientOptions {
  public:
@@ -55,7 +53,7 @@ class GrpcClientOptions {
 
   // Getter and setter for the `grpc::ChannelCredentials` used when making
   // requests with a `GrpcClient`.
-  std::shared_ptr<grpc::ChannelCredentials> GetCredentials();
+  std::shared_ptr<grpc::ChannelCredentials> GetCredentials() const;
   void SetCredentials(std::shared_ptr<grpc::ChannelCredentials> credentials);
 
   // Getter and setter for the timeout duration used to set deadlines when
@@ -67,16 +65,16 @@ class GrpcClientOptions {
   // unbounded time. (However, gRPC's "keepalive" mechanism will automatically
   // terminate requests early if the API endpoint is unavailable or the network
   // connection is dropped.)
-  absl::optional<std::chrono::duration> GetTimeoutDuration();
-  void SetTimeoutDuration(absl::optional<std::chrono::duration> duration);
+  absl::optional<std::chrono::milliseconds> GetTimeoutDuration() const;
+  void SetTimeoutDuration(absl::optional<std::chrono::milliseconds> duration);
 
   // Getter and setter for the HTTP endpoint where API requests are sent.
-  std::string const& GetApiEndpoint();
+  std::string const& GetApiEndpoint() const;
   void SetApiEndpoint(std::string endpoint);
 
  private:
   std::shared_ptr<grpc::ChannelCredentials> credentials_;
-  std::optional<std::chrono::duration> timeout_duration_;
+  absl::optional<std::chrono::milliseconds> timeout_duration_;
   std::string api_endpoint_;
 };
 

@@ -33,7 +33,7 @@ TEST(GrpcClientOptionsTest, CredentialsRoundtrip) {
   // In the CI environment grpc::GoogleDefaultCredentials() may assert. Use the
   // insecure credentials to initialize the options in any unit test.
   auto expected = grpc::InsecureChannelCredentials();
-  ClientOptions options(expected);
+  GrpcClientOptions options(expected);
   EXPECT_EQ(options.GetCredentials(), expected);
 
   auto other_credentials = grpc::InsecureChannelCredentials();
@@ -44,7 +44,7 @@ TEST(GrpcClientOptionsTest, CredentialsRoundtrip) {
 
 TEST(GrpcClientOptionsTest, TimeoutDurationRoundtrip) {
   // Use unauthenticated credentials for testing.
-  ClientOptions options(grpc::InsecureChannelCredentials());
+  GrpcClientOptions options(grpc::InsecureChannelCredentials());
 
   // Check default was initially set.
   EXPECT_EQ(options.GetTimeoutDuration(), kDefaultTimeoutDuration);
@@ -61,16 +61,16 @@ TEST(GrpcClientOptionsTest, TimeoutDurationRoundtrip) {
 
 TEST(GrpcClientOptionsTest, ApiEndpointRoundtrip) {
   // Use unauthenticated credentials for testing.
-  ClientOptions options(grpc::InsecureChannelCredentials());
+  GrpcClientOptions options(grpc::InsecureChannelCredentials());
 
   // Check default was initially set.
-  EXPECT_STREQ(options.GetApiEndpoint(), kDefaultApiEndpoint);
+  EXPECT_EQ(options.GetApiEndpoint(), kDefaultApiEndpoint);
 
   options.SetApiEndpoint("https://example.com");
-  EXPECT_STREQ(options.GetApiEndpoint(), "https://example.com");
+  EXPECT_EQ(options.GetApiEndpoint(), "https://example.com");
 
   options.SetApiEndpoint("invalid_endpoint");
-  EXPECT_STREQ(options.GetApiEndpoint(), "invalid_endpoint");
+  EXPECT_EQ(options.GetApiEndpoint(), "invalid_endpoint");
 }
 
 }  // namespace

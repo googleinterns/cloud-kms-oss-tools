@@ -27,7 +27,7 @@ namespace backing {
 namespace client {
 
 constexpr char kDefaultApiEndpoint[] = "https://cloudkms.googleapis.com";
-constexpr absl::optional<std::chrono::duration> kDefaultTimeoutDuration =
+constexpr absl::optional<std::chrono::milliseconds> kDefaultTimeoutDuration =
     absl::nullopt;
 
 }  // namespace client

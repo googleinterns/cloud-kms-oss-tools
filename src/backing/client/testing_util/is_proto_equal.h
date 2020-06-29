@@ -16,7 +16,7 @@
  * Modifications copyright 2020 Google LLC
  *
  *    - Renamed namespaces and file includes
- *    - Replaced Cloud C++ optional implementation with std::optional
+ *    - Replaced Cloud C++ optional implementation with absl::optional
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

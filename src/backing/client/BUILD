@@ -25,7 +25,8 @@ cc_library(
     deps = [
         ":client",
         ":grpc_client_options",
-        "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_common",
+        "//src/backing/status",
+        "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_grpc_utils",
         "@com_google_googleapis//:googleapis_system_includes",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
@@ -74,6 +75,7 @@ cc_library(
     deps = [
         ":asymmetric_sign_request",
         ":asymmetric_sign_response",
+        "//src/backing/status",
     ],
 )
 

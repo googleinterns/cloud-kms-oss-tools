@@ -27,7 +27,7 @@
 #include "src/backing/client/asymmetric_sign_response.h"
 #include "src/backing/client/grpc_client_options.h"
 #include "src/backing/client/digest.h"
-#include "src/backing/status/status_or.h"
+#include "src/backing/status/status.h"
 
 namespace kmsengine {
 namespace backing {
@@ -41,11 +41,6 @@ class GrpcClient : Client {
   // GrpcClient is copyable and movable.
   GrpcClient(const GrpcClient& other) = default;
   GrpcClient& operator=(const GrpcClient& other) = default;
-
-  // Returns a `grpc::ClientContext` for use in making gRPC calls. The
-  // `grpc::ClientContext` parameters are set based on the `GrpcClient`'s
-  // `ClientOptions` settings.
-  grpc::ClientContext MakeClientContext();
 
   // Overriden methods from the ApiClient interface.
   StatusOr<AsymmetricSignResponse> AsymmetricSign(

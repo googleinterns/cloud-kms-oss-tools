@@ -38,31 +38,34 @@ GrpcClientOptions::GrpcClientOptions(
     std::shared_ptr<grpc::ChannelCredentials> credentials)
     : credentials_(std::move(credentials)),
       timeout_duration_(kDefaultTimeoutDuration),
-      endpoint_(kDefaultApiEndpoint) {
+      api_endpoint_(kDefaultApiEndpoint) {
 }
 
-std::shared_ptr<grpc::ChannelCredentials> ClientOptions::GetCredentials() {
+std::shared_ptr<grpc::ChannelCredentials>
+    GrpcClientOptions::GetCredentials() const {
   return credentials_;
 }
 
-void ClientOptions::SetCredentials(
+void GrpcClientOptions::SetCredentials(
     std::shared_ptr<grpc::ChannelCredentials> credentials) {
   credentials_ = std::move(credentials);
 }
 
-absl::optional<std::chrono::duration> ClientOptions::GetTimeoutDuration() const {
+absl::optional<std::chrono::milliseconds>
+    GrpcClientOptions::GetTimeoutDuration() const {
   return timeout_duration_;
 }
 
-void ClientOptions::SetTimeoutDuration(std::chrono::duration duration) {
+void GrpcClientOptions::SetTimeoutDuration(
+    absl::optional<std::chrono::milliseconds> duration) {
   timeout_duration_ = duration;
 }
 
-std::string const& ClientOptions::GetApiEndpoint() {
+std::string const& GrpcClientOptions::GetApiEndpoint() const {
   return api_endpoint_;
 }
 
-void ClientOptions::SetApiEndpoint(std::string endpoint) {
+void GrpcClientOptions::SetApiEndpoint(std::string endpoint) {
   api_endpoint_ = std::move(endpoint);
 }
 
