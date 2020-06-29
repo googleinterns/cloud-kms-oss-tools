@@ -24,6 +24,56 @@ filegroup(
 )
 
 cc_library(
+    name = "grpc_client",
+    srcs = ["grpc_client.cc"],
+    hdrs = ["grpc_client.h"],
+    deps = [
+        ":client",
+        ":grpc_client_options",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
+        "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_common",
+    ],
+)
+
+cc_test(
+    name = "grpc_client_test",
+    size = "small",
+    srcs = ["grpc_client_test.cc"],
+    deps = [
+        ":grpc_client",
+        "//src/backing/client/testing_util:is_proto_equal",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "grpc_client_options",
+    hdrs = ["grpc_client_options.h"],
+    srcs = ["grpc_client_options.cc"],
+    deps = [
+        ":grpc_client_default_options",
+        "@com_github_grpc_grpc//:grpc++",
+    ]
+)
+
+cc_test(
+    name = "grpc_client_options_test",
+    size = "small",
+    srcs = ["grpc_client_options_test.cc"],
+    deps = [
+        ":grpc_client_options",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "grpc_client_default_options",
+    hdrs = ["grpc_client_default_options.h"],
+)
+
+cc_library(
     name = "client",
     hdrs = ["client.h"],
     deps = [
