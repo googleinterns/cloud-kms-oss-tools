@@ -36,6 +36,8 @@ namespace client {
 class GrpcClient : Client {
  public:
   explicit GrpcClient(GrpcClientOptions const& options);
+  GrpcClient(GrpcClientOptions const& options,
+             std::shared_ptr<Clock> clock = std::make_shared<SystemClock>());
   ~GrpcClient() override = default;
 
   // GrpcClient is copyable and movable.

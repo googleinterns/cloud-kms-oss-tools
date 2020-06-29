@@ -79,10 +79,10 @@ class FakeClock : public RealClock {
 };
 
 using FakeSteadyClock =
-    FakeClock<google::cloud::spanner::internal::SteadyClock>;
+    FakeClock<kmsengine::backing::client::SteadyClock>;
 
 using FakeSystemClock =
-    FakeClock<google::cloud::spanner::internal::SystemClock>;
+    FakeClock<kmsengine::backing::client::SystemClock>;
 
 }  // namespace testing_util
 }  // namespace client

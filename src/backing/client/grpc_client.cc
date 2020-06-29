@@ -52,32 +52,24 @@ std::shared_ptr<google::cloud::kms::v1::KeyManagementService::Stub>
 
 }  // namespace
 
-GrpcClient::GrpcClient(GrpcClientOptions const& options)
-    : stub_(CreateStub(options)), client_options_(options) {
+GrpcClient::GrpcClient(
+    GrpcClientOptions const& options,
+    std::shared_ptr<Clock> clock = std::make_shared<SystemClock>())
+    : stub_(CreateStub(options)), client_options_(options), clock_(clock) {
 }
 
-// Instantiates a `grpc::ClientContext` for use in making gRPC calls based on
-// settings from the `GrpcClientOptions` with this `GrpcClient`.
-//
-// This macro should only be used within instance methods (not statics).
-//
-// Needs to be a macro since grpc::ClientContext is non-movable. See
-// https://github.com/grpc/grpc/issues/16680 for context.
-//
-// The do-while serves to keep intermediary variables within scope of the macro.
-#define KMSENGINE_MAKE_CLIENT_CONTEXT(__context_name)                      \
-  grpc::ClientContext __context_name;                                      \
-  do {                                                                     \
-    auto duration = this->client_options_.timeout_duration();              \
-    if (duration.has_value()) {                                            \
-      auto deadline = std::chrono::system_clock::now() + duration.value(); \
-      __context_name.set_deadline(deadline);                               \
-    }                                                                      \
-  } while (false)
+void GrpcClient::SetupClientContext(grpc::ClientContext *context) {
+  auto duration = this->client_options_.timeout_duration();
+  if (duration.has_value()) {
+    auto deadline = clock_->Now() + duration.value();
+    context->set_deadline(deadline);
+  }
+}
 
 StatusOr<AsymmetricSignResponse> GrpcClient::AsymmetricSign(
     AsymmetricSignRequest const& request) {
-  KMSENGINE_MAKE_CLIENT_CONTEXT(context);
+  grpc::ClientContext context;
+  SetupClientContext(&context);
   auto proto_request = ToProto(request);
   google::cloud::kms::v1::AsymmetricSignResponse response;
 

@@ -58,12 +58,12 @@ class Clock {
 // `SteadyClock` is a monotonic clock where time points cannot decrease as
 // physical time moves forward. It is not related to wall clock time.
 using SteadyClock =
-    ::google::cloud::spanner::internal::Clock<std::chrono::steady_clock>;
+    ::kmsengine::backing::client::Clock<std::chrono::steady_clock>;
 
 // `SystemClock` represents the system-wide real time wall clock.
 // It may not be monotonic.
 using SystemClock =
-    ::google::cloud::spanner::internal::Clock<std::chrono::system_clock>;
+    ::kmsengine::backing::client::Clock<std::chrono::system_clock>;
 
 }  // namespace client
 }  // namespace backing
