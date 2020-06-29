@@ -46,6 +46,16 @@ cc_test(
     ],
 )
 
+cc_test(
+    name = "grpc_integration_test",
+    size = "large",
+    srcs = ["grpc_integration_test.cc"],
+    deps = [
+        ":grpc_client",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "grpc_client_options",
     srcs = ["grpc_client_options.cc"],
@@ -159,4 +169,3 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
-
