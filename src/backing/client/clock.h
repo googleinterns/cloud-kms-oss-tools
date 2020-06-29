@@ -39,7 +39,9 @@ namespace kmsengine {
 namespace backing {
 namespace client {
 
-// A simple `Clock` class that can be overridden for testing.
+// A simple `Clock` class that can be overridden for testing. Use when you
+// need to test operations that depend on a call to
+// `std::chrono::steady_clock::now` or `std::chrono::system_clock::now`.
 //
 // All implementations of this class are required to be thread-safe.
 //

@@ -47,6 +47,7 @@ cc_library(
 
 cc_test(
     name = "is_proto_equal_test",
+    size = "small",
     srcs = ["is_proto_equal_test.cc"],
     deps = [
         ":is_proto_equal",
