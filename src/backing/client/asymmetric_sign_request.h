@@ -36,8 +36,8 @@ class AsymmetricSignRequest {
       : key_name_(std::move(key_name)),
         digest_(std::move(digest)) {}
 
-  std::string const& KeyName() const { return key_name_; }
-  Digest const& Digest() const { return digest_; }
+  std::string const& key_name() const { return key_name_; }
+  Digest const& digest() const { return digest_; }
 
  private:
   std::string key_name_;

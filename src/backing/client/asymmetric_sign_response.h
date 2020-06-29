@@ -31,7 +31,7 @@ class AsymmetricSignResponse {
   AsymmetricSignResponse(std::string signature)
       : signature_(std::move(signature)) {}
 
-  std::string const& Signature() const { return signature_; }
+  std::string const& signature() const { return signature_; }
 
  private:
   std::string signature_;

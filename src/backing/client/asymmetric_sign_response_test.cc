@@ -25,7 +25,7 @@ namespace {
 
 TEST(AsymmetricSignResponseTest, ConstructorSetsExpectedFields) {
   AsymmetricSignResponse response("my-signature");
-  EXPECT_STREQ(response.Signature(), "my-signature");
+  EXPECT_EQ(response.signature(), "my-signature");
 }
 
 }  // namespace

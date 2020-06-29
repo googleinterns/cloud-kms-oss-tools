@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include <google/cloud/kms/v1/service.pb.h>
+#include <gtest/gtest.h>
 
 #include "src/backing/client/digest_type.h"
 
@@ -24,16 +24,17 @@ namespace backing {
 namespace client {
 namespace {
 
+// Helper function for casting a `DigestType` to its underlying type.
+inline std::underlying_type<DigestType>::type CastDigest(DigestType digest) {
+  return static_cast<std::underlying_type<DigestType>::type>(digest);
+}
+
 using ProtoDigestCase = google::cloud::kms::v1::Digest::DigestCase;
-using DigestTypeUnderlying = std::underlying_type<DigestType>;
 
 TEST(DigestTypeTest, UnderlyingEnumValueMatchesProtoDefinitions) {
-  EXPECT_EQ(static_cast<DigestTypeUnderlying>(DigestType::kSha256),
-            ProtoDigestCase::kSha256);
-  EXPECT_EQ(static_cast<DigestTypeUnderlying>(DigestType::kSha384),
-            ProtoDigestCase::kSha384);
-  EXPECT_EQ(static_cast<DigestTypeUnderlying>(DigestType::kSha512),
-            ProtoDigestCase::kSha512);
+  EXPECT_EQ(CastDigest(DigestType::kSha256), ProtoDigestCase::kSha256);
+  EXPECT_EQ(CastDigest(DigestType::kSha384), ProtoDigestCase::kSha384);
+  EXPECT_EQ(CastDigest(DigestType::kSha512), ProtoDigestCase::kSha512);
 }
 
 }  // namespace
