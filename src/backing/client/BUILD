@@ -25,10 +25,10 @@ cc_library(
     deps = [
         ":client",
         ":grpc_client_options",
+        "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_common",
         "@com_google_googleapis//:googleapis_system_includes",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
-        "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_common",
     ],
 )
 
@@ -45,12 +45,12 @@ cc_test(
 
 cc_library(
     name = "grpc_client_options",
-    hdrs = ["grpc_client_options.h"],
     srcs = ["grpc_client_options.cc"],
+    hdrs = ["grpc_client_options.h"],
     deps = [
         ":grpc_client_default_options",
         "@com_github_grpc_grpc//:grpc++",
-    ]
+    ],
 )
 
 cc_test(

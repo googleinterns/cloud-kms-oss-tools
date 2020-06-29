@@ -20,13 +20,13 @@ package(default_visibility = ["//src/backing/client:__subpackages__"])
 
 cc_library(
     name = "is_proto_equal",
-    hdrs = ["is_proto_equal.h"],
     srcs = ["is_proto_equal.cc"],
+    hdrs = ["is_proto_equal.h"],
     deps = [
         "@com_google_absl//absl/types:optional",
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
-    ]
+    ],
 )
 
 cc_test(
@@ -36,5 +36,5 @@ cc_test(
         ":is_proto_equal",
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
-    ]
+    ],
 )
