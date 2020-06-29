@@ -63,7 +63,7 @@ grpc::ClientContext GrpcClient::MakeClientContext() {
   // Set optional deadline. If no timeout is set, then RPC calls will always
   // take as long as the server is still processing the call (if the
   // connection drops, the RPC will end due to gRPC's `keepalive` mechanism).
-  std::optional<auto> duration = client_options_.GetTimeoutDuration();
+  absl::optional<auto> duration = client_options_.GetTimeoutDuration();
   if (duration.has_value()) {
     auto deadline = std::chrono::system_clock::now() + duration.value();
     context.set_deadline(deadline);
