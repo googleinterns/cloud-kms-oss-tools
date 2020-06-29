@@ -40,7 +40,7 @@ using Status = google::cloud::Status;
 
 // Holds a value or a `Status` indicating why there is no value.
 template<typename T>
-using StatusOr<T> = google::cloud::StatusOr<T>;
+using StatusOr = google::cloud::StatusOr<T>;
 
 }  // namespace kmsengine
 
