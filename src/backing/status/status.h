@@ -49,72 +49,79 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BACKING_STATUS_STATUS_H_
-#define KMSENGINE_BACKING_STATUS_STATUS_H_
+// StatusOr<T> is the union of a Status object and a T
+// object. StatusOr models the concept of an object that is either a
+// usable value, or an error Status explaining why such a value is
+// not present. To this end, StatusOr<T> does not allow its Status
+// value to be Status::OK. Further, StatusOr<T*> does not allow the
+// contained pointer to be nullptr.
+//
+// The primary use-case for StatusOr<T> is as the return value of a
+// function which may fail.
+//
+// Example client usage for a StatusOr<T>, where T is not a pointer:
+//
+//  StatusOr<float> result = DoBigCalculationThatCouldFail();
+//  if (result.ok()) {
+//    float answer = result.ValueOrDie();
+//    printf("Big calculation yielded: %f", answer);
+//  } else {
+//    LOG(ERROR) << result.status();
+//  }
+//
+// Example client usage for a StatusOr<T*>:
+//
+//  StatusOr<Foo*> result = FooFactory::MakeNewFoo(arg);
+//  if (result.ok()) {
+//    std::unique_ptr<Foo> foo(result.ValueOrDie());
+//    foo->DoSomethingCool();
+//  } else {
+//    LOG(ERROR) << result.status();
+//  }
+//
+// Example client usage for a StatusOr<std::unique_ptr<T>>:
+//
+//  StatusOr<std::unique_ptr<Foo>> result = FooFactory::MakeNewFoo(arg);
+//  if (result.ok()) {
+//    std::unique_ptr<Foo> foo = result.ValueOrDie();
+//    foo->DoSomethingCool();
+//  } else {
+//    LOG(ERROR) << result.status();
+//  }
+//
+// Example factory implementation returning StatusOr<T*>:
+//
+//  StatusOr<Foo*> FooFactory::MakeNewFoo(int arg) {
+//    if (arg <= 0) {
+//      return ::Status(::StatusCode::kInvalidArgument,
+//                            "Arg must be positive");
+//    } else {
+//      return new Foo(arg);
+//    }
+//  }
+//
 
-#include <iosfwd>
-#include <string>
+#ifndef KMSENGINE_BACKING_STATUS_STATUS_OR_H_
+#define KMSENGINE_BACKING_STATUS_STATUS_OR_H_
 
-#include "src/backing/status/status_code.h"
+#include "google/cloud/status.h"
+#include "google/cloud/status_or.h"
 
 namespace kmsengine {
-namespace backing {
-namespace status {
 
-class Status {
- public:
-  // Creates a "successful" status.
-  Status();
+// Well-known status codes with values compatible with `grpc::StatusCode` and
+// `absl::StatusCode`.
+//
+// See https://grpc.github.io/grpc/core/md_doc_statuscodes.html for the
+// semantics of status code values.
+using StatusCode = google::cloud::StatusCode;
 
-  // Create a status in the canonical error space with the specified
-  // code, and error message.  If "code == StatusCode::kOk", error_message is
-  // ignored and a Status object identical to Status::OK is
-  // constructed.
-  Status(StatusCode error_code, std::string error_message);
-  Status(const Status&);
-  Status& operator=(const Status& x);
-  ~Status() {}
+// Reports error code and details.
+using Status = google::cloud::Status;
 
-  // Some pre-defined Status objects
-  static const Status kOkStatus;             // Identical to 0-arg constructor
-  static const Status kCancelledStatus;
-  static const Status kUnknownStatus;
+// Holds a value or a `Status` indicating why there is no value.
+using StatusOr = google::cloud::StatusOr;
 
-  // Accessor
-  bool ok() const {
-    return error_code_ == StatusCode::kOk;
-  }
-  StatusCode error_code() const {
-    return error_code_;
-  }
-  StatusCode code() const {
-    return error_code_;
-  }
-  std::string error_message() const {
-    return error_message_;
-  }
-  std::string message() const {
-    return error_message_;
-  }
-
-  bool operator==(const Status& x) const;
-  bool operator!=(const Status& x) const {
-    return !operator==(x);
-  }
-
-  // Return a combination of the error code name and message.
-  std::string ToString() const;
-
- private:
-  StatusCode error_code_;
-  std::string error_message_;
-};
-
-// Prints a human-readable representation of 'x' to 'os'.
-std::ostream& operator<<(std::ostream& os, const Status& x);
-
-}  // namespace status
-}  // namespace backing
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BACKING_STATUS_STATUS_H_
+#endif  // KMSENGINE_BACKING_STATUS_STATUS_OR_H_

@@ -17,43 +17,12 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
-    name = "status_or",
-    hdrs = ["status_or.h"],
-    deps = [
-        ":status_code",
-        ":status",
-    ],
-)
-
-cc_test(
-    name = "status_or_test",
-    srcs = ["status_or_test.cc"],
-    deps = [
-        ":status_or",
-        "@com_google_googletest//:gtest_main",
-    ],
-    size = "small",
-)
-
-cc_library(
     name = "status",
-    srcs = ["status.cc"],
-    hdrs = ["status.h"],
-    deps = [":status_code"],
-)
-
-cc_test(
-    name = "status_test",
-    srcs = ["status_test.cc"],
-    deps = [
-        ":status",
-        "@com_google_googletest//:gtest_main",
+    hdrs = [
+        "status.h",
+        "status_macros.h",
     ],
-    size = "small",
-)
-
-cc_library(
-    name = "status_code",
-    hdrs = ["status_code.h"],
-    deps = ["@com_google_absl//absl/status"],
+    deps = [
+        "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_common",
+    ],
 )
