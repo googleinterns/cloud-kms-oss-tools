@@ -21,7 +21,7 @@ package(default_visibility = ["//src/backing/client:__subpackages__"])
 cc_library(
     name = "fake_clock",
     hdrs = ["fake_clock.h"],
-    deps = ["//src/backing/client:clock"]
+    deps = ["//src/backing/client:clock"],
 )
 
 cc_test(

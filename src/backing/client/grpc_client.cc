@@ -16,7 +16,6 @@
 
 #include "src/backing/client/grpc_client.h"
 
-#include <chrono>
 #include <memory>
 #include <string>
 #include <utility>
@@ -29,6 +28,7 @@
 
 #include "absl/types/optional.h"
 #include "src/backing/client/client.h"
+#include "src/backing/client/clock.h"
 #include "src/backing/client/asymmetric_sign_request.h"
 #include "src/backing/client/asymmetric_sign_response.h"
 #include "src/backing/client/grpc_client_options.h"
@@ -52,9 +52,8 @@ std::shared_ptr<google::cloud::kms::v1::KeyManagementService::Stub>
 
 }  // namespace
 
-GrpcClient::GrpcClient(
-    GrpcClientOptions const& options,
-    std::shared_ptr<Clock> clock = std::make_shared<SystemClock>())
+GrpcClient::GrpcClient(GrpcClientOptions const& options,
+                       std::shared_ptr<SystemClock> clock)
     : stub_(CreateStub(options)), client_options_(options), clock_(clock) {
 }
 

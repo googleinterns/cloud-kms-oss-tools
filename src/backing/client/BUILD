@@ -24,6 +24,7 @@ cc_library(
     hdrs = ["grpc_client.h"],
     deps = [
         ":client",
+        ":clock",
         ":grpc_client_options",
         "//src/backing/status",
         "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_grpc_utils",
@@ -39,6 +40,7 @@ cc_test(
     srcs = ["grpc_client_test.cc"],
     deps = [
         ":grpc_client",
+        "//src/backing/client/testing_util:fake_clock",
         "//src/backing/client/testing_util:is_proto_equal",
         "@com_google_googletest//:gtest_main",
     ],

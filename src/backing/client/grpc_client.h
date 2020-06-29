@@ -23,6 +23,7 @@
 #include <google/cloud/kms/v1/service.pb.h>
 
 #include "src/backing/client/client.h"
+#include "src/backing/client/clock.h"
 #include "src/backing/client/asymmetric_sign_request.h"
 #include "src/backing/client/asymmetric_sign_response.h"
 #include "src/backing/client/grpc_client_options.h"
@@ -35,9 +36,9 @@ namespace client {
 
 class GrpcClient : Client {
  public:
-  explicit GrpcClient(GrpcClientOptions const& options);
-  GrpcClient(GrpcClientOptions const& options,
-             std::shared_ptr<Clock> clock = std::make_shared<SystemClock>());
+  explicit GrpcClient(
+      GrpcClientOptions const& options,
+      std::shared_ptr<SystemClock> clock = std::make_shared<SystemClock>());
   ~GrpcClient() override = default;
 
   // GrpcClient is copyable and movable.
@@ -80,8 +81,8 @@ class GrpcClient : Client {
   // gRPC stub for making `google.cloud.kms.v1` gRPC calls.
   std::shared_ptr<google::cloud::kms::v1::KeyManagementService::Stub> stub_;
 
-  // The GrpcClientOptions instance used to instantiate this GrpcClient.
   GrpcClientOptions client_options_;
+  std::shared_ptr<SystemClock> clock_;
 };
 
 }  // namespace client
