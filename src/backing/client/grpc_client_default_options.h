@@ -20,13 +20,15 @@
 #include <chrono>
 #include <optional>
 
+#include "absl/types/optional.h"
+
 namespace kmsengine {
 namespace backing {
 namespace client {
 
 constexpr char kDefaultApiEndpoint[] = "https://cloudkms.googleapis.com";
-constexpr std::optional<std::chrono::duration> kDefaultTimeoutDuration =
-    std::nullopt;
+constexpr absl::optional<std::chrono::duration> kDefaultTimeoutDuration =
+    absl::nullopt;
 
 }  // namespace client
 }  // namespace backing

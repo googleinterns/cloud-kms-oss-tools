@@ -23,6 +23,7 @@ cc_library(
     hdrs = ["is_proto_equal.h"],
     srcs = ["is_proto_equal.cc"],
     deps = [
+        "@com_google_absl//absl/types:optional",
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ]

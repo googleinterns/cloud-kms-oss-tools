@@ -40,17 +40,19 @@
 #include <google/protobuf/message.h>
 #include <gmock/gmock.h>
 
+#include "absl/types/optional.h"
+
 namespace kmsengine {
 namespace backing {
 namespace client {
 namespace testing_util {
 
-std::optional<std::string> CompareProtos(
+absl::optional<std::string> CompareProtos(
     google::protobuf::Message const& arg,
     google::protobuf::Message const& value);
 
 MATCHER_P(IsProtoEqual, value, "Checks whether protos are equal") {
-  optional<std::string> delta = CompareProtos(arg, value);
+  absl::optional<std::string> delta = CompareProtos(arg, value);
   if (delta.has_value()) {
     *result_listener << "\n" << *delta;
   }

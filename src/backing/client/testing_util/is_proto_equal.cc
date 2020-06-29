@@ -35,12 +35,14 @@
 
 #include <google/protobuf/util/message_differencer.h>
 
+#include "absl/types/optional.h"
+
 namespace kmsengine {
 namespace backing {
 namespace client {
 namespace testing_util {
 
-std::optional<std::string> CompareProtos(
+absl::optional<std::string> CompareProtos(
     google::protobuf::Message const& arg,
     google::protobuf::Message const& value) {
   std::string delta;

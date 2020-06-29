@@ -29,12 +29,13 @@
 #include <google/cloud/kms/v1/service.pb.h>
 #include <grpcpp/grpcpp.h>
 
+#include "absl/types/optional.h"
+#include "google/cloud/status_or.h"
 #include "src/backing/client/client.h"
 #include "src/backing/client/asymmetric_sign_request.h"
 #include "src/backing/client/asymmetric_sign_response.h"
 #include "src/backing/client/grpc_client_options.h"
 #include "src/backing/client/digest.h"
-#include "src/backing/status/status_or.h"
 
 namespace kmsengine {
 namespace backing {

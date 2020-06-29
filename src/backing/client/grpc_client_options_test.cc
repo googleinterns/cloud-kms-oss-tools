@@ -55,8 +55,8 @@ TEST(GrpcClientOptionsTest, TimeoutDurationRoundtrip) {
   options.SetTimeoutDuration(std::chrono::seconds(5));
   EXPECT_EQ(options.GetTimeoutDuration(), std::chrono::seconds(5));
 
-  options.SetTimeoutDuration(std::nullopt);
-  EXPECT_EQ(options.GetTimeoutDuration(), std::nullopt);
+  options.SetTimeoutDuration(absl::nullopt);
+  EXPECT_EQ(options.GetTimeoutDuration(), absl::nullopt);
 }
 
 TEST(GrpcClientOptionsTest, ApiEndpointRoundtrip) {

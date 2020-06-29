@@ -23,6 +23,7 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "absl/types/optional.h"
 #include "src/backing/client/grpc_client_default_options.h"
 
 namespace kmsengine {
@@ -49,7 +50,7 @@ void ClientOptions::SetCredentials(
   credentials_ = std::move(credentials);
 }
 
-std::optional<std::chrono::duration> ClientOptions::GetTimeoutDuration() const {
+absl::optional<std::chrono::duration> ClientOptions::GetTimeoutDuration() const {
   return timeout_duration_;
 }
 

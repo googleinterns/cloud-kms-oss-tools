@@ -23,6 +23,8 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "absl/types/optional.h"
+
 namespace kmsengine {
 namespace backing {
 namespace client {
@@ -65,8 +67,8 @@ class GrpcClientOptions {
   // unbounded time. (However, gRPC's "keepalive" mechanism will automatically
   // terminate requests early if the API endpoint is unavailable or the network
   // connection is dropped.)
-  std::optional<std::chrono::duration> GetTimeoutDuration();
-  void SetTimeoutDuration(std::optional<std::chrono::duration> duration);
+  absl::optional<std::chrono::duration> GetTimeoutDuration();
+  void SetTimeoutDuration(absl::optional<std::chrono::duration> duration);
 
   // Getter and setter for the HTTP endpoint where API requests are sent.
   std::string const& GetApiEndpoint();

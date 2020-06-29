@@ -25,7 +25,7 @@ cc_library(
     deps = [
         ":client",
         ":grpc_client_options",
-        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_googleapis//:googleapis_system_includes",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
         "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_common",
