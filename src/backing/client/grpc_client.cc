@@ -80,8 +80,6 @@ StatusOr<AsymmetricSignResponse> GrpcClient::AsymmetricSign(
   return FromProto(std::move(response));
 }
 
-#undef KMSENGINE_MAKE_CLIENT_CONTEXT
-
 google::cloud::kms::v1::AsymmetricSignRequest GrpcClient::ToProto(
     AsymmetricSignRequest request) {
   google::cloud::kms::v1::AsymmetricSignRequest proto_request;

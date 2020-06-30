@@ -79,7 +79,8 @@ class GrpcClient : Client {
 
  private:
   // gRPC stub for making `google.cloud.kms.v1` gRPC calls.
-  std::shared_ptr<google::cloud::kms::v1::KeyManagementService::Stub> stub_;
+  std::shared_ptr<
+      google::cloud::kms::v1::KeyManagementService::StubInterface> stub_;
 
   GrpcClientOptions client_options_;
   std::shared_ptr<SystemClock> clock_;
