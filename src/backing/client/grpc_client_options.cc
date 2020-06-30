@@ -17,7 +17,6 @@
 #include "src/backing/client/grpc_client_options.h"
 
 #include <chrono>
-#include <optional>
 #include <string>
 #include <utility>
 

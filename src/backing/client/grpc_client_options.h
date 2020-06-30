@@ -18,7 +18,6 @@
 #define KMSENGINE_BACKING_CLIENT_GRPC_CLIENT_OPTIONS_H_
 
 #include <chrono>
-#include <optional>
 #include <string>
 
 #include <grpcpp/grpcpp.h>
