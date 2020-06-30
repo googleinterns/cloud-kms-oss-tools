@@ -39,7 +39,7 @@ class GrpcIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
     crypto_key_version_ = GetEnv("TEST_CRYPTO_KEY_VERSION");
-    ASSERT_FALSE(crypto_key_version.empty()) <<
+    ASSERT_FALSE(crypto_key_version_.empty()) <<
         "TEST_CRYPTO_KEY_VERSION is not set";
   }
 
