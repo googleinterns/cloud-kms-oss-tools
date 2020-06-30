@@ -52,6 +52,7 @@ cc_test(
     srcs = ["grpc_integration_test.cc"],
     deps = [
         ":grpc_client",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )

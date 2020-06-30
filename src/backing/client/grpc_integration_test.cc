@@ -19,7 +19,7 @@
 #include <gtest/gtest.h>
 #include <google/protobuf/text_format.h>
 
-#include "absl/types/optional.h"
+#include "absl/strings/escaping.h"
 #include "src/backing/client/grpc_client.h"
 
 namespace kmsengine {
@@ -27,6 +27,11 @@ namespace backing {
 namespace client {
 namespace {
 
+// Helper function that returns the value of an environment variable as a
+// `std::string`.
+//
+// Environment variables can be set in a `bazel test` action via the
+// `--test_env` flag.
 std::string GetEnv(char const* variable) {
   char *buffer = std::getenv(variable);
   if (buffer == nullptr) {
@@ -56,9 +61,9 @@ TEST_F(GrpcIntegrationTest, AsymmetricSign) {
   GrpcClient client(options);
 
   // SHA-256 hash for "hello world".
-  Digest digest(
-      DigestType::kSha256,
+  std::string digest_bytes = absl::HexStringToBytes(
       "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9");
+  Digest digest(DigestType::kSha256, digest_bytes);
   AsymmetricSignRequest request(crypto_key_version(), digest);
 
   auto response = client.AsymmetricSign(request);
