@@ -26,7 +26,12 @@ namespace kmsengine {
 namespace backing {
 namespace client {
 
-constexpr char kDefaultApiEndpoint[] = "https://cloudkms.googleapis.com";
+// Default API endpoint for making gRPC requests against.
+//
+// Should not be prefixed with "https://" to comply with the gRPC library.
+constexpr char kDefaultApiEndpoint[] = "cloudkms.googleapis.com";
+
+// Default timeout duration used to calculate gRPC request deadlines.
 constexpr absl::optional<std::chrono::milliseconds> kDefaultTimeoutDuration =
     absl::nullopt;
 

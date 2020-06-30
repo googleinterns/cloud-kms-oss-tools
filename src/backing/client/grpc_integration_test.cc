@@ -38,7 +38,7 @@ std::string GetEnv(char const* variable) {
 class GrpcIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    auto crypto_key_version = GetEnv("TEST_CRYPTO_KEY_VERSION");
+    crypto_key_version_ = GetEnv("TEST_CRYPTO_KEY_VERSION");
     ASSERT_FALSE(crypto_key_version.empty()) <<
         "TEST_CRYPTO_KEY_VERSION is not set";
   }
