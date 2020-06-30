@@ -34,7 +34,6 @@
 #ifndef KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_
 #define KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_
 
-#include <optional>
 #include <string>
 
 #include <google/protobuf/message.h>
