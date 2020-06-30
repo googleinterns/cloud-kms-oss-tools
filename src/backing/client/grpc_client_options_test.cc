@@ -15,7 +15,6 @@
  */
 
 #include <chrono>
-#include <optional>
 #include <string>
 
 #include <grpcpp/grpcpp.h>
