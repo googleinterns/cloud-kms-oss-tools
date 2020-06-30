@@ -17,12 +17,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "src/backing/client/grpc_client_context_factory.h"
+#include "src/backing/client/grpc_client_impl/grpc_client_context_factory.h"
 #include "src/backing/client/testing_util/fake_clock.h"
 
 namespace kmsengine {
 namespace backing {
 namespace client {
+namespace grpc_client_impl {
 namespace {
 
 using ::kmsengine::backing::client::testing_util::FakeSystemClock;
@@ -51,7 +52,7 @@ TEST(GrpcClientContextFactoryTest, MakeContextSetsDeadline) {
     SystemClock::time_point time(real_clock.Now());
     fake_clock->SetTime(time);
 
-    std::unique_ptr<grpc::ClientContext> context = factory->MakeContext();
+    std::unique_ptr<grpc::ClientContext> context = factory.MakeContext();
 
     auto expected = time + timeout_duration;
     EXPECT_EQ(context->deadline(), expected);
@@ -59,6 +60,7 @@ TEST(GrpcClientContextFactoryTest, MakeContextSetsDeadline) {
 }
 
 }  // namespace
+}  // namespace grpc_client_impl
 }  // namespace client
 }  // namespace backing
 }  // namespace kmsengine

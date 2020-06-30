@@ -22,12 +22,13 @@
 #include <google/cloud/kms/v1/service.grpc.pb.h>
 #include <google/cloud/kms/v1/service.pb.h>
 
-#include "src/backing/client/client.h"
-#include "src/backing/client/clock.h"
 #include "src/backing/client/asymmetric_sign_request.h"
 #include "src/backing/client/asymmetric_sign_response.h"
-#include "src/backing/client/grpc_client_options.h"
+#include "src/backing/client/client.h"
+#include "src/backing/client/clock.h"
 #include "src/backing/client/digest.h"
+#include "src/backing/client/grpc_client_impl/grpc_client_context_factory.h"
+#include "src/backing/client/grpc_client_options.h"
 #include "src/backing/status/status.h"
 
 namespace kmsengine {
@@ -66,7 +67,7 @@ class GrpcClient : Client {
       google::cloud::kms::v1::KeyManagementService::StubInterface> stub_;
 
   std::shared_ptr<GrpcClientOptions> client_options_;
-  GrpcClientContextFactory client_context_factory_;
+  grpc_client_impl::GrpcClientContextFactory client_context_factory_;
 };
 
 }  // namespace client

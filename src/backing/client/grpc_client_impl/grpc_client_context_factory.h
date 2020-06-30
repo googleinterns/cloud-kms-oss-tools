@@ -28,6 +28,7 @@
 namespace kmsengine {
 namespace backing {
 namespace client {
+namespace grpc_client_impl {
 
 // Factory class for making a `grpc::ClientContext` from a set of
 // `GrpcClientOptions`.
@@ -52,6 +53,7 @@ class GrpcClientContextFactory {
   std::shared_ptr<SystemClock> clock_;
 };
 
+}  // namespace grpc_client_impl
 }  // namespace client
 }  // namespace backing
 }  // namespace kmsengine

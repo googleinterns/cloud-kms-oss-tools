@@ -26,6 +26,7 @@ cc_library(
         ":client",
         ":clock",
         ":grpc_client_options",
+        "//src/backing/client/grpc_client_impl:grpc_client_context_factory",
         "//src/backing/status",
         "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_grpc_utils",
         "@com_google_googleapis//:googleapis_system_includes",
@@ -40,7 +41,6 @@ cc_test(
     srcs = ["grpc_client_test.cc"],
     deps = [
         ":grpc_client",
-        "//src/backing/client/testing_util:fake_clock",
         "//src/backing/client/testing_util:is_proto_equal",
         "@com_google_googletest//:gtest_main",
     ],

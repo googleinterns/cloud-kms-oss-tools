@@ -19,7 +19,6 @@
 #include <google/protobuf/text_format.h>
 
 #include "src/backing/client/grpc_client.h"
-#include "src/backing/client/testing_util/fake_clock.h"
 #include "src/backing/client/testing_util/is_proto_equal.h"
 
 namespace kmsengine {
@@ -28,7 +27,6 @@ namespace client {
 namespace {
 
 using ::kmsengine::backing::client::testing_util::IsProtoEqual;
-using ::kmsengine::backing::client::testing_util::FakeSystemClock;
 
 TEST(GrpcClientTest, AsymmetricSignRequestWithSha256DigestToProto) {
   Digest digest(DigestType::kSha256, "my256digest");

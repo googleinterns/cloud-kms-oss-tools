@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include "src/backing/client/grpc_client_impl/grpc_client_context_factory.h"
+
 #include <chrono>
 #include <memory>
 
@@ -25,19 +27,21 @@
 namespace kmsengine {
 namespace backing {
 namespace client {
+namespace grpc_client_impl {
 
 std::unique_ptr<grpc::ClientContext> GrpcClientContextFactory::MakeContext() {
-  auto client_context = absl::make_unique<grpc::ClientContext>();
+  auto context = absl::make_unique<grpc::ClientContext>();
 
-  auto timeout_duration = client_options_.timeout_duration();
+  auto timeout_duration = client_options_->timeout_duration();
   if (timeout_duration.has_value()) {
     auto deadline = clock_->Now() + timeout_duration.value();
     context->set_deadline(deadline);
   }
 
-  return std::move(client_context);
+  return std::move(context);
 }
 
+}  // namespace grpc_client_impl
 }  // namespace client
 }  // namespace backing
 }  // namespace kmsengine
