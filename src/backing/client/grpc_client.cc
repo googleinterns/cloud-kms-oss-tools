@@ -43,36 +43,28 @@ namespace {
 
 // Helper function for creating a `KeyManagementService::Stub` in the
 // GrpcClient's constructor initializer list.
-std::shared_ptr<google::cloud::kms::v1::KeyManagementService::Stub>
-    CreateStub(GrpcClientOptions const& options) {
-  auto channel = grpc::CreateChannel(options.api_endpoint(),
-                                     options.credentials());
+inline std::shared_ptr<google::cloud::kms::v1::KeyManagementService::Stub>
+    CreateStub(std::shared_ptr<GrpcClientOptions> options) {
+  auto channel = grpc::CreateChannel(options->api_endpoint(),
+                                     options->credentials());
   return google::cloud::kms::v1::KeyManagementService::NewStub(channel);
 }
 
 }  // namespace
 
-GrpcClient::GrpcClient(GrpcClientOptions const& options,
+GrpcClient::GrpcClient(std::shared_ptr<GrpcClientOptions> options,
                        std::shared_ptr<SystemClock> clock)
-    : stub_(CreateStub(options)), client_options_(options), clock_(clock) {
-}
-
-void GrpcClient::SetupClientContext(grpc::ClientContext *context) {
-  auto duration = this->client_options_.timeout_duration();
-  if (duration.has_value()) {
-    auto deadline = clock_->Now() + duration.value();
-    context->set_deadline(deadline);
-  }
+    : stub_(CreateStub(options)), client_options_(options),
+      client_context_factory_(options, clock) {
 }
 
 StatusOr<AsymmetricSignResponse> GrpcClient::AsymmetricSign(
     AsymmetricSignRequest const& request) {
-  grpc::ClientContext context;
-  SetupClientContext(&context);
+  auto context = client_context_factory_.MakeContext();
   auto proto_request = ToProto(request);
   google::cloud::kms::v1::AsymmetricSignResponse response;
 
-  auto status = stub_->AsymmetricSign(&context, proto_request, &response);
+  auto status = stub_->AsymmetricSign(context.get(), proto_request, &response);
   if (!status.ok()) {
     return google::cloud::MakeStatusFromRpcError(status);
   }

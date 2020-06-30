@@ -37,30 +37,13 @@ namespace client {
 class GrpcClient : Client {
  public:
   explicit GrpcClient(
-      GrpcClientOptions const& options,
+      std::shared_ptr<GrpcClientOptions> options,
       std::shared_ptr<SystemClock> clock = std::make_shared<SystemClock>());
   ~GrpcClient() override = default;
 
   // GrpcClient is copyable and movable.
   GrpcClient(const GrpcClient& other) = default;
   GrpcClient& operator=(const GrpcClient& other) = default;
-
-  // Instantiates a `grpc::ClientContext` for use in making gRPC calls based on
-  // settings from the `GrpcClientOptions` with this `GrpcClient`.
-  //
-  // This method does not directly return a `grpc::ClientContext` instance
-  // since `grpc::ClientContext` is non-movable. (See related discussion at
-  // https://github.com/grpc/grpc/issues/16680.) Instead, callers are expected
-  // to instantiate a fresh instance themselves and pass a raw pointer to the
-  // instance to `SetupClientContext`.
-  //
-  // Example:
-  //
-  //    grpc::ClientContext context;
-  //    SetupClientContext(&context);
-  //    stub_->SomeRequest(&context, ...);
-  //
-  void SetupClientContext(grpc::ClientContext *context);
 
   // Overriden methods from the ApiClient interface.
   StatusOr<AsymmetricSignResponse> AsymmetricSign(
@@ -82,8 +65,8 @@ class GrpcClient : Client {
   std::shared_ptr<
       google::cloud::kms::v1::KeyManagementService::StubInterface> stub_;
 
-  GrpcClientOptions client_options_;
-  std::shared_ptr<SystemClock> clock_;
+  std::shared_ptr<GrpcClientOptions> client_options_;
+  GrpcClientContextFactory client_context_factory_;
 };
 
 }  // namespace client

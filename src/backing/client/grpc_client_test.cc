@@ -30,29 +30,6 @@ namespace {
 using ::kmsengine::backing::client::testing_util::IsProtoEqual;
 using ::kmsengine::backing::client::testing_util::FakeSystemClock;
 
-TEST(GrpcClientTest, SetupClientContextSetsDeadline) {
-  // In the CI environment `grpc::GoogleDefaultCredentials()` may assert. Use
-  // the insecure credentials to initialize the options in any unit test.
-  auto credentials = grpc::InsecureChannelCredentials();
-  GrpcClientOptions options(credentials);
-  auto timeout_duration = std::chrono::milliseconds(150);
-  options.set_timeout_duration(timeout_duration);
-
-  SystemClock real_clock;
-  std::shared_ptr<FakeSystemClock> fake_clock =
-      std::make_shared<FakeSystemClock>();
-  GrpcClient client(options, fake_clock);
-
-  SystemClock::time_point time(real_clock.Now());
-  fake_clock->SetTime(time);
-
-  grpc::ClientContext context;
-  client.SetupClientContext(&context);
-
-  auto expected = time + timeout_duration;
-  EXPECT_EQ(context.deadline(), expected);
-}
-
 TEST(GrpcClientTest, AsymmetricSignRequestWithSha256DigestToProto) {
   Digest digest(DigestType::kSha256, "my256digest");
   AsymmetricSignRequest request("my-key", digest);
