@@ -20,7 +20,7 @@
 
 #include "src/bridge/engine_name.h"
 #include "src/bridge/engine_setup.h"
-#include "src/bridge/error/error.h"
+#include "src/bridge/error.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -33,7 +33,7 @@ namespace {
 //
 // EngineFinish will have executed before EngineDestroy is called.
 int EngineDestroy(ENGINE *e) {
-  error::UnloadErrorStringsFromOpenSSL();
+  UnloadErrorStringsFromOpenSSL();
 }
 
 }  // namespace
@@ -50,7 +50,7 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
     return 0;
   }
 
-  error::LoadErrorStringsIntoOpenSSL();
+  LoadErrorStringsIntoOpenSSL();
   return 1;
 }
 

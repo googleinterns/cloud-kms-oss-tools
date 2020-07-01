@@ -19,7 +19,6 @@
 
 namespace kmsengine {
 namespace bridge {
-namespace error_impl {
 
 // Numerical constants representing an OpenSSL function.
 enum class FunctionCode : int {
@@ -39,7 +38,6 @@ constexpr std::underlying_type<FunctionCode>::type FunctionCodeToInt(
   return static_cast<std::underlying_type<FunctionCode>::type>(code);
 }
 
-}  // namespace error_impl
 }  // namespace bridge
 }  // namespace kmsengine
 

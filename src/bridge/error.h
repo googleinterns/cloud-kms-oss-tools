@@ -19,7 +19,7 @@
 
 #include <stdio.h>
 
-#include "src/backing/status/status_code.h"
+#include "src/backing/status/status.h"
 #include "src/bridge/error_impl/function_code.h"
 
 namespace kmsengine {
@@ -47,8 +47,8 @@ void UnloadErrorStringsFromOpenSSL();
 //    }
 //
 // Defined as a macro to allow usage of the __FILE__ and __LINE__ macros.
-#define KMSENGINE_ERROR(function_code, reason_code) \
-  ::kmsengine::bridge::ErrEngineError(function_code, reason_code,
+#define KMSENGINE_ERROR(function_code, reason_code)               \
+  ::kmsengine::bridge::ErrEngineError(function_code, reason_code, \
                                       __FILE__, __LINE__)
 
 // Signals to OpenSSL that an error occurred in function `function_code` due
@@ -62,6 +62,11 @@ void UnloadErrorStringsFromOpenSSL();
 // KMSENGINE_ERROR should generally be used instead of ErrEngineError.
 void ErrEngineError(FunctionCode function, StatusCode reason, char *file,
                     int line);
+
+// Returns the library code assigned by OpenSSL.
+//
+// Used for testing.
+int GetLibraryCode();
 
 }  // namespace bridge
 }  // namespace kmsengine

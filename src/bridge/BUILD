@@ -33,7 +33,7 @@ cc_library(
     deps = [
         ":engine_name",
         ":engine_setup",
-        "//src/bridge/error_impl",
+        ":error",
     ],
 )
 
@@ -63,9 +63,10 @@ cc_library(
     name = "error",
     srcs = ["error.cc"],
     hdrs = ["error.h"],
+    linkopts = ["-lcrypto"],
     deps = [
+        "//src/backing/status",
         "//src/bridge/error_impl:error_strings",
-        "//src/backing/status:status_code",
     ],
 )
 

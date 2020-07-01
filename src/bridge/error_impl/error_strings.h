@@ -21,7 +21,8 @@
 
 #include <openssl/err.h>
 
-#include "src/backing/status/status_code.h"
+#include "src/backing/status/status.h"
+#include "src/bridge/engine_name.h"
 #include "src/bridge/error_impl/function_code.h"
 
 namespace kmsengine {
@@ -30,11 +31,11 @@ namespace error_impl {
 
 // Returns an Open-SSL friendly error code for the given StatusCode. Helper
 // function meant for constructing an ERR_STRING_DATA object.
-constexpr unsigned long PackReasonCode(StatusCode reason);
+unsigned long PackReasonCode(StatusCode reason);
 
 // Returns an OpenSSL-friendly error code for the given FunctionCode. Helper
 // function meant for constructing an ERR_STRING_DATA object.
-constexpr unsigned long PackFunctionCode(FunctionCode func);
+unsigned long PackFunctionCode(FunctionCode func);
 
 // Associates the library code with the engine name.
 //

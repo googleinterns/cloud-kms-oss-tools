@@ -18,14 +18,14 @@
 
 #include <openssl/err.h>
 
-#include "src/backing/status/status_code.h"
+#include "src/backing/status/status.h"
 #include "src/bridge/error_impl/function_code.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace error_impl {
 
-constexpr unsigned long PackReasonCode(StatusCode code) {
+unsigned long PackReasonCode(StatusCode code) {
   // The first argument is the "error library code" assigned to our engine by
   // OpenSSL, so leave as zero. The second argument is a "function code" (left
   // as 0 since the reason strings are separately loaded from the function
@@ -33,7 +33,7 @@ constexpr unsigned long PackReasonCode(StatusCode code) {
   return ERR_PACK(0, 0, StatusCodeToInt(code));
 }
 
-constexpr unsigned long PackFunctionCode(FunctionCode func) {
+unsigned long PackFunctionCode(FunctionCode func) {
   // The first argument is the "error library code" assigned to our engine by
   // OpenSSL, so leave as zero. The second argument is a "function code" defined
   // by our engine. The third argument is a "reason code" (left as 0 since the

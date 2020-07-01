@@ -24,7 +24,8 @@ cc_library(
     hdrs = ["error_strings.h"],
     deps = [
         ":function_code",
-        "//src/backing/status:status_code",
+        "//src/bridge:engine_name",
+        "//src/backing/status",
     ],
 )
 
