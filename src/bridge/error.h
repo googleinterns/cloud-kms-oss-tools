@@ -20,23 +20,16 @@
 #include <stdio.h>
 
 #include "src/backing/status/status_code.h"
-#include "src/bridge/error/function_code.h"
+#include "src/bridge/error_impl/function_code.h"
 
 namespace kmsengine {
 namespace bridge {
-namespace error {
 
 // Loads the engine error strings into OpenSSL. This associates human-
 // readable error strings with the error codes signaled by the engine.
-//
-// It's safe to call this function even if UnloadErrorStringsFromOpenSSL has
-// been called.
 void LoadErrorStringsIntoOpenSSL();
 
 // Unloads the engine error strings from OpenSSL.
-//
-// It's safe to call this function even if LoadErrorStringsIntoOpenSSL has not
-// been called.
 void UnloadErrorStringsFromOpenSSL();
 
 // Signals to OpenSSL that an error of reason `reason_code` occurred in
@@ -53,8 +46,10 @@ void UnloadErrorStringsFromOpenSSL();
 //      return 0;
 //    }
 //
+// Defined as a macro to allow usage of the __FILE__ and __LINE__ macros.
 #define KMSENGINE_ERROR(function_code, reason_code) \
-  ErrEngineError(function_code, reason_code, __FILE__, __LINE__)
+  ::kmsengine::bridge::ErrEngineError(function_code, reason_code,
+                                      __FILE__, __LINE__)
 
 // Signals to OpenSSL that an error occurred in function `function_code` due
 // to the error status in the StatusOr<T> `status_or` object.
@@ -65,9 +60,9 @@ void UnloadErrorStringsFromOpenSSL();
 // function `function` at file `file` on line `line`.
 //
 // KMSENGINE_ERROR should generally be used instead of ErrEngineError.
-void ErrEngineError(FunctionCode function, StatusCode reason, char *file, int line);
+void ErrEngineError(FunctionCode function, StatusCode reason, char *file,
+                    int line);
 
-}  // namespace error
 }  // namespace bridge
 }  // namespace kmsengine
 

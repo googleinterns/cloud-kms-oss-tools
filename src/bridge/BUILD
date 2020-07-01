@@ -33,7 +33,7 @@ cc_library(
     deps = [
         ":engine_name",
         ":engine_setup",
-        "//src/bridge/error",
+        "//src/bridge/error_impl",
     ],
 )
 
@@ -57,4 +57,24 @@ cc_library(
     srcs = ["engine_setup.cc"],
     hdrs = ["engine_setup.h"],
     linkopts = ["-lcrypto"],
+)
+
+cc_library(
+    name = "error",
+    srcs = ["error.cc"],
+    hdrs = ["error.h"],
+    deps = [
+        "//src/bridge/error_impl:error_strings",
+        "//src/backing/status:status_code",
+    ],
+)
+
+cc_test(
+    name = "error_test",
+    size = "small",
+    srcs = ["error_test.cc"],
+    deps = [
+        ":error",
+        "@com_google_googletest//:gtest_main",
+    ],
 )

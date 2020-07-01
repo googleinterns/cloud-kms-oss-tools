@@ -14,47 +14,51 @@
  * limitations under the License.
  */
 
-#include "src/bridge/error/error.h"
+#include "src/bridge/error_impl/error.h"
 
 #include <stdio.h>
 
 #include <openssl/err.h>
 
 #include "src/backing/status/status_code.h"
-#include "src/bridge/error/error_strings.h"
-#include "src/bridge/error/function_code.h"
+#include "src/bridge/error_impl/error_strings.h"
+#include "src/bridge/error_impl/function_code.h"
 
 namespace kmsengine {
 namespace bridge {
-namespace error {
+
+using ::error_impl;
 
 // OpenSSL engines request a library code using ERR_get_next_error_library(3)
 // with which they can register engine-specific, human-readable error strings
 // with OpenSSL.
-static const int library_code = ERR_get_next_error_library();
+static const int kErrorLibraryCode = ERR_get_next_error_library();
+
+const ERR_STRING_DATA kErrorStringTables[][] = {
+  kLibraryStrings,
+  kFunctionStrings,
+  kReasonStrings,
+}
 
 void LoadErrorStringsIntoOpenSSL() {
-  ERR_load_strings(library_code,
-                   const_cast<ERR_STRING_DATA*>(kFunctionStrings));
-  ERR_load_strings(library_code,
-                   const_cast<ERR_STRING_DATA*>(kReasonStrings));
+  for (auto table : kErrorStringTables) {
+    ERR_load_strings(kErrorLibraryCode, table);
+  }
 }
 
 void UnloadErrorStringsFromOpenSSL() {
-  ERR_unload_strings(library_code,
-                     const_cast<ERR_STRING_DATA*>(kFunctionStrings));
-  ERR_unload_strings(library_code,
-                     const_cast<ERR_STRING_DATA*>(kReasonStrings));
+  for (auto table : kErrorStringTables) {
+    ERR_unload_strings(kErrorLibraryCode, table);
+  }
 }
 
 void ErrEngineError(FunctionCode function, StatusCode reason, char *file,
                     int line) {
-  ERR_PUT_error(library_code,
+  ERR_PUT_error(kErrorLibraryCode,
                 static_cast<std::underlying_type<FunctionCode>::type>(function),
                 static_cast<std::underlying_type<StatusCode>::type>(reason),
                 file, line);
 }
 
-}  // namespace error
 }  // namespace bridge
 }  // namespace kmsengine

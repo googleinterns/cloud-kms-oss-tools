@@ -22,22 +22,34 @@
 #include <openssl/err.h>
 
 #include "src/backing/status/status_code.h"
-#include "src/bridge/error/function_code.h"
+#include "src/bridge/error_impl/function_code.h"
 
 namespace kmsengine {
 namespace bridge {
-namespace error {
+namespace error_impl {
 
 // Returns an Open-SSL friendly error code for the given StatusCode. Helper
 // function meant for constructing an ERR_STRING_DATA object.
-unsigned long PackReasonCode(StatusCode reason);
+constexpr unsigned long PackReasonCode(StatusCode reason);
 
 // Returns an OpenSSL-friendly error code for the given FunctionCode. Helper
 // function meant for constructing an ERR_STRING_DATA object.
-unsigned long PackFunctionCode(FunctionCode func);
+constexpr unsigned long PackFunctionCode(FunctionCode func);
+
+// Associates the library code with the engine name.
+//
+// Purposely not declared as `const`. OpenSSL will modify the ERR_STRING_DATA
+// tables when strings are loaded (it updates the leading bits of the first
+// error number argument to patch in the assigned error library code).
+ERR_STRING_DATA kLibraryStrings[] = {
+  {ERR_PACK(0, 0, 0), kEngineName},  // (0, 0, 0) denotes engine name.
+  {0, 0},
+};
 
 // Map from StatusCodes to human-readable strings.
-const ERR_STRING_DATA kReasonStrings[] = {
+//
+// Purposely not declared as `const`. See `kLibraryStrings` comment for info.
+ERR_STRING_DATA kReasonStrings[] = {
   {PackReasonCode(StatusCode::kOk), "ok"},
   {PackReasonCode(StatusCode::kCancelled), "cancelled"},
   {PackReasonCode(StatusCode::kUnknown), "unknown"},
@@ -59,7 +71,9 @@ const ERR_STRING_DATA kReasonStrings[] = {
 };
 
 // Map from FunctionCodes to human-readable strings.
-const ERR_STRING_DATA kFunctionStrings[] = {
+//
+// Purposely not declared as `const`. See `kLibraryStrings` comment for info.
+ERR_STRING_DATA kFunctionStrings[] = {
   {PackFunctionCode(FunctionCode::kRsaPubEnc), "RsaPubEnc"},
   {PackFunctionCode(FunctionCode::kRsaPubDec), "RsaPubDec"},
   {PackFunctionCode(FunctionCode::kRsaPrivEnc), "RsaPrivEnc"},
@@ -69,7 +83,7 @@ const ERR_STRING_DATA kFunctionStrings[] = {
   {0, 0},
 };
 
-}  // namespace error
+}  // namespace error_impl
 }  // namespace bridge
 }  // namespace kmsengine
 

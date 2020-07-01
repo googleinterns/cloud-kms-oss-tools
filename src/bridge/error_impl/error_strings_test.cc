@@ -17,38 +17,35 @@
 #include <openssl/engine.h>
 #include <gtest/gtest.h>
 
-#include "src/bridge/error/error_strings.h"
+#include "src/bridge/error_impl/error_strings.h"
 
 namespace kmsengine {
 namespace bridge {
-namespace error {
+namespace error_impl {
 namespace {
-
-using StatusCodeType = std::underlying_type<StatusCode>::type;
-using FunctionCodeType = std::underlying_type<FunctionCode>::type;
 
 TEST(ErrorStringsTest, PackReasonCodePacksIntoThirdArgument) {
   EXPECT_EQ(
       PackReasonCode(StatusCode::kOk),
-      ERR_PACK(0, 0, static_cast<StatusCodeType>(StatusCode::kOk)));
+      ERR_PACK(0, 0, StatusCodeToInt(StatusCode::kOk)));
   EXPECT_EQ(
       PackReasonCode(StatusCode::kUnknown),
-      ERR_PACK(0, 0, static_cast<StatusCodeType>(StatusCode::kUnknown)));
+      ERR_PACK(0, 0, StatusCodeToInt(StatusCode::kUnknown)));
   EXPECT_EQ(
       PackReasonCode(StatusCode::kCancelled),
-      ERR_PACK(0, 0, static_cast<StatusCodeType>(StatusCode::kCancelled)));
+      ERR_PACK(0, 0, StatusCodeToInt(StatusCode::kCancelled)));
 }
 
 TEST(ErrorStringsTest, PackFunctionCodePacksIntoSecondArgument) {
   EXPECT_EQ(
       PackFunctionCode(FunctionCode::kRsaSign),
-      ERR_PACK(0, static_cast<FunctionCodeType>(FunctionCode::kRsaSign), 0));
+      ERR_PACK(0, FunctionCodeToInt(FunctionCode::kRsaSign), 0));
   EXPECT_EQ(
       PackFunctionCode(FunctionCode::kRsaVerify),
-      ERR_PACK(0, static_cast<FunctionCodeType>(FunctionCode::kRsaVerify), 0));
+      ERR_PACK(0, FunctionCodeToInt(FunctionCode::kRsaVerify), 0));
 }
 
 }  // namespace
-}  // namespace error
+}  // namespace error_impl
 }  // namespace bridge
 }  // namespace kmsengine
