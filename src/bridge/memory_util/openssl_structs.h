@@ -27,8 +27,18 @@ namespace memory_util {
 // They should be used when all of the following conditions are met:
 //
 //    - The engine needs to instantiate a new OpenSSL struct.
-//    - The engine is responsible for owning the instance of that struct.
-//    - The engine is responsible for cleaning up the struct instance.
+//
+//    - The engine (not OpenSSL, or another OpenSSL struct) "owns" the instance
+//      of that struct. (For example, while the engine is responsibile for
+//      instantiating both an `EVP_PKEY` and an `RSA` instance in the key
+//      loader, it should not use the smart pointer interface for the `RSA`
+//      instance since the `RSA` instance is "owned" by the `EVP_PKEY`. The
+//      `EVP_PKEY` should not be converted to a smart pointer as well since
+//      ownership of the `EVP_PKEY` is passed back to the client application.)
+//
+//    - The engine is responsible for cleaning up the struct instance (for,
+//      example, it doesn't pass ownership / cleanup responsibility of the
+//      instance to OpenSSL via an API function, etc.).
 //
 // Existing OpenSSL struct pointers passed from OpenSSL applications should not
 // be converted to smart pointers since the engine does not "own" that
