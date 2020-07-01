@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BRIDGE_ERROR_ERROR_H_
-#define KMSENGINE_BRIDGE_ERROR_ERROR_H_
+#ifndef KMSENGINE_BRIDGE_ERROR_H_
+#define KMSENGINE_BRIDGE_ERROR_H_
 
 #include <stdio.h>
 
@@ -71,4 +71,4 @@ int GetLibraryCode();
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BRIDGE_ERROR_ERROR_H_
+#endif  // KMSENGINE_BRIDGE_ERROR_H_

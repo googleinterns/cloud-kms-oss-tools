@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BRIDGE_ERROR_FUNCTION_STRINGS_H_
-#define KMSENGINE_BRIDGE_ERROR_FUNCTION_STRINGS_H_
+#ifndef KMSENGINE_BRIDGE_ERROR_IMPL_FUNCTION_STRINGS_H_
+#define KMSENGINE_BRIDGE_ERROR_IMPL_FUNCTION_STRINGS_H_
 
 namespace kmsengine {
 namespace bridge {
@@ -41,4 +41,4 @@ constexpr std::underlying_type<FunctionCode>::type FunctionCodeToInt(
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BRIDGE_ERROR_FUNCTION_STRINGS_H_
+#endif  // KMSENGINE_BRIDGE_ERROR_IMPL_FUNCTION_STRINGS_H_
