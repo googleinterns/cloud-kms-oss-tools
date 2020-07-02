@@ -47,15 +47,6 @@ TEST(ErrorTest, LibraryStringsLoaded) {
   UnloadErrorStringsFromOpenSSL();
 }
 
-TEST(ErrorTest, FunctionStringsLoaded) {
-  LoadErrorStringsIntoOpenSSL();
-
-  EXPECT_STREQ(ERR_func_error_string(TestFunctionCode(FunctionCode::kRsaSign)), "RsaSign");
-  EXPECT_STREQ(ERR_func_error_string(TestFunctionCode(FunctionCode::kRsaVerify)), "RsaVerify");
-
-  UnloadErrorStringsFromOpenSSL();
-}
-
 TEST(ErrorTest, ReasonStringsLoaded) {
   LoadErrorStringsIntoOpenSSL();
 
