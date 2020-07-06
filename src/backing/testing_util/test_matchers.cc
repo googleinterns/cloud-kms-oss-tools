@@ -32,7 +32,7 @@
  * limitations under the License.
  */
 
-#include "src/backing/client/testing_util/test_matchers.h"
+#include "src/backing/testing_util/test_matchers.h"
 
 #include <google/protobuf/util/message_differencer.h>
 

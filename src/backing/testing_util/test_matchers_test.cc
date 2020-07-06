@@ -34,7 +34,7 @@
 #include <google/protobuf/wrappers.pb.h>
 #include <gmock/gmock.h>
 
-#include "src/backing/client/testing_util/test_matchers.h"
+#include "src/backing/testing_util/test_matchers.h"
 
 namespace kmsengine {
 namespace backing {

@@ -16,20 +16,27 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//src/backing/client:__subpackages__"])
+package(default_visibility = ["//src/backing:__subpackages__"])
 
 cc_library(
-    name = "fake_clock",
-    hdrs = ["fake_clock.h"],
-    deps = ["//src/backing/client:clock"],
+    name = "test_matchers",
+    srcs = ["test_matchers.cc"],
+    hdrs = ["test_matchers.h"],
+    deps = [
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_absl//absl/types:optional",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
+    ],
 )
 
 cc_test(
-    name = "fake_clock_test",
+    name = "test_matchers_test",
     size = "small",
-    srcs = ["fake_clock_test.cc"],
+    srcs = ["test_matchers_test.cc"],
     deps = [
-        ":fake_clock",
+        ":test_matchers",
         "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
     ],
 )
