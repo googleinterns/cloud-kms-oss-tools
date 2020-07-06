@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <tuple>
+
 #include <openssl/engine.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -27,6 +29,8 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+using ::testing::ValuesIn;
+using ::testing::Combine;
 using ::testing::StrEq;
 using ::testing::HasSubstr;
 
@@ -50,34 +54,54 @@ const StatusCode kStatusCodes[] = {
   StatusCode::kDataLoss,
 };
 
-TEST(ErrorTest, ErrorLibraryCodeInitialized) {
-  // Library codes should be greater than zero.
-  EXPECT_GT(GetLibraryCode(), 0);
-}
+const std::string kSampleStrings[] = {
+  "a very long, unique error message",
+  "short message",
+  "",
+};
 
-TEST(ErrorTest, SignalErrorWorks) {
+class ErrorSignalTest : public
+    testing::TestWithParam<std::tuple<StatusCode, std::string>> {
+  // Purposely empty; no fixtures to instantiate.
+};
+
+INSTANTIATE_TEST_SUITE_P(InstantiationName, ErrorSignalTest,
+                         Combine(ValuesIn(kStatusCodes),
+                                 ValuesIn(kSampleStrings)));
+
+TEST_P(ErrorSignalTest, SignalErrorWorks) {
   // Empty the OpenSSL error queue, just in case.
   ERR_clear_error();
 
-  for (auto expected_code : kStatusCodes) {
-    auto expected_message = absl::StrCat("unique error message for ",
-                                         StatusCodeToString(expected_code));
-    KMSENGINE_SIGNAL_ERROR(Status(expected_code, expected_message));
+  auto expected_code = std::get<0>(GetParam());
+  auto expected_message = std::get<1>(GetParam());
+  KMSENGINE_SIGNAL_ERROR(Status(expected_code, expected_message));
 
-    // OpenSSL should have the error we just signaled in its own error queue, so
-    // pop it off the queue and interpret its strings.
-    const char *file, *data;
-    int line, flags;
-    auto err = ERR_get_error_line_data(&file, &line, &data, &flags);
+  // OpenSSL should have the error we just signaled in its own error queue, so
+  // pop it off the queue and interpret its strings.
+  const char *file, *data;
+  int line, flags;
+  auto err = ERR_get_error_line_data(&file, &line, &data, &flags);
 
-    EXPECT_THAT(file, StrEq(__FILE__));
-    EXPECT_THAT(data, HasSubstr(__func__));
-    EXPECT_THAT(data, HasSubstr(expected_message));
+  EXPECT_THAT(file, StrEq(__FILE__));
+  EXPECT_THAT(data, HasSubstr(__func__));
+  EXPECT_THAT(data, HasSubstr(expected_message));
 
-    EXPECT_EQ(ERR_GET_LIB(err), GetLibraryCode());
-    EXPECT_EQ(ERR_GET_FUNC(err), 0);
-    EXPECT_EQ(ERR_GET_REASON(err), StatusCodeToInt(expected_code));
-  }
+  EXPECT_EQ(ERR_GET_LIB(err), GetErrorLibraryId());
+  EXPECT_EQ(ERR_GET_FUNC(err), 0);
+  EXPECT_EQ(ERR_GET_REASON(err), StatusCodeToInt(expected_code));
+}
+
+TEST(ErrorTest, ErrorLibraryCodeInitialized) {
+  // Library codes should be greater than zero.
+  EXPECT_GT(GetErrorLibraryId(), 0);
+}
+
+TEST(ErrorTest, ErrorLibraryCodeConstantBetweenCalls) {
+  // Library codes should be greater than zero.
+  auto first_code = GetErrorLibraryId();
+  auto second_code = GetErrorLibraryId();
+  EXPECT_EQ(first_code, second_code);
 }
 
 TEST(ErrorTest, LoadErrorStrings) {

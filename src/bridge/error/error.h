@@ -61,7 +61,7 @@ void SignalErrorToOpenSSL(Status status, const char *function_name,
   SignalErrorToOpenSSL(status, __func__, __FILE__, __LINE__);
 
 // Returns the library code assigned by OpenSSL.
-int GetLibraryCode();
+int GetErrorLibraryId();
 
 }  // namespace bridge
 }  // namespace kmsengine

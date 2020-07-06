@@ -60,20 +60,6 @@ TEST(ErrorStringsTest, PackReasonCode) {
   }
 }
 
-TEST(ErrorStringsTest, AllStatusCodesInReasonStrings) {
-  for (auto code : kStatusCodes) {
-    auto count = sizeof(kReasonStrings) / sizeof(kReasonStrings[0]);
-    auto end = kReasonStrings + count;
-    auto result = std::find_if(kReasonStrings, end,
-                 [=](ERR_STRING_DATA data)->bool {
-      return (ERR_GET_REASON(data.error) == StatusCodeToInt(code));
-    });
-
-    // If result == end, then no reason string was found for the given code.
-    EXPECT_NE(result, end);
-  }
-}
-
 }  // namespace
 }  // namespace error_impl
 }  // namespace bridge

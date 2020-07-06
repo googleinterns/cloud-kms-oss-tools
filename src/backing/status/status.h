@@ -45,10 +45,11 @@ using StatusOr = google::cloud::StatusOr<T>;
 // Converts the `StatusCode` to its underlying integer type.
 //
 // Useful for testing as well as defining error strings.
-constexpr std::underlying_type<StatusCode>::type StatusCodeToInt(
-    StatusCode code) {
+constexpr int StatusCodeToInt(StatusCode code) {
   return static_cast<std::underlying_type<StatusCode>::type>(code);
 }
+
+const auto StatusCodeToString = google::cloud::StatusCodeToString;
 
 }  // namespace kmsengine
 
