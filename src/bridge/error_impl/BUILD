@@ -20,10 +20,8 @@ package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
     name = "error_strings",
-    srcs = ["error_strings.cc"],
     hdrs = ["error_strings.h"],
     deps = [
-        ":function_code",
         "//src/bridge:engine_name",
         "//src/backing/status",
     ],
@@ -37,9 +35,4 @@ cc_test(
         ":error_strings",
         "@com_google_googletest//:gtest_main",
     ],
-)
-
-cc_library(
-    name = "function_code",
-    hdrs = ["function_code.h"],
 )

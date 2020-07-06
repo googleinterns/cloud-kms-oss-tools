@@ -31,11 +31,13 @@ namespace error_impl {
 
 // Returns an Open-SSL friendly error code for the given StatusCode. Helper
 // function meant for constructing an ERR_STRING_DATA object.
-unsigned long PackReasonCode(StatusCode reason);
-
-// Returns an OpenSSL-friendly error code for the given FunctionCode. Helper
-// function meant for constructing an ERR_STRING_DATA object.
-unsigned long PackFunctionCode(FunctionCode func);
+inline unsigned long PackReasonCode(StatusCode reason) {
+  // The first argument is the "error library code" assigned to our engine by
+  // OpenSSL, so leave as zero. The second argument is a "function code" (left
+  // as 0 since the reason strings are separately loaded from the function
+  // strings). The third argument is a "reason code" defined by our engine.
+  return ERR_PACK(0, 0, StatusCodeToInt(code));
+}
 
 // Associates the library code with the engine name.
 //
@@ -68,19 +70,6 @@ ERR_STRING_DATA kReasonStrings[] = {
   {PackReasonCode(StatusCode::kUnavailable), "unavailable"},
   {PackReasonCode(StatusCode::kDataLoss), "data loss"},
   {PackReasonCode(StatusCode::kUnauthenticated), "unauthenticated"},
-  {0, 0},
-};
-
-// Map from FunctionCodes to human-readable strings.
-//
-// Purposely not declared as `const`. See `kLibraryStrings` comment for info.
-ERR_STRING_DATA kFunctionStrings[] = {
-  {PackFunctionCode(FunctionCode::kRsaPubEnc), "RsaPubEnc"},
-  {PackFunctionCode(FunctionCode::kRsaPubDec), "RsaPubDec"},
-  {PackFunctionCode(FunctionCode::kRsaPrivEnc), "RsaPrivEnc"},
-  {PackFunctionCode(FunctionCode::kRsaPrivDec), "RsaPrivDec"},
-  {PackFunctionCode(FunctionCode::kRsaSign), "RsaSign"},
-  {PackFunctionCode(FunctionCode::kRsaVerify), "RsaVerify"},
   {0, 0},
 };
 

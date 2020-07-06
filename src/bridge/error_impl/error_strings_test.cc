@@ -36,15 +36,6 @@ TEST(ErrorStringsTest, PackReasonCodePacksIntoThirdArgument) {
       ERR_PACK(0, 0, StatusCodeToInt(StatusCode::kCancelled)));
 }
 
-TEST(ErrorStringsTest, PackFunctionCodePacksIntoSecondArgument) {
-  EXPECT_EQ(
-      PackFunctionCode(FunctionCode::kRsaSign),
-      ERR_PACK(0, FunctionCodeToInt(FunctionCode::kRsaSign), 0));
-  EXPECT_EQ(
-      PackFunctionCode(FunctionCode::kRsaVerify),
-      ERR_PACK(0, FunctionCodeToInt(FunctionCode::kRsaVerify), 0));
-}
-
 }  // namespace
 }  // namespace error_impl
 }  // namespace bridge
