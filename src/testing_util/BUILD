@@ -28,7 +28,3 @@ cc_library(
         "@com_google_googletest//:gtest_main",
     ],
 )
-
-MATCHER_P(IsOk, absl::StrFormat("status %s ok", negation ? "is not" : "")) {
-  return arg.ok();
-}
