@@ -50,10 +50,6 @@ constexpr std::underlying_type<StatusCode>::type StatusCodeToInt(
   return static_cast<std::underlying_type<StatusCode>::type>(code);
 }
 
-// Function that converts a StatusCode to a string.
-// std::string StatusCodeToString(StatusCode code);
-const auto StatusCodeToString = google::cloud::StatusCodeToString;
-
 }  // namespace kmsengine
 
 #endif  // KMSENGINE_BACKING_STATUS_STATUS_OR_H_

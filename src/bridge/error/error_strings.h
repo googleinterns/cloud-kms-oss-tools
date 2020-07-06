@@ -36,12 +36,6 @@ inline unsigned long PackReasonCode(StatusCode code) {
   return ERR_PACK(0, 0, StatusCodeToInt(code));
 }
 
-// Makes an ERR_STRING_DATA instance for the given `StatusCode`.
-inline ERR_STRING_DATA MakeErrorStringData(StatusCode code) {
-  return ERR_STRING_DATA{PackReasonCode(code),
-                         StatusCodeToString(code).c_str()};
-}
-
 // Associates the library code with the engine name.
 //
 // Purposely not declared as `const`. OpenSSL will modify the ERR_STRING_DATA
@@ -56,23 +50,23 @@ ERR_STRING_DATA kLibraryStrings[] = {
 //
 // Purposely not declared as `const`. See `kLibraryStrings` comment for info.
 ERR_STRING_DATA kReasonStrings[] = {
-  MakeErrorStringData(StatusCode::kOk),
-  MakeErrorStringData(StatusCode::kCancelled),
-  MakeErrorStringData(StatusCode::kUnknown),
-  MakeErrorStringData(StatusCode::kInvalidArgument),
-  MakeErrorStringData(StatusCode::kDeadlineExceeded),
-  MakeErrorStringData(StatusCode::kNotFound),
-  MakeErrorStringData(StatusCode::kAlreadyExists),
-  MakeErrorStringData(StatusCode::kPermissionDenied),
-  MakeErrorStringData(StatusCode::kResourceExhausted),
-  MakeErrorStringData(StatusCode::kFailedPrecondition),
-  MakeErrorStringData(StatusCode::kAborted),
-  MakeErrorStringData(StatusCode::kOutOfRange),
-  MakeErrorStringData(StatusCode::kUnimplemented),
-  MakeErrorStringData(StatusCode::kInternal),
-  MakeErrorStringData(StatusCode::kUnavailable),
-  MakeErrorStringData(StatusCode::kDataLoss),
-  MakeErrorStringData(StatusCode::kUnauthenticated),
+  {PackReasonCode(StatusCode::kOk), "OK"},
+  {PackReasonCode(StatusCode::kCancelled), "CANCELLED"},
+  {PackReasonCode(StatusCode::kUnknown), "UNKNOWN"},
+  {PackReasonCode(StatusCode::kInvalidArgument), "INVALID_ARGUMENT"},
+  {PackReasonCode(StatusCode::kDeadlineExceeded), "DEADLINE_EXCEEDED"},
+  {PackReasonCode(StatusCode::kNotFound), "NOT_FOUND"},
+  {PackReasonCode(StatusCode::kAlreadyExists), "ALREADY_EXISTS"},
+  {PackReasonCode(StatusCode::kPermissionDenied), "PERMISSION_DENIED"},
+  {PackReasonCode(StatusCode::kResourceExhausted), "RESOURCE_EXHAUSTED"},
+  {PackReasonCode(StatusCode::kFailedPrecondition), "FAILED_PRECONDITION"},
+  {PackReasonCode(StatusCode::kAborted), "ABORTED"},
+  {PackReasonCode(StatusCode::kOutOfRange), "OUT_OF_RANGE"},
+  {PackReasonCode(StatusCode::kUnimplemented), "UNIMPLEMENTED"},
+  {PackReasonCode(StatusCode::kInternal), "INTERNAL"},
+  {PackReasonCode(StatusCode::kUnavailable), "UNAVAILABLE"},
+  {PackReasonCode(StatusCode::kDataLoss), "DATA_LOSS"},
+  {PackReasonCode(StatusCode::kUnauthenticated), "UNAUTHENTICATED"},
   {0, 0},  // OpenSSL requires array to end with {0, 0}.
 };
 

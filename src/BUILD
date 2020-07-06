@@ -24,7 +24,6 @@ cc_binary(
     linkshared = 1,  # Build as a shared object.
     linkstatic = 0,
     deps = [
-        "//src/backing",
         "//src/bridge",
     ],
 )
