@@ -22,7 +22,6 @@
 
 namespace kmsengine {
 namespace bridge {
-namespace memory_util {
 namespace {
 
 using ::testing::Not;
@@ -61,6 +60,5 @@ TEST(OpenSSLMakeTest, MakeRsaMethodSetsFlags) {
 }
 
 }  // namespace
-}  // namespace memory_util
 }  // namespace bridge
 }  // namespace kmsengine

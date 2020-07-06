@@ -21,7 +21,6 @@
 
 namespace kmsengine {
 namespace bridge {
-namespace memory_util {
 
 // This file exposes smart pointer wrappers around various OpenSSL structs.
 // They should be used when all of the following conditions are met:
@@ -70,6 +69,5 @@ inline OpenSSLRsaMethod MakeRsaMethod(const char *name, int flags) {
   return OpenSSLRsaMethod(RSA_meth_new(name, flags), &RSA_meth_free);
 }
 
-}  // namespace memory_util
 }  // namespace bridge
 }  // namespace kmsengine
