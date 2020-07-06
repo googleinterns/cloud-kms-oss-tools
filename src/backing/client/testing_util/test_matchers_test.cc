@@ -16,7 +16,7 @@
  * Modifications copyright 2020 Google LLC
  *
  *    - Renamed namespaces and file includes
- *    - Replaced Cloud C++ optional implementation with absl::optional
+ *    - Renamed IsProtoEqual to EqualsProto
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,36 +31,30 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_
-#define KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_
-
-#include <string>
-
-#include <google/protobuf/message.h>
+#include <google/protobuf/wrappers.pb.h>
 #include <gmock/gmock.h>
 
-#include "absl/types/optional.h"
+#include "src/backing/client/testing_util/test_matchers.h"
 
 namespace kmsengine {
 namespace backing {
 namespace client {
 namespace testing_util {
+namespace {
 
-absl::optional<std::string> CompareProtos(
-    google::protobuf::Message const& arg,
-    google::protobuf::Message const& value);
+using ::testing::Not;  // From gmock.
 
-MATCHER_P(IsProtoEqual, value, "Checks whether protos are equal") {
-  absl::optional<std::string> delta = CompareProtos(arg, value);
-  if (delta.has_value()) {
-    *result_listener << "\n" << *delta;
-  }
-  return !delta.has_value();
+TEST(EqualsProto, Basic) {
+  ::google::protobuf::StringValue actual;
+  actual.set_value("Hello World");
+  ::google::protobuf::StringValue not_actual;
+
+  EXPECT_THAT(actual, EqualsProto(actual));
+  EXPECT_THAT(actual, Not(EqualsProto(not_actual)));
 }
 
+}  // namespace
 }  // namespace testing_util
 }  // namespace client
 }  // namespace backing
 }  // namespace kmsengine
-
-#endif  // KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_

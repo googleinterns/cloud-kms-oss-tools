@@ -17,6 +17,7 @@
  *
  *    - Renamed namespaces and file includes
  *    - Replaced Cloud C++ optional implementation with absl::optional
+ *    - Renamed IsProtoEqual to EqualsProto
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +32,15 @@
  * limitations under the License.
  */
 
-#include "src/backing/client/testing_util/is_proto_equal.h"
+#ifndef KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_
+#define KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_
 
-#include <google/protobuf/util/message_differencer.h>
+#include <string>
 
+#include <google/protobuf/message.h>
+#include <gmock/gmock.h>
+
+#include "absl/strings/str_format.h"
 #include "absl/types/optional.h"
 
 namespace kmsengine {
@@ -44,16 +50,20 @@ namespace testing_util {
 
 absl::optional<std::string> CompareProtos(
     google::protobuf::Message const& arg,
-    google::protobuf::Message const& value) {
-  std::string delta;
-  google::protobuf::util::MessageDifferencer differencer;
-  differencer.ReportDifferencesToString(&delta);
-  auto const result = differencer.Compare(arg, value);
-  if (result) return {};
-  return delta;
+    google::protobuf::Message const& value);
+
+MATCHER_P(EqualsProto, value,
+          absl::StrFormat("proto %s", negation ? "does not equal" : "equals")) {
+  absl::optional<std::string> delta = CompareProtos(arg, value);
+  if (delta.has_value()) {
+    *result_listener << "\n" << *delta;
+  }
+  return !delta.has_value();
 }
 
 }  // namespace testing_util
 }  // namespace client
 }  // namespace backing
 }  // namespace kmsengine
+
+#endif  // KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_

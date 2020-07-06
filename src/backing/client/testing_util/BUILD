@@ -35,10 +35,11 @@ cc_test(
 )
 
 cc_library(
-    name = "is_proto_equal",
-    srcs = ["is_proto_equal.cc"],
-    hdrs = ["is_proto_equal.h"],
+    name = "test_matchers",
+    srcs = ["test_matchers.cc"],
+    hdrs = ["test_matchers.h"],
     deps = [
+        "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/types:optional",
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
@@ -46,11 +47,11 @@ cc_library(
 )
 
 cc_test(
-    name = "is_proto_equal_test",
+    name = "test_matchers_test",
     size = "small",
-    srcs = ["is_proto_equal_test.cc"],
+    srcs = ["test_matchers_test.cc"],
     deps = [
-        ":is_proto_equal",
+        ":test_matchers",
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
     ],
