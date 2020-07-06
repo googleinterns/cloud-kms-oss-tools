@@ -19,11 +19,33 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
+    name = "error",
+    srcs = ["error.cc"],
+    hdrs = ["error.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        ":error_strings",
+        "//src/backing/status",
+    ],
+)
+
+cc_test(
+    name = "error_test",
+    size = "small",
+    srcs = ["error_test.cc"],
+    deps = [
+        ":error",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "error_strings",
     hdrs = ["error_strings.h"],
     deps = [
-        "//src/bridge:engine_name",
         "//src/backing/status",
+        "//src/bridge:engine_name",
     ],
 )
 

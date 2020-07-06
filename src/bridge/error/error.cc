@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-#include "src/bridge/error.h"
+#include "src/bridge/error/error.h"
 
-#include <stdio.h>
+#include <iostream>
 
 #include <openssl/err.h>
 
 #include "src/backing/status/status.h"
-#include "src/bridge/error_impl/error_strings.h"
+#include "src/bridge/error/error_strings.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -31,20 +31,27 @@ namespace bridge {
 // with OpenSSL.
 static const int kErrorLibraryCode = ERR_get_next_error_library();
 
-void LoadErrorStringsIntoOpenSSL() {
-  ERR_load_strings(GetLibraryCode(), error_impl::kLibraryStrings);
-  ERR_load_strings(GetLibraryCode(), error_impl::kReasonStrings);
+Status LoadErrorStringsIntoOpenSSL() {
+  if (!ERR_load_strings(0, error_impl::kLibraryStrings) ||
+      !ERR_load_strings(GetLibraryCode(), error_impl::kReasonStrings)) {
+    return Status(StatusCode::kInternal, "ERR_load_strings failed");
+  }
+  return Status();
 }
 
-void UnloadErrorStringsFromOpenSSL() {
-  ERR_unload_strings(GetLibraryCode(), error_impl::kLibraryStrings);
-  ERR_unload_strings(GetLibraryCode(), error_impl::kReasonStrings);
+Status UnloadErrorStringsFromOpenSSL() {
+  if (!ERR_unload_strings(0, error_impl::kLibraryStrings) ||
+      !ERR_unload_strings(GetLibraryCode(), error_impl::kReasonStrings)) {
+    return Status(StatusCode::kInternal, "ERR_unload_strings failed");
+  }
+  return Status();
 }
 
-void SignalErrorToOpenSSL(Status status, char *function_name, char *file_name,
-                          int line_number) {
-  // This signals to OpenSSL that an error occurred at all. The second argument
-  // is a "function code"; we're ignoring that here by setting it to zero.
+void SignalErrorToOpenSSL(Status status, const char *function_name,
+                          const char *file_name, int line_number) {
+  // `ERR_put_error` signals to OpenSSL that an error occurred. The second
+  // argument is a "function code"; we're ignoring that here by setting it to
+  // zero.
   //
   // This is similar to how OpenSSL 3.0.0 uses the `ERR_put_error` API - it
   // has completely removed function codes in favor of automatically passing
@@ -52,19 +59,18 @@ void SignalErrorToOpenSSL(Status status, char *function_name, char *file_name,
   // engine uses this approach since function names aren't very useful to the
   // end-user anyways.
   //
-  // See [https://github.com/openssl/openssl/pull/9072/
-  // files#diff-1d66b2010eedc54493f1641feb6dc5eaR375-R381] for details.
+  // Example from OpenSSL 3.0.0: https://github.com/openssl/openssl/pull/9072/
+  // files#diff-1d66b2010eedc54493f1641feb6dc5eaR375-R381
   const auto kIgnoredFunctionCode = 0;
-  ERR_put_error(GetLibraryCode(), kIgnoredFunctionCode,
+  ERR_PUT_error(GetLibraryCode(), kIgnoredFunctionCode,
                 StatusCodeToInt(status.code()), file_name, line_number);
 
   // Associates the concatenation of the string arguments with the error code
   // we just added in `ERR_PUT_error`. The first argument is the number of
   // string arguments to concatenate.
   const auto kNumStrings = 4;
-  auto error_message = status.message().c_str();
   ERR_add_error_data(kNumStrings, "Error occurred in ", function_name, ": ",
-                                  error_message);
+                                  status.message().c_str());
 }
 
 int GetLibraryCode() {

@@ -14,23 +14,31 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BRIDGE_ERROR_H_
-#define KMSENGINE_BRIDGE_ERROR_H_
+#ifndef KMSENGINE_BRIDGE_ERROR_ERROR_H_
+#define KMSENGINE_BRIDGE_ERROR_ERROR_H_
 
 #include <stdio.h>
 
 #include "src/backing/status/status.h"
-#include "src/bridge/error_impl/function_code.h"
 
 namespace kmsengine {
 namespace bridge {
 
 // Loads the engine error strings into OpenSSL. This associates human-
 // readable error strings with the error codes signaled by the engine.
-void LoadErrorStringsIntoOpenSSL();
+Status LoadErrorStringsIntoOpenSSL();
 
 // Unloads the engine error strings from OpenSSL.
-void UnloadErrorStringsFromOpenSSL();
+Status UnloadErrorStringsFromOpenSSL();
+
+// Signals to OpenSSL that an error of reason `reason` occurred in
+// function `function` at file `file` on line `line`.
+//
+// `KMSENGINE_SIGNAL_ERROR` should generally be used instead of
+// `SignalErrorToOpenSSL` (the macro is defined separately to capture function
+// names, file names, etc.).
+void SignalErrorToOpenSSL(Status status, const char *function_name,
+                          const char *file_name, int line_number);
 
 // Signals to OpenSSL that an error of reason `reason_code` occurred. This does
 // not throw an exception.
@@ -52,19 +60,10 @@ void UnloadErrorStringsFromOpenSSL();
 #define KMSENGINE_SIGNAL_ERROR(status) \
   SignalErrorToOpenSSL(status, __func__, __FILE__, __LINE__);
 
-// Signals to OpenSSL that an error of reason `reason` occurred in
-// function `function` at file `file` on line `line`.
-//
-// `KMSENGINE_SIGNAL_ERROR` should generally be used instead of
-// `SignalErrorToOpenSSL` (the macro is defined separately to capture function
-// names, file names, etc.).
-void SignalErrorToOpenSSL(Status status, char *function_name, char *file_name,
-                          int line_number);
-
 // Returns the library code assigned by OpenSSL.
 int GetLibraryCode();
 
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BRIDGE_ERROR_H_
+#endif  // KMSENGINE_BRIDGE_ERROR_ERROR_H_

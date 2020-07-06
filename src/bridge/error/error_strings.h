@@ -14,29 +14,32 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BRIDGE_ERROR_IMPL_ERROR_STRINGS_H_
-#define KMSENGINE_BRIDGE_ERROR_IMPL_ERROR_STRINGS_H_
-
-#include <stdio.h>
+#ifndef KMSENGINE_BRIDGE_ERROR_ERROR_STRINGS_H_
+#define KMSENGINE_BRIDGE_ERROR_ERROR_STRINGS_H_
 
 #include <openssl/err.h>
 
 #include "src/backing/status/status.h"
 #include "src/bridge/engine_name.h"
-#include "src/bridge/error_impl/function_code.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace error_impl {
 
-// Returns an Open-SSL friendly error code for the given StatusCode. Helper
+// Returns an OpenSSL friendly error code for the given `StatusCode`. Helper
 // function meant for constructing an ERR_STRING_DATA object.
-inline unsigned long PackReasonCode(StatusCode reason) {
+inline unsigned long PackReasonCode(StatusCode code) {
   // The first argument is the "error library code" assigned to our engine by
   // OpenSSL, so leave as zero. The second argument is a "function code" (left
   // as 0 since the reason strings are separately loaded from the function
   // strings). The third argument is a "reason code" defined by our engine.
   return ERR_PACK(0, 0, StatusCodeToInt(code));
+}
+
+// Makes an ERR_STRING_DATA instance for the given `StatusCode`.
+inline ERR_STRING_DATA MakeErrorStringData(StatusCode code) {
+  return ERR_STRING_DATA{PackReasonCode(code),
+                         StatusCodeToString(code).c_str()};
 }
 
 // Associates the library code with the engine name.
@@ -46,35 +49,35 @@ inline unsigned long PackReasonCode(StatusCode reason) {
 // error number argument to patch in the assigned error library code).
 ERR_STRING_DATA kLibraryStrings[] = {
   {ERR_PACK(0, 0, 0), kEngineName},  // (0, 0, 0) denotes engine name.
-  {0, 0},
+  {0, 0},  // OpenSSL requires array to end with {0, 0}.
 };
 
 // Map from StatusCodes to human-readable strings.
 //
 // Purposely not declared as `const`. See `kLibraryStrings` comment for info.
 ERR_STRING_DATA kReasonStrings[] = {
-  {PackReasonCode(StatusCode::kOk), "ok"},
-  {PackReasonCode(StatusCode::kCancelled), "cancelled"},
-  {PackReasonCode(StatusCode::kUnknown), "unknown"},
-  {PackReasonCode(StatusCode::kInvalidArgument), "invalid argument"},
-  {PackReasonCode(StatusCode::kDeadlineExceeded), "deadline exceeded"},
-  {PackReasonCode(StatusCode::kNotFound), "not found"},
-  {PackReasonCode(StatusCode::kAlreadyExists), "already exists"},
-  {PackReasonCode(StatusCode::kPermissionDenied), "permission denied"},
-  {PackReasonCode(StatusCode::kResourceExhausted), "resource exhausted"},
-  {PackReasonCode(StatusCode::kFailedPrecondition), "failed precondition"},
-  {PackReasonCode(StatusCode::kAborted), "aborted"},
-  {PackReasonCode(StatusCode::kOutOfRange), "out of range"},
-  {PackReasonCode(StatusCode::kUnimplemented), "unimplemented"},
-  {PackReasonCode(StatusCode::kInternal), "internal"},
-  {PackReasonCode(StatusCode::kUnavailable), "unavailable"},
-  {PackReasonCode(StatusCode::kDataLoss), "data loss"},
-  {PackReasonCode(StatusCode::kUnauthenticated), "unauthenticated"},
-  {0, 0},
+  MakeErrorStringData(StatusCode::kOk),
+  MakeErrorStringData(StatusCode::kCancelled),
+  MakeErrorStringData(StatusCode::kUnknown),
+  MakeErrorStringData(StatusCode::kInvalidArgument),
+  MakeErrorStringData(StatusCode::kDeadlineExceeded),
+  MakeErrorStringData(StatusCode::kNotFound),
+  MakeErrorStringData(StatusCode::kAlreadyExists),
+  MakeErrorStringData(StatusCode::kPermissionDenied),
+  MakeErrorStringData(StatusCode::kResourceExhausted),
+  MakeErrorStringData(StatusCode::kFailedPrecondition),
+  MakeErrorStringData(StatusCode::kAborted),
+  MakeErrorStringData(StatusCode::kOutOfRange),
+  MakeErrorStringData(StatusCode::kUnimplemented),
+  MakeErrorStringData(StatusCode::kInternal),
+  MakeErrorStringData(StatusCode::kUnavailable),
+  MakeErrorStringData(StatusCode::kDataLoss),
+  MakeErrorStringData(StatusCode::kUnauthenticated),
+  {0, 0},  // OpenSSL requires array to end with {0, 0}.
 };
 
 }  // namespace error_impl
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BRIDGE_ERROR_IMPL_ERROR_STRINGS_H_
+#endif  // KMSENGINE_BRIDGE_ERROR_ERROR_STRINGS_H_
