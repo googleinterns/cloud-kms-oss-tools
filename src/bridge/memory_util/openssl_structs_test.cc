@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <openssl/rsa.h>
 
@@ -24,35 +25,38 @@ namespace bridge {
 namespace memory_util {
 namespace {
 
+using ::testing::Not;
+using ::testing::IsNull;
+
 TEST(OpenSSLMakeTest, MakeRsaSetsDeleter) {
   auto rsa = MakeRsa();
-  EXPECT_NE(rsa.get(), nullptr);
+  ASSERT_THAT(rsa, Not(IsNull()));
   EXPECT_EQ(rsa.get_deleter(), &RSA_free);
 }
 
 TEST(OpenSSLMakeTest, MakeRsaMethodSetsDeleter) {
   auto rsa_method = MakeRsaMethod("", 0);
-  EXPECT_NE(rsa_method.get(), nullptr);
+  ASSERT_THAT(rsa_method, Not(IsNull()));
   EXPECT_EQ(rsa_method.get_deleter(), &RSA_meth_free);
 }
 
 TEST(OpenSSLMakeTest, MakeRsaMethodSetsName) {
   auto empty_name = MakeRsaMethod("", 0);
-  ASSERT_NE(empty_name.get(), nullptr);
+  ASSERT_THAT(empty_name, Not(IsNull()));
   EXPECT_STREQ(RSA_meth_get0_name(empty_name.get()), "");
 
   auto some_name = MakeRsaMethod("my-name", 0);
-  ASSERT_NE(some_name.get(), nullptr);
+  ASSERT_THAT(some_name, Not(IsNull()));
   EXPECT_STREQ(RSA_meth_get0_name(some_name.get()), "my-name");
 }
 
 TEST(OpenSSLMakeTest, MakeRsaMethodSetsFlags) {
   auto with_flag = MakeRsaMethod("", RSA_FLAG_EXT_PKEY);
-  ASSERT_NE(with_flag.get(), nullptr);
+  ASSERT_THAT(with_flag, Not(IsNull()));
   EXPECT_TRUE(RSA_meth_get_flags(with_flag.get()) & RSA_FLAG_EXT_PKEY);
 
   auto without_flag = MakeRsaMethod("", 0);
-  ASSERT_NE(without_flag.get(), nullptr);
+  ASSERT_THAT(without_flag, Not(IsNull()));
   EXPECT_FALSE(RSA_meth_get_flags(without_flag.get()) & RSA_FLAG_EXT_PKEY);
 }
 
