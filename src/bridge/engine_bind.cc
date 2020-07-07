@@ -20,9 +20,24 @@
 
 #include "src/bridge/engine_name.h"
 #include "src/bridge/engine_setup.h"
+#include "src/bridge/error/error.h"
 
 namespace kmsengine {
 namespace bridge {
+namespace {
+
+// Destroys the ENGINE context.
+//
+// This function should perform any cleanup of structures that were created in
+// EngineBind. It should also unload error strings.
+//
+// EngineFinish will have executed before EngineDestroy is called.
+int EngineDestroy(ENGINE *e) {
+  UnloadErrorStringsFromOpenSSL();
+  return 1;
+}
+
+}  // namespace
 
 extern "C" int EngineBind(ENGINE *e, const char *id) {
   // ENGINE_FLAGS_NO_REGISTER_ALL tells OpenSSL that our engine does not
@@ -31,9 +46,12 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
       !ENGINE_set_name(e, kEngineName) ||
       !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
       !ENGINE_set_init_function(e, EngineInit) ||
-      !ENGINE_set_finish_function(e, EngineFinish)) {
+      !ENGINE_set_finish_function(e, EngineFinish) ||
+      !ENGINE_set_destroy_function(e, EngineDestroy)) {
     return 0;
   }
+
+  LoadErrorStringsIntoOpenSSL();
   return 1;
 }
 

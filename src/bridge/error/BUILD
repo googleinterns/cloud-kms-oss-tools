@@ -19,42 +19,42 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
-    name = "bridge",
-    srcs = ["main.c"],
-    linkopts = ["-lcrypto"],
-    deps = ["//src/bridge:engine_bind"],
-)
-
-cc_library(
-    name = "engine_bind",
-    srcs = ["engine_bind.cc"],
-    hdrs = ["engine_bind.h"],
+    name = "error",
+    srcs = ["error.cc"],
+    hdrs = ["error.h"],
     linkopts = ["-lcrypto"],
     deps = [
-        ":engine_name",
-        ":engine_setup",
-        "//src/bridge/error",
+        ":error_strings",
+        "//src/backing/status",
     ],
 )
 
 cc_test(
-    name = "engine_bind_test",
+    name = "error_test",
     size = "small",
-    srcs = ["engine_bind_test.cc"],
+    srcs = ["error_test.cc"],
     deps = [
-        ":engine_bind",
+        ":error",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_library(
-    name = "engine_name",
-    hdrs = ["engine_name.h"],
+    name = "error_strings",
+    hdrs = ["error_strings.h"],
+    deps = [
+        "//src/backing/status",
+        "//src/bridge:engine_name",
+    ],
 )
 
-cc_library(
-    name = "engine_setup",
-    srcs = ["engine_setup.cc"],
-    hdrs = ["engine_setup.h"],
-    linkopts = ["-lcrypto"],
+cc_test(
+    name = "error_strings_test",
+    size = "small",
+    srcs = ["error_strings_test.cc"],
+    deps = [
+        ":error_strings",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
