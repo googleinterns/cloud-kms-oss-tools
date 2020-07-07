@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#ifndef KMSENGINE_BRIDGE_MEMORY_UTIL_OPENSSL_STRUCTS_H_
+#define KMSENGINE_BRIDGE_MEMORY_UTIL_OPENSSL_STRUCTS_H_
+
 #include <memory>
 
 #include <openssl/engine.h>
@@ -71,3 +74,5 @@ inline OpenSSLRsaMethod MakeRsaMethod(const char *name, int flags) {
 
 }  // namespace bridge
 }  // namespace kmsengine
+
+#endif  // KMSENGINE_BRIDGE_MEMORY_UTIL_OPENSSL_STRUCTS_H_

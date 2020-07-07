@@ -60,8 +60,8 @@
 //    }
 //
 
-#ifndef KMSENGINE_KMS_INTERFACE_STATUS_MACROS_H_
-#define KMSENGINE_KMS_INTERFACE_STATUS_MACROS_H_
+#ifndef KMSENGINE_BACKING_STATUS_STATUS_MACROS_H_
+#define KMSENGINE_BACKING_STATUS_STATUS_MACROS_H_
 
 #include "src/backing/status/status.h"
 
@@ -107,4 +107,4 @@ namespace kmsengine {
 
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_KMS_INTERFACE_STATUS_MACROS_H_
+#endif  // KMSENGINE_BACKING_STATUS_STATUS_MACROS_H_

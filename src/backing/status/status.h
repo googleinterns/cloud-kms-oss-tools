@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BACKING_STATUS_STATUS_OR_H_
-#define KMSENGINE_BACKING_STATUS_STATUS_OR_H_
+#ifndef KMSENGINE_BACKING_STATUS_STATUS_H_
+#define KMSENGINE_BACKING_STATUS_STATUS_H_
 
 #include "google/cloud/status.h"
 #include "google/cloud/status_or.h"
@@ -53,4 +53,4 @@ const auto StatusCodeToString = google::cloud::StatusCodeToString;
 
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BACKING_STATUS_STATUS_OR_H_
+#endif  // KMSENGINE_BACKING_STATUS_STATUS_H_
