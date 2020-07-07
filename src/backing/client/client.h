@@ -19,6 +19,9 @@
 
 #include <string>
 
+#include <google/cloud/kms/v1/service.grpc.pb.h>
+#include <google/cloud/kms/v1/service.pb.h>
+
 #include "src/backing/status/status.h"
 
 namespace kmsengine {
