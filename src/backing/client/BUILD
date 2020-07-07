@@ -23,5 +23,8 @@ cc_library(
     hdrs = ["client.h"],
     deps = [
         "//src/backing/status",
+        "@com_google_googleapis//:googleapis_system_includes",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
     ],
 )
