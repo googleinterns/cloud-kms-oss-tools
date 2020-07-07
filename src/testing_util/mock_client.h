@@ -27,9 +27,7 @@
 #include "src/backing/status/status.h"
 
 namespace kmsengine {
-namespace bridge {
-namespace rsa {
-namespace testing_util {
+namespace backing {
 
 class MockClient : public Client {
  public:
@@ -39,9 +37,7 @@ class MockClient : public Client {
               (override));
 };
 
-}  // namespace testing_util
-}  // namespace rsa
-}  // namespace bridge
+}  // namespace backing
 }  // namespace kmsengine
 
 #endif  // KMSENGINE_BRIDGE_RSA_TESTING_UTIL_MOCK_RSA_KEY_H_
