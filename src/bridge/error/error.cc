@@ -50,12 +50,12 @@ void SignalErrorToOpenSSL(Status status, const char *function_name,
   //
   // This is similar to how OpenSSL 3.0.0 uses the `ERR_put_error` API - it
   // has completely removed function codes in favor of automatically passing
-  // the function name from the `__func__` macro to `ERR_add_error_data`. The
-  // engine uses this approach since function names aren't very useful to the
+  // the function name from the `__func__` macro to `ERR_add_error_data`. We
+  // chose this approach since function names aren't very useful to the
   // end-user anyways.
   //
-  // Example from OpenSSL 3.0.0: https://github.com/openssl/openssl/pull/9072/
-  // files#diff-1d66b2010eedc54493f1641feb6dc5eaR375-R381
+  // See https://github.com/googleinterns/cloud-kms-oss-tools/issues/34 for
+  // discussion and examples from the OpenSSL 3.0.0 repository.
   ERR_PUT_error(GetErrorLibraryId(), /*func=*/0,
                 StatusCodeToInt(status.code()), file_name, line_number);
 
