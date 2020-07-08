@@ -19,35 +19,10 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
-    name = "status_or",
-    hdrs = ["status_or.h"],
+    name = "test_matchers",
+    srcs = ["test_matchers.cc"],
+    hdrs = ["test_matchers.h"],
     deps = [
-        ":status",
-    ],
-)
-
-cc_test(
-    name = "status_or_test",
-    size = "small",
-    srcs = ["status_or_test.cc"],
-    deps = [
-        ":status_or",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "status",
-    hdrs = ["status.h"],
-    srcs = ["status.cc"],
-)
-
-cc_test(
-    name = "status_test",
-    size = "small",
-    srcs = ["status_test.cc"],
-    deps = [
-        ":status",
         "@com_google_googletest//:gtest_main",
     ],
 )
