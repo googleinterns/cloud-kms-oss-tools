@@ -30,9 +30,9 @@ filegroup(
 filegroup(
     name = "sources",
     srcs = [
+        "status.cc",
         "status.h",
         "status_or.h",
-        "status.cc",
     ],
 )
 

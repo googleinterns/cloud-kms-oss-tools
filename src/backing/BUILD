@@ -27,8 +27,8 @@ cc_import(
 cc_binary(
     name = "libkms.so",
     srcs = ["//src/backing/status:sources"],
-    linkstatic = 1,
     linkshared = 1,
+    linkstatic = 1,
     deps = [
         "//src/backing/status",
         "//src/backing/status:status_or",
