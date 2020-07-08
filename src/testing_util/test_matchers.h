@@ -19,14 +19,16 @@
 
 #include <gmock/gmock.h>
 
+#include "absl/strings/str_format.h"
+
 namespace kmsengine {
 namespace testing_util {
 
-MATCHER_P(IsOk, absl::StrFormat("status %s ok", negation ? "is not" : "")) {
+MATCHER(IsOk, absl::StrFormat("status %s ok", negation ? "is not" : "")) {
   return arg.ok();
 }
 
 }  // namespace testing_util
-
+}  // namespace kmsengine
 
 #endif  // KMSENGINE_TESTING_UTIL_TEST_MATCHERS_H_

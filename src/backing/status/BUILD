@@ -32,6 +32,7 @@ cc_test(
     srcs = ["status_or_test.cc"],
     deps = [
         ":status_or",
+        "//src/testing_util:test_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
