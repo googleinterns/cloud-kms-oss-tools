@@ -41,7 +41,6 @@ TEST(IsOk, WorksWithStatusOr) {
   EXPECT_THAT(StatusOr<int>(kNotFound), Not(IsOk()));
 }
 
-
 }  // namespace
 }  // namespace testing_util
 }  // namespace kmsengine
