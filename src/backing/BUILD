@@ -14,26 +14,30 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:__subpackages__"])
 
-cc_library(
-    name = "test_matchers",
-    hdrs = ["test_matchers.h"],
+cc_import(
+    name = "backing",
+    hdrs = [":headers"],
+    shared_library = ":libkms.so",
+)
+
+cc_binary(
+    name = "libkms.so",
+    srcs = ["//src/backing/status:sources"],
+    linkstatic = 1,
+    linkshared = 1,
     deps = [
-        "@com_google_absl//absl/strings:str_format",
-        "@com_google_googletest//:gtest_main",
+        "//src/backing/status",
+        "//src/backing/status:status_or",
     ],
 )
 
-cc_test(
-    name = "test_matchers_test",
-    size = "small",
-    srcs = ["test_matchers_test.cc"],
-    deps = [
-        ":test_matchers",
-        "//src/backing",
-        "@com_google_googletest//:gtest_main",
+filegroup(
+    name = "headers",
+    srcs = [
+        "//src/backing/status:bridge_headers",
     ],
 )

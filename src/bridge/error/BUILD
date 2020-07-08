@@ -23,9 +23,10 @@ cc_library(
     srcs = ["error.cc"],
     hdrs = ["error.h"],
     linkopts = ["-lcrypto"],
+    linkstatic = 0,
     deps = [
         ":error_strings",
-        "//src/backing/status",
+        "//src/backing",
     ],
 )
 
@@ -35,6 +36,7 @@ cc_test(
     srcs = ["error_test.cc"],
     deps = [
         ":error",
+        "//src/testing_util:test_matchers",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
@@ -44,7 +46,7 @@ cc_library(
     name = "error_strings",
     hdrs = ["error_strings.h"],
     deps = [
-        "//src/backing/status",
+        "//src/backing",
         "//src/bridge:engine_name",
     ],
 )

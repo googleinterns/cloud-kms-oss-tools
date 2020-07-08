@@ -41,18 +41,19 @@ namespace {
 
 using ::kmsengine::testing_util::IsOk;
 using ::testing::HasSubstr;
+using ::testing::Not;
 
 TEST(StatusOrTest, DefaultConstructor) {
   StatusOr<int> actual;
   EXPECT_FALSE(actual.ok());
   EXPECT_FALSE(actual.status().ok());
-  EXPECT_FALSE(actual);
+  EXPECT_THAT(actual, Not(IsOk()));
+  EXPECT_THAT(actual.status(), Not(IsOk()));
 }
 
 TEST(StatusOrTest, StatusConstructorNormal) {
   StatusOr<int> actual(Status(StatusCode::kNotFound, "NOT FOUND"));
-  EXPECT_FALSE(actual.ok());
-  EXPECT_FALSE(actual);
+  EXPECT_THAT(actual, Not(IsOk()));
   EXPECT_EQ(StatusCode::kNotFound, actual.status().code());
   EXPECT_EQ("NOT FOUND", actual.status().message());
 }

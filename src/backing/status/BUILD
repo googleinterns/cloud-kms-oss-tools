@@ -18,6 +18,24 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:__subpackages__"])
 
+# Headers that are safe to export to the bridge layer.
+filegroup(
+    name = "bridge_headers",
+    srcs = [
+        "status.h",
+        "status_or.h",
+    ],
+)
+
+filegroup(
+    name = "sources",
+    srcs = [
+        "status.h",
+        "status_or.h",
+        "status.cc",
+    ],
+)
+
 cc_library(
     name = "status_or",
     hdrs = ["status_or.h"],
@@ -39,8 +57,8 @@ cc_test(
 
 cc_library(
     name = "status",
-    hdrs = ["status.h"],
     srcs = ["status.cc"],
+    hdrs = ["status.h"],
 )
 
 cc_test(
