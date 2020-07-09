@@ -45,9 +45,9 @@ cc_library(
     hdrs = ["kms_rsa_key.h"],
     deps = [
         ":rsa_key",
-        "//src/backing/client:client",
+        "//src/backing/client",
         "//src/backing/client:digest_case",
-        "//src/backing/status:status",
+        "//src/backing/status",
         "//src/backing/status:status_or",
     ],
 )
@@ -58,8 +58,8 @@ cc_test(
     srcs = ["kms_rsa_key_test.cc"],
     deps = [
         ":kms_rsa_key",
-        "//src/testing_util:test_matchers",
         "//src/testing_util:mock_client",
+        "//src/testing_util:test_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -68,8 +68,8 @@ cc_library(
     name = "rsa_key",
     hdrs = ["rsa_key.h"],
     deps = [
-        "//src/backing/status:status",
-        "//src/backing/status:status_or",
         "//src/backing/client:digest_case",
+        "//src/backing/status",
+        "//src/backing/status:status_or",
     ],
 )

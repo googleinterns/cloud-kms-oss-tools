@@ -22,10 +22,10 @@ cc_library(
     name = "mock_client",
     hdrs = ["mock_client.h"],
     deps = [
-        "//src/backing/client:client",
+        "//src/backing/client",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
-        "//src/backing/status:status",
+        "//src/backing/status",
         "//src/backing/status:status_or",
     ],
 )
