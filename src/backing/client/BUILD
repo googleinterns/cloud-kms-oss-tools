@@ -36,8 +36,8 @@ filegroup(
             "**/*.h",
             "**/*.cc",
         ],
+        allow_empty = False,
         exclude = ["**/*_test.cc"],
-        allow_empty = False
     ),
 )
 

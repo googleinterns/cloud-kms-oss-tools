@@ -27,17 +27,17 @@ cc_import(
 cc_binary(
     name = "libkms.so",
     srcs = [
-        "//src/backing/status:sources",
         "//src/backing/client:sources",
+        "//src/backing/status:sources",
     ],
     linkshared = 1,
     linkstatic = 1,
     deps = [
-        "//src/backing/status",
         "//src/backing/client",
-        "//src/backing/client:public_key",
-        "//src/backing/client:digest_case",
         "//src/backing/client:crypto_key_version_algorithm",
+        "//src/backing/client:digest_case",
+        "//src/backing/client:public_key",
+        "//src/backing/status",
         "//src/backing/status:status_or",
     ],
 )
@@ -45,7 +45,7 @@ cc_binary(
 filegroup(
     name = "headers",
     srcs = [
-        "//src/backing/status:bridge_headers",
         "//src/backing/client:bridge_headers",
+        "//src/backing/status:bridge_headers",
     ],
 )
