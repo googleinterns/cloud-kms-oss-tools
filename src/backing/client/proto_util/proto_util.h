@@ -23,6 +23,8 @@
 #include "google/cloud/kms/v1/resources.pb.h"
 #include "google/cloud/kms/v1/service.pb.h"
 #include "grpcpp/grpcpp.h"
+#include "src/backing/client/digest_case.h"
+#include "src/backing/client/crypto_key_version_algorithm.h"
 #include "src/backing/status/status.h"
 
 namespace kmsengine {
@@ -34,6 +36,27 @@ google::cloud::kms::v1::Digest MakeDigest(DigestCase type,
 
 // Helper function for converting a `grpc::Status` to a engine-native `Status`.
 Status FromRpcErrorToStatus(grpc::Status const& status);
+
+// Helper function for converting `Digest::DigestCase` protobuf enums to
+// engine-native `DigestCase` enums.
+constexpr DigestCase FromProtoToDigestCase(
+    google::cloud::kms::v1::Digest::DigestCase
+        algorithm) {
+  // Works because underlying values of engine-native `DigestCase` enums are
+  // equivalent to their protobuf counterparts.
+  return static_cast<DigestCase>(algorithm);
+}
+
+// Helper function for converting `CryptoKeyVersion_CryptoKeyVersionAlgorithm`
+// protobuf enums to engine-native `CryptoKeyVersionAlgorithm` enums.
+constexpr CryptoKeyVersionAlgorithm FromProtoToCryptoKeyVersionAlgorithm(
+    google::cloud::kms::v1::CryptoKeyVersion_CryptoKeyVersionAlgorithm
+        algorithm) {
+  // Works because underlying values of engine-native
+  // `CryptoKeyVersionAlgorithm` enums are equivalent to their protobuf
+  // counterparts.
+  return static_cast<CryptoKeyVersionAlgorithm>(algorithm);
+}
 
 }  // namespace backing
 }  // namespace kmsengine

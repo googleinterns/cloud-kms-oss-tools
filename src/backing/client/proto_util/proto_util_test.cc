@@ -38,8 +38,9 @@
 #include "absl/strings/str_cat.h"
 #include "google/cloud/kms/v1/resources.pb.h"
 #include "google/cloud/kms/v1/service.pb.h"
+#include "src/backing/client/digest_case.h"
+#include "src/backing/client/proto_util/proto_util.h"
 #include "src/backing/status/status.h"
-
 
 namespace kmsengine {
 namespace backing {
@@ -94,7 +95,89 @@ TEST_P(MakeDigestTest, MakeDigest) {
   EXPECT_THAT(GetDigestBytes(actual), StrEq(expected_digest_bytes));
 }
 
-TEST(FromRpcErrorToStatusTest, ProtoValidCode) {
+using CryptoKeyVersion = google::cloud::kms::v1::CryptoKeyVersion;
+
+TEST(FromProtoToCryptoKeyVersionAlgorithmTest, ConversionsCorrect) {
+  struct {
+    CryptoKeyVersionAlgorithm expected;
+    google::cloud::kms::v1::CryptoKeyVersion_CryptoKeyVersionAlgorithm proto;
+  } expected_codes[]{
+      {CryptoKeyVersionAlgorithm::kAlgorithmUnspecified,
+          CryptoKeyVersion::CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED},
+      {CryptoKeyVersionAlgorithm::kGoogleSymmetricEncryption,
+          CryptoKeyVersion::GOOGLE_SYMMETRIC_ENCRYPTION},
+      {CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256,
+          CryptoKeyVersion::RSA_SIGN_PSS_2048_SHA256},
+      {CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256,
+          CryptoKeyVersion::RSA_SIGN_PSS_3072_SHA256},
+      {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha256,
+          CryptoKeyVersion::RSA_SIGN_PSS_4096_SHA256},
+      {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha512,
+          CryptoKeyVersion::RSA_SIGN_PSS_4096_SHA512},
+      {CryptoKeyVersionAlgorithm::kRsaSignPkcs2048Sha256,
+          CryptoKeyVersion::RSA_SIGN_PKCS1_2048_SHA256},
+      {CryptoKeyVersionAlgorithm::kRsaSignPkcs3072Sha256,
+          CryptoKeyVersion::RSA_SIGN_PKCS1_3072_SHA256},
+      {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha256,
+          CryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA256},
+      {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512,
+          CryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA512},
+      {CryptoKeyVersionAlgorithm::kRsaDecryptOaep2048Sha256,
+          CryptoKeyVersion::RSA_DECRYPT_OAEP_2048_SHA256},
+      {CryptoKeyVersionAlgorithm::kRsaDecryptOaep3072Sha256,
+          CryptoKeyVersion::RSA_DECRYPT_OAEP_3072_SHA256},
+      {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha256,
+          CryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA256},
+      {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha512,
+          CryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA512},
+      {CryptoKeyVersionAlgorithm::kEcSignP256Sha256,
+          CryptoKeyVersion::EC_SIGN_P256_SHA256},
+      {CryptoKeyVersionAlgorithm::kEcSignP384Sha384,
+          CryptoKeyVersion::EC_SIGN_P384_SHA384},
+      {CryptoKeyVersionAlgorithm::kExternalSymmetricEncryption,
+          CryptoKeyVersion::EXTERNAL_SYMMETRIC_ENCRYPTION},
+  };
+
+  for (auto const& codes : expected_codes) {
+    auto const actual = FromProtoToCryptoKeyVersionAlgorithm(codes.proto);
+    EXPECT_EQ(codes.expected, actual);
+  }
+}
+
+TEST(FromRpcErrorToStatus, AllCodes) {
+  struct {
+    grpc::StatusCode grpc;
+    StatusCode expected;
+  } expected_codes[]{
+      {grpc::StatusCode::OK, StatusCode::kOk},
+      {grpc::StatusCode::CANCELLED, StatusCode::kCancelled},
+      {grpc::StatusCode::UNKNOWN, StatusCode::kUnknown},
+      {grpc::StatusCode::INVALID_ARGUMENT, StatusCode::kInvalidArgument},
+      {grpc::StatusCode::DEADLINE_EXCEEDED, StatusCode::kDeadlineExceeded},
+      {grpc::StatusCode::NOT_FOUND, StatusCode::kNotFound},
+      {grpc::StatusCode::ALREADY_EXISTS, StatusCode::kAlreadyExists},
+      {grpc::StatusCode::PERMISSION_DENIED, StatusCode::kPermissionDenied},
+      {grpc::StatusCode::UNAUTHENTICATED, StatusCode::kUnauthenticated},
+      {grpc::StatusCode::RESOURCE_EXHAUSTED, StatusCode::kResourceExhausted},
+      {grpc::StatusCode::FAILED_PRECONDITION, StatusCode::kFailedPrecondition},
+      {grpc::StatusCode::ABORTED, StatusCode::kAborted},
+      {grpc::StatusCode::OUT_OF_RANGE, StatusCode::kOutOfRange},
+      {grpc::StatusCode::UNIMPLEMENTED, StatusCode::kUnimplemented},
+      {grpc::StatusCode::INTERNAL, StatusCode::kInternal},
+      {grpc::StatusCode::UNAVAILABLE, StatusCode::kUnavailable},
+      {grpc::StatusCode::DATA_LOSS, StatusCode::kDataLoss},
+  };
+
+  for (auto const& codes : expected_codes) {
+    std::string const message = "test message";
+    auto const original = grpc::Status(codes.grpc, message);
+    auto const expected = Status(codes.expected, message);
+    auto const actual = FromRpcErrorToStatus(original);
+    EXPECT_EQ(expected, actual);
+  }
+}
+
+TEST(FromRpcErrorToStatus, ProtoValidCode) {
   struct {
     grpc::StatusCode grpc;
     StatusCode expected;

@@ -18,11 +18,25 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src/backing/client:__subpackages__"])
 
+filegroup(
+    name = "sources",
+    srcs = glob(
+        [
+            "**/*.h",
+            "**/*.cc",
+        ],
+        allow_empty = False,
+        exclude = ["**/*_test.cc"],
+    ),
+)
+
 cc_library(
     name = "proto_util",
     srcs = ["proto_util.cc"],
     hdrs = ["proto_util.h"],
     deps = [
+        "//src/backing/client:crypto_key_version_algorithm",
+        "//src/backing/client:digest_case",
         "//src/backing/status",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/strings",
@@ -37,6 +51,7 @@ cc_test(
     srcs = ["proto_util_test.cc"],
     deps = [
         ":proto_util",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )
