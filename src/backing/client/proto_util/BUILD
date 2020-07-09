@@ -19,24 +19,24 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src/backing/client:__subpackages__"])
 
 cc_library(
-    name = "proto_make",
-    srcs = ["proto_make.cc"],
-    hdrs = ["proto_make.h"],
+    name = "proto_util",
+    srcs = ["proto_util.cc"],
+    hdrs = ["proto_util.h"],
     deps = [
-        "@com_google_googleapis//:googleapis_system_includes",
-        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
+        "//src/backing/status",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/strings",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
+        "@com_google_googleapis//google/rpc:status_cc_proto",
     ],
 )
 
 cc_test(
-    name = "proto_make_test",
+    name = "proto_util_test",
     size = "small",
-    srcs = ["proto_make_test.cc"],
+    srcs = ["proto_util_test.cc"],
     deps = [
-        ":proto_make",
-        "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/strings",
+        ":proto_util",
         "@com_google_googletest//:gtest_main",
     ],
 )

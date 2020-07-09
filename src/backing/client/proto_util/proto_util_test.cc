@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Modifications copyright 2020 Google LLC
+ * FromRpcErrorToStatus tests copyright 2019 Google LLC
  *
- *    - Renamed namespaces and file includes
+ *     Source: https://github.com/googleapis/google-cloud-cpp/
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,18 +34,15 @@
 #include <tuple>
 
 #include <gmock/gmock.h>
-#include <google/cloud/kms/v1/resources.grpc.pb.h>
-#include <google/cloud/kms/v1/resources.pb.h>
-#include <google/cloud/kms/v1/service.grpc.pb.h>
-#include <google/cloud/kms/v1/service.pb.h>
-#include <grpcpp/grpcpp.h>
 
 #include "absl/strings/str_cat.h"
-#include "src/backing/client/proto_util/proto_make.h"
+#include "google/cloud/kms/v1/resources.pb.h"
+#include "google/cloud/kms/v1/service.pb.h"
+#include "src/backing/status/status.h"
+
 
 namespace kmsengine {
 namespace backing {
-namespace proto_util {
 namespace {
 
 using ::testing::ValuesIn;
@@ -66,17 +63,10 @@ std::string GetDigestBytes(google::cloud::kms::v1::Digest digest) {
   }
 }
 
-constexpr google::cloud::kms::v1::Digest::DigestCase kDigestCases[] = {
-  google::cloud::kms::v1::Digest::DigestCase::kSha256,
-  google::cloud::kms::v1::Digest::DigestCase::kSha384,
-  google::cloud::kms::v1::Digest::DigestCase::kSha512,
-};
-
-const std::string kSampleKeyNames[] = {
-  absl::StrCat("/projects/PROJECT_ID/locations/LOCATION/keyRings/KEY_RING/",
-               "cryptoKeys/KEY/cryptoKeyVersions/VERSION"),
-  "another arbitrary key name",
-  "",
+constexpr DigestCase kDigestCases[] = {
+  DigestCase::kSha256,
+  DigestCase::kSha384,
+  DigestCase::kSha512,
 };
 
 const std::string kSampleDigests[] = {
@@ -86,53 +76,8 @@ const std::string kSampleDigests[] = {
   "",
 };
 
-class MakeAsymmetricSignRequestTest : public
-    testing::TestWithParam<
-        std::tuple<std::string, google::cloud::kms::v1::Digest::DigestCase,
-                   std::string>> {
-  // Purposely empty; no fixtures to instantiate.
-};
-
-INSTANTIATE_TEST_SUITE_P(
-    AsymmetricSignRequestParameters, MakeAsymmetricSignRequestTest,
-    Combine(ValuesIn(kSampleKeyNames), ValuesIn(kDigestCases),
-            ValuesIn(kSampleDigests)));
-
-TEST_P(MakeAsymmetricSignRequestTest, MakeAsymmetricSignRequest) {
-  auto expected_key_name = std::get<0>(GetParam());
-  auto expected_digest_type = std::get<1>(GetParam());
-  auto expected_digest_bytes = std::get<2>(GetParam());
-
-  auto actual = MakeAsymmetricSignRequest(
-      expected_key_name,
-      MakeDigest(expected_digest_type, expected_digest_bytes));
-  EXPECT_THAT(actual.name(), StrEq(expected_key_name));
-  EXPECT_TRUE(actual.has_digest());
-
-  auto actual_digest = actual.digest();
-  EXPECT_EQ(actual_digest.digest_case(), expected_digest_type);
-  EXPECT_THAT(GetDigestBytes(actual_digest), StrEq(expected_digest_bytes));
-}
-
-class MakeGetPublicKeyRequestTest : public
-    testing::TestWithParam<std::string> {
-  // Purposely empty; no fixtures to instantiate.
-};
-
-INSTANTIATE_TEST_SUITE_P(
-    GetPublicKeyRequestParameters, MakeGetPublicKeyRequestTest,
-    ValuesIn(kSampleKeyNames));
-
-TEST_P(MakeGetPublicKeyRequestTest, MakeAsymmetricSignRequest) {
-  auto expected_key_name = GetParam();
-
-  auto actual = MakeGetPublicKeyRequest(expected_key_name);
-  EXPECT_THAT(actual.name(), StrEq(expected_key_name));
-}
-
 class MakeDigestTest : public
-    testing::TestWithParam<
-        std::tuple<google::cloud::kms::v1::Digest::DigestCase, std::string>> {
+    testing::TestWithParam<std::tuple<DigestCase, std::string>> {
   // Purposely empty; no fixtures to instantiate.
 };
 
@@ -145,11 +90,43 @@ TEST_P(MakeDigestTest, MakeDigest) {
   auto expected_digest_bytes = std::get<1>(GetParam());
 
   auto actual = MakeDigest(expected_digest_type, expected_digest_bytes);
-  EXPECT_EQ(actual.digest_case(), expected_digest_type);
+  EXPECT_EQ(FromProtoToDigestCase(actual.digest_case()), expected_digest_type);
   EXPECT_THAT(GetDigestBytes(actual), StrEq(expected_digest_bytes));
 }
 
+TEST(FromRpcErrorToStatusTest, ProtoValidCode) {
+  struct {
+    grpc::StatusCode grpc;
+    StatusCode expected;
+  } expected_codes[]{
+      {grpc::StatusCode::OK, StatusCode::kOk},
+      {grpc::StatusCode::CANCELLED, StatusCode::kCancelled},
+      {grpc::StatusCode::UNKNOWN, StatusCode::kUnknown},
+      {grpc::StatusCode::INVALID_ARGUMENT, StatusCode::kInvalidArgument},
+      {grpc::StatusCode::DEADLINE_EXCEEDED, StatusCode::kDeadlineExceeded},
+      {grpc::StatusCode::NOT_FOUND, StatusCode::kNotFound},
+      {grpc::StatusCode::ALREADY_EXISTS, StatusCode::kAlreadyExists},
+      {grpc::StatusCode::PERMISSION_DENIED, StatusCode::kPermissionDenied},
+      {grpc::StatusCode::UNAUTHENTICATED, StatusCode::kUnauthenticated},
+      {grpc::StatusCode::RESOURCE_EXHAUSTED, StatusCode::kResourceExhausted},
+      {grpc::StatusCode::FAILED_PRECONDITION, StatusCode::kFailedPrecondition},
+      {grpc::StatusCode::ABORTED, StatusCode::kAborted},
+      {grpc::StatusCode::OUT_OF_RANGE, StatusCode::kOutOfRange},
+      {grpc::StatusCode::UNIMPLEMENTED, StatusCode::kUnimplemented},
+      {grpc::StatusCode::INTERNAL, StatusCode::kInternal},
+      {grpc::StatusCode::UNAVAILABLE, StatusCode::kUnavailable},
+      {grpc::StatusCode::DATA_LOSS, StatusCode::kDataLoss},
+  };
+
+  for (auto const& codes : expected_codes) {
+    std::string const message = "test message";
+    grpc::Status original(codes.grpc, message);
+    auto const expected = Status(codes.expected, message);
+    auto const actual = FromRpcErrorToStatus(original);
+    EXPECT_EQ(expected, actual);
+  }
+}
+
 }  // namespace
-}  // namespace proto_util
 }  // namespace backing
 }  // namespace kmsengine
