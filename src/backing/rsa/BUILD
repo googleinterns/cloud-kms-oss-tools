@@ -18,34 +18,58 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:__subpackages__"])
 
+# Headers that are safe to export to the bridge layer.
+filegroup(
+    name = "bridge_headers",
+    srcs = [
+        "kms_rsa_key.h",
+        "rsa_key.h",
+    ],
+)
+
+filegroup(
+    name = "sources",
+    srcs = glob(
+        [
+            "**/*.h",
+            "**/*.cc",
+        ],
+        allow_empty = False,
+        exclude = ["**/*_test.cc"],
+    ),
+)
+
 cc_library(
-    name = "mock_client",
-    hdrs = ["mock_client.h"],
+    name = "kms_rsa_key",
+    srcs = ["kms_rsa_key.cc"],
+    hdrs = ["kms_rsa_key.h"],
     deps = [
+        ":rsa_key",
         "//src/backing/client:client",
         "//src/backing/client:digest_case",
-        "//src/backing/client:public_key",
         "//src/backing/status:status",
         "//src/backing/status:status_or",
     ],
 )
 
-cc_library(
-    name = "test_matchers",
-    hdrs = ["test_matchers.h"],
+cc_test(
+    name = "kms_rsa_key_test",
+    size = "small",
+    srcs = ["kms_rsa_key_test.cc"],
     deps = [
-        "@com_google_absl//absl/strings:str_format",
+        ":kms_rsa_key",
+        "//src/testing_util:test_matchers",
+        "//src/testing_util:mock_client",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
-cc_test(
-    name = "test_matchers_test",
-    size = "small",
-    srcs = ["test_matchers_test.cc"],
+cc_library(
+    name = "rsa_key",
+    hdrs = ["rsa_key.h"],
     deps = [
-        ":test_matchers",
-        "//src/backing",
-        "@com_google_googletest//:gtest_main",
+        "//src/backing/status:status",
+        "//src/backing/status:status_or",
+        "//src/backing/client:digest_case",
     ],
 )

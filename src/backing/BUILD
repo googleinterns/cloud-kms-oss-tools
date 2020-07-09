@@ -29,10 +29,13 @@ cc_binary(
     srcs = [
         "//src/backing/client:sources",
         "//src/backing/status:sources",
+        "//src/backing/rsa:sources",
     ],
     linkshared = 1,
     linkstatic = 1,
     deps = [
+        "//src/backing/rsa:rsa_key",
+        "//src/backing/rsa:kms_rsa_key",
         "//src/backing/client",
         "//src/backing/client:crypto_key_version_algorithm",
         "//src/backing/client:digest_case",
@@ -47,5 +50,6 @@ filegroup(
     srcs = [
         "//src/backing/client:bridge_headers",
         "//src/backing/status:bridge_headers",
+        "//src/backing/rsa:bridge_headers",
     ],
 )
