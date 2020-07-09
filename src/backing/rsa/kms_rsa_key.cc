@@ -29,7 +29,8 @@ namespace backing {
 
 KmsRsaKey::KmsRsaKey(std::string key_resource_id,
                      std::shared_ptr<Client> client)
-    : key_resource_id_(key_resource_id), client_(client) {}
+    : key_resource_id_(key_resource_id), client_(client) {
+}
 
 StatusOr<std::string> KmsRsaKey::PublicEncrypt(std::string message,
                                                int padding) {
@@ -54,7 +55,7 @@ StatusOr<std::string> KmsRsaKey::PrivateDecrypt(std::string message,
 StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
                                       std::string message_digest) {
   return client_->AsymmetricSign(key_resource_id(), digest_type,
-                                     message_digest);
+                                 message_digest);
 }
 
 Status KmsRsaKey::Verify(DigestCase digest_type,
