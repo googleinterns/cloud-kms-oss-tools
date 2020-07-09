@@ -20,12 +20,12 @@ package(default_visibility = ["//src/bridge:__subpackages__"])
 
 cc_library(
     name = "nid_util",
-    hdrs = ["nid_util.h"],
     srcs = ["nid_util.cc"],
+    hdrs = ["nid_util.h"],
     linkopts = ["-lcrypto"],
     deps = [
         "//src/backing/client:digest_case",
-        "//src/backing/status:status",
+        "//src/backing/status",
         "//src/backing/status:status_or",
     ],
 )
