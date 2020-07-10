@@ -19,24 +19,16 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
-    name = "test_matchers",
-    hdrs = ["test_matchers.h"],
-    deps = [
-        "@com_google_absl//absl/strings:str_format",
-        "@com_google_absl//absl/types:optional",
-        "@com_google_googletest//:gtest_main",
-        "@com_google_protobuf//:protobuf",
-    ],
+    name = "clock",
+    hdrs = ["clock.h"],
 )
 
 cc_test(
-    name = "test_matchers_test",
+    name = "clock_test",
     size = "small",
-    srcs = ["test_matchers_test.cc"],
+    srcs = ["clock_test.cc"],
     deps = [
-        ":test_matchers",
-        "//src/backing",
+        ":clock",
         "@com_google_googletest//:gtest_main",
-        "@com_google_protobuf//:protobuf",
     ],
 )
