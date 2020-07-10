@@ -20,6 +20,7 @@ package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
     name = "test_matchers",
+    srcs = ["test_matchers.cc"],
     hdrs = ["test_matchers.h"],
     deps = [
         "@com_google_absl//absl/strings:str_format",

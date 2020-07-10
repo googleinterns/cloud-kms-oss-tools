@@ -59,6 +59,7 @@ TEST(IsOk, WorksWithStatusOr) {
   EXPECT_THAT(StatusOr<int>(1), IsOk());
   EXPECT_THAT(StatusOr<int>(kCancelled), Not(IsOk()));
   EXPECT_THAT(StatusOr<int>(kNotFound), Not(IsOk()));
+}
 
 TEST(EqualsProto, Basic) {
   ::google::protobuf::StringValue actual;
