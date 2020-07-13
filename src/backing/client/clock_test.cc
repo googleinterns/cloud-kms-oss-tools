@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Original EqualsProto tests copyright 2020 Google LLC
+ * Modifications copyright 2020 Google LLC
  *
- *    - Renamed namespaces and file includes
- *    - Renamed IsProtoEqual to EqualsProto
+ *    - Renamed namespaces
+ *    - Renamed include paths
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,45 +31,34 @@
  * limitations under the License.
  */
 
-#include <google/protobuf/wrappers.pb.h>
-#include <gmock/gmock.h>
+#include <memory>
 
 #include <gmock/gmock.h>
 
-#include "src/backing/status/status.h"
-#include "src/backing/status/status_or.h"
-#include "src/testing_util/test_matchers.h"
+#include "src/backing/client/clock.h"
 
 namespace kmsengine {
-namespace testing_util {
+namespace backing {
+namespace client {
 namespace {
 
-using ::testing::Not;
-
-const Status kCancelled = Status(StatusCode::kCancelled, "cancelled");
-const Status kNotFound = Status(StatusCode::kNotFound, "not found");
-
-TEST(IsOk, WorksWithStatus) {
-  EXPECT_THAT(Status(StatusCode::kOk, "test"), IsOk());
-  EXPECT_THAT(kCancelled, Not(IsOk()));
-  EXPECT_THAT(kNotFound, Not(IsOk()));
+TEST(Clock, SteadyClock) {
+  auto clock = std::make_shared<SteadyClock>();
+  auto now = clock->Now();
+  auto now2 = clock->Now();
+  // `SteadyClock::Now()` can never decrease as physical time moves forward.
+  EXPECT_LE(now, now2);
 }
 
-TEST(IsOk, WorksWithStatusOr) {
-  EXPECT_THAT(StatusOr<int>(1), IsOk());
-  EXPECT_THAT(StatusOr<int>(kCancelled), Not(IsOk()));
-  EXPECT_THAT(StatusOr<int>(kNotFound), Not(IsOk()));
-}
-
-TEST(EqualsProto, Basic) {
-  ::google::protobuf::StringValue actual;
-  actual.set_value("Hello World");
-  ::google::protobuf::StringValue not_actual;
-
-  EXPECT_THAT(actual, EqualsProto(actual));
-  EXPECT_THAT(actual, Not(EqualsProto(not_actual)));
+TEST(Clock, SystemClock) {
+  auto clock = std::make_shared<SystemClock>();
+  // There is no guarantee that `SystemClock::Now()` can never decrease, so
+  // we can't test that like we do for `SteadyClock`, so for now just make
+  // sure `Now()` is callable.
+  (void)clock->Now();
 }
 
 }  // namespace
-}  // namespace testing_util
+}  // namespace client
+}  // namespace backing
 }  // namespace kmsengine

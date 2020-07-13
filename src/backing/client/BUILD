@@ -101,3 +101,18 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "clock",
+    hdrs = ["clock.h"],
+)
+
+cc_test(
+    name = "clock_test",
+    size = "small",
+    srcs = ["clock_test.cc"],
+    deps = [
+        ":clock",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
