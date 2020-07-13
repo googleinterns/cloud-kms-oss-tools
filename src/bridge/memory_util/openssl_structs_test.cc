@@ -16,6 +16,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <openssl/engine.h>
 #include <openssl/rsa.h>
 
 #include "src/bridge/memory_util/openssl_structs.h"
@@ -26,6 +27,12 @@ namespace {
 
 using ::testing::Not;
 using ::testing::IsNull;
+
+TEST(OpenSSLMakeTest, MakeENGINESetsDeleter) {
+  auto engine = MakeEngine();
+  ASSERT_THAT(engine, Not(IsNull()));
+  EXPECT_EQ(engine.get_deleter(), &ENGINE_free);
+}
 
 TEST(OpenSSLMakeTest, MakeRsaSetsDeleter) {
   auto rsa = MakeRsa();

@@ -46,21 +46,34 @@ namespace bridge {
 // be converted to smart pointers since the engine does not "own" that
 // pointer.
 
+// Smart pointer wrapper around OpenSSL's ENGINE struct. Just an alias for
+// convenience.
+using OpenSslEngine = std::unique_ptr<ENGINE, decltype(&ENGINE_free)>;
+
 // Smart pointer wrapper around OpenSSL's RSA struct. Just an alias for
 // convenience.
-using OpenSSLRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
+using OpenSslRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
 
 // Smart pointer wrapper around OpenSSL's RSA_METHOD struct. Just an alias for
 // convenience.
-using OpenSSLRsaMethod = std::unique_ptr<RSA_METHOD, decltype(&RSA_meth_free)>;
+using OpenSslRsaMethod = std::unique_ptr<RSA_METHOD, decltype(&RSA_meth_free)>;
+
+// Constructs a `std::unique_ptr` object which owns a fresh RSA_METHOD instance.
+// May return `nullptr` if no memory is available.
+//
+// The OpenSSL `RSA_meth_free` function is automatically called to dispose
+// of the underlying RSA_METHOD instance when the pointer goes out of scope.
+inline OpenSslEngine MakeEngine() {
+  return OpenSslEngine(ENGINE_new(), &ENGINE_free);
+}
 
 // Constructs a `std::unique_ptr` object which owns a fresh RSA instance.
 // May return `nullptr` if no memory is available.
 //
 // The OpenSSL `RSA_free` function is automatically called to dispose
 // of the underlying RSA instance when the pointer goes out of scope.
-inline OpenSSLRsa MakeRsa() {
-  return OpenSSLRsa(RSA_new(), &RSA_free);
+inline OpenSslRsa MakeRsa() {
+  return OpenSslRsa(RSA_new(), &RSA_free);
 }
 
 // Constructs a `std::unique_ptr` object which owns a fresh RSA_METHOD instance.
@@ -68,8 +81,8 @@ inline OpenSSLRsa MakeRsa() {
 //
 // The OpenSSL `RSA_meth_free` function is automatically called to dispose
 // of the underlying RSA_METHOD instance when the pointer goes out of scope.
-inline OpenSSLRsaMethod MakeRsaMethod(const char *name, int flags) {
-  return OpenSSLRsaMethod(RSA_meth_new(name, flags), &RSA_meth_free);
+inline OpenSslRsaMethod MakeRsaMethod(const char *name, int flags) {
+  return OpenSslRsaMethod(RSA_meth_new(name, flags), &RSA_meth_free);
 }
 
 }  // namespace bridge
