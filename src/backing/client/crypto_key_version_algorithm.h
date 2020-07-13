@@ -17,6 +17,8 @@
 #ifndef KMSENGINE_BACKING_CLIENT_CRYPTO_KEY_VERSION_ALGORITHM_H_
 #define KMSENGINE_BACKING_CLIENT_CRYPTO_KEY_VERSION_ALGORITHM_H_
 
+#include <type_traits>
+
 namespace kmsengine {
 namespace backing {
 
