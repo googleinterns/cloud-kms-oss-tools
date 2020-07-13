@@ -17,6 +17,8 @@
 #ifndef KMSENGINE_BACKING_CLIENT_DIGEST_CASE_H_
 #define KMSENGINE_BACKING_CLIENT_DIGEST_CASE_H_
 
+#include <type_traits>
+
 namespace kmsengine {
 namespace backing {
 
