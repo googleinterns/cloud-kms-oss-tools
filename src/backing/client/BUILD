@@ -98,6 +98,20 @@ cc_test(
     deps = [
         ":crypto_key_version_algorithm",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "clock",
+    hdrs = ["clock.h"],
+)
+
+cc_test(
+    name = "clock_test",
+    size = "small",
+    srcs = ["clock_test.cc"],
+    deps = [
+        ":clock",
         "@com_google_googletest//:gtest_main",
     ],
 )
