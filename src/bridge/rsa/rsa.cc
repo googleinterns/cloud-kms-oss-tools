@@ -30,12 +30,11 @@ namespace rsa {
 int Finish(RSA *rsa) {
   // Per the OpenSSL specification, the memory for the RSA struct itself should
   // not be freed by this function.
-  auto *rsa_key = GetRsaKeyFromOpenSslRsa(rsa);
-  delete rsa_key;
-  if (!AttachRsaKeyToOpenSslRsa(nullptr, rsa).ok()) {
-    return false;
-  }
-  return true;
+  auto rsa_key = GetRsaKeyFromOpenSslRsa(rsa);
+  if (!rsa_key.ok()) return false;
+
+  delete rsa_key.value();
+  return AttachRsaKeyToOpenSslRsa(nullptr, rsa).ok();
 }
 
 int PublicEncrypt(int flen, const unsigned char *from, unsigned char *to,

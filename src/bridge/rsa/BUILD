@@ -61,8 +61,8 @@ cc_test(
         ":rsa",
         "//src/bridge/memory_util:openssl_structs",
         "//src/testing_util:mock_rsa_key",
-        "//src/testing_util:test_matchers",
         "//src/testing_util:openssl_assertions",
+        "//src/testing_util:test_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

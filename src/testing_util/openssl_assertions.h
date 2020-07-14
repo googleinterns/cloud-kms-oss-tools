@@ -24,7 +24,7 @@
 
 #include "absl/strings/string_view.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 
 namespace kmsengine {
 namespace testing_util {
