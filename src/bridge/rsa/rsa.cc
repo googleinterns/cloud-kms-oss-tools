@@ -63,9 +63,9 @@ int Finish(RSA *rsa) {
       auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa));
   delete rsa_key;
 
-  auto result = AttachRsaKeyToOpenSslRsa(nullptr, rsa);
-  if (!result.ok()) KMSENGINE_SIGNAL_ERROR(result.status());
-  return result.ok();
+  auto status = AttachRsaKeyToOpenSslRsa(nullptr, rsa);
+  if (!status.ok()) KMSENGINE_SIGNAL_ERROR(status);
+  return status.ok();
 }
 
 int PublicEncrypt(int flen, const unsigned char *from, unsigned char *to,
