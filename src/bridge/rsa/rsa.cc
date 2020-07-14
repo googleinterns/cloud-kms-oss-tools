@@ -59,11 +59,13 @@ namespace {
 int Finish(RSA *rsa) {
   // Per the OpenSSL specification, the memory for the RSA struct itself should
   // not be freed by this function.
-  auto rsa_key = GetRsaKeyFromOpenSslRsa(rsa);
-  if (!rsa_key.ok()) return false;
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa));
+  delete rsa_key;
 
-  delete rsa_key.value();
-  return AttachRsaKeyToOpenSslRsa(nullptr, rsa).ok();
+  auto result = AttachRsaKeyToOpenSslRsa(nullptr, rsa);
+  if (!result.ok()) KMSENGINE_SIGNAL_ERROR(result.status());
+  return result.ok();
 }
 
 int PublicEncrypt(int flen, const unsigned char *from, unsigned char *to,
