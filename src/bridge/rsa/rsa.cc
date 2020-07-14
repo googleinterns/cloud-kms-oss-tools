@@ -26,6 +26,35 @@
 namespace kmsengine {
 namespace bridge {
 namespace rsa {
+namespace {
+
+// Implementation of `KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR` that uses
+// a unique temporary identifier for avoiding collision in the enclosing scope.
+#define __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(__lhs, __rhs, __name) \
+  auto __name = (__rhs);                                                   \
+  if (!__name.ok()) {                                                      \
+    KMSENGINE_SIGNAL_ERROR(__name.status());                               \
+    return false;                                                          \
+  }                                                                        \
+  __lhs = std::move(__name.value());
+
+// Signals an engine error to OpenSSL using the given StatusOr<T> and returns
+// false if it is an error status; otherwise, assigns the underlying
+// StatusOr<T> value to the left-hand-side expression. Should be used only in
+// engine-defined OpenSSL callbacks (for example, `RSA_METHOD` callbacks), since
+// the returned "false" value is intended for OpenSSL.
+//
+// The right-hand-side expression is guaranteed to be evaluated exactly once.
+//
+// Note: KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR expands into multiple
+// statements; it cannot be used in a single statement (for example, within an
+// `if` statement).
+#define KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(__lhs, __rhs) \
+  __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(                     \
+    __lhs, __rhs,                                                   \
+    __KMSENGINE_MACRO_CONCAT(__status_or_value, __COUNTER__))
+
+}  // namespace
 
 int Finish(RSA *rsa) {
   // Per the OpenSSL specification, the memory for the RSA struct itself should
@@ -67,29 +96,17 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
   //
   // These conversions need to take place within the bridge layer (as opposed
   // to the backing layer) since they refer to specific OpenSSL APIs.
-  auto digest_type = ConvertOpenSslNidToDigestType(type);
-  if (!digest_type.ok()) {
-    KMSENGINE_SIGNAL_ERROR(digest_type.status());
-    return false;
-  }
-
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa));
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      auto digest_type, ConvertOpenSslNidToDigestType(type));
   std::string digest(reinterpret_cast<const char *>(m), m_length);
 
-  auto rsa_key = GetRsaKeyFromOpenSslRsa(rsa);
-  if (!rsa_key.ok()) {
-    KMSENGINE_SIGNAL_ERROR(rsa_key.status());
-    return false;
-  }
-
   // Delegate handling of the signing operation to the backing layer.
-  auto result = rsa_key.value()->Sign(digest_type.value(), digest);
-  if (!result.ok()) {
-    KMSENGINE_SIGNAL_ERROR(result.status());
-    return false;
-  }
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      auto signature, rsa_key->Sign(digest_type, digest));
 
   // Output signature should be stored in `sigret` and its length in `siglen`.
-  std::string signature = result.value();
   signature.copy(reinterpret_cast<char *>(sigret), signature.length());
   *siglen = signature.length();
   return true;
@@ -100,6 +117,9 @@ int Verify(int type, const unsigned char *m, unsigned int m_length,
   KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kUnimplemented, __func__));
   return false;  // Unimplemented.
 }
+
+#undef __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL
+#undef KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR
 
 }  // namespace rsa
 }  // namespace bridge
