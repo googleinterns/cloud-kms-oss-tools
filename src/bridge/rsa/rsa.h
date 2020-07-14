@@ -34,14 +34,14 @@ namespace rsa {
 int Finish(RSA *rsa);
 
 // TODO(zesp): Investigate if these are necessary given Sign and Verify.
-int PrivateEncrypt(int flen, const unsigned char *from, unsigned char *to, RSA *rsa,
-                   int padding);
-int PublicDecrypt(int flen, const unsigned char *from, unsigned char *to, RSA *rsa,
-                  int padding);
-int PublicEncrypt(int flen, const unsigned char *from, unsigned char *to, RSA *rsa,
-                   int padding);
-int PrivateDecrypt(int flen, const unsigned char *from, unsigned char *to, RSA *rsa,
-                   int padding);
+int PublicEncrypt(int flen, const unsigned char *from, unsigned char *to,
+                  RSA *rsa, int padding);
+int PublicDecrypt(int flen, const unsigned char *from, unsigned char *to,
+                  RSA *rsa, int padding);
+int PrivateEncrypt(int flen, const unsigned char *from, unsigned char *to,
+                   RSA *rsa, int padding);
+int PrivateDecrypt(int flen, const unsigned char *from, unsigned char *to,
+                   RSA *rsa, int padding);
 
 // Signs the message digest `m` of length `m_length` using the RSA private key
 // represented by the OpenSSL RSA struct `rsa`. Then, stores the resulting
