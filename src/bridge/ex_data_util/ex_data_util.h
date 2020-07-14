@@ -26,6 +26,7 @@
 #include "src/backing/client/client.h"
 #include "src/backing/rsa/rsa_key.h"
 #include "src/backing/status/status.h"
+#include "src/backing/status/status_or.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -43,23 +44,21 @@ void FreeExternalIndicies();
 Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa);
 
 // Returns a raw pointer to the `RsaKey` instance attacked to the given
-// OpenSSL `RSA` struct.
+// OpenSSL `RSA` struct. Raw pointer will never be null (if the underlying
+// external data is null, then an error status is returned.)
 //
-// This function is not guaranteed to return a pointer into initialized data
-// or a non-null pointer. Attached data is only defined by a previous call
-// to `AttachRsaKeyToRSA`.
-backing::RsaKey *GetRsaKeyFromOpenSslRsa(const RSA *rsa);
+// Attached data is only defined by a previous call to `AttachRsaKeyToRSA`.
+StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa);
 
 // Attaches an `Client` instance to the OpenSSL `RSA` instance.
 Status AttachClientToOpenSslEngine(backing::Client *client, ENGINE *engine);
 
 // Returns a raw pointer to the `Client` instance attacked to the given
-// OpenSSL `ENGINE` struct.
+// OpenSSL `ENGINE` struct, or an error status. Raw pointer will never be null
+// (if the underlying external data is null, then an error status is returned.)
 //
-// This function is not guaranteed to return a pointer into initialized data
-// or a non-null pointer. Attached data is only defined by a previous call
-// to `AttachClientToENGINE`.
-backing::Client *GetClientFromOpenSslEngine(const ENGINE *engine);
+// Attached data is only defined by a previous call to `AttachClientToENGINE`.
+StatusOr<backing::Client *> GetClientFromOpenSslEngine(const ENGINE *engine);
 
 }  // namespace bridge
 }  // namespace kmsengine
