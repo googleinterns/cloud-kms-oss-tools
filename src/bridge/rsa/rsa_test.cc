@@ -71,8 +71,8 @@ TEST_F(RsaTest, SignReturnsSignature) {
   EXPECT_THAT(actual, StrEq(expected));
 }
 
-TEST_F(RsaTest, SignPropogatesErrors) {
-  std::string expected_error = "mock RsaKey::Sign failed";
+TEST_F(RsaTest, SignHandlesRsaKeySignErrors) {
+  auto expected_error = "mock RsaKey::Sign failed";
 
   MockRsaKey rsa_key;
   EXPECT_CALL(rsa_key, Sign).WillOnce(Return(StatusOr<std::string>(
@@ -83,26 +83,39 @@ TEST_F(RsaTest, SignPropogatesErrors) {
 
   unsigned char digest[] = "sample digest";
   unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
-  unsigned char *signature;
-  unsigned int signature_length;
-  EXPECT_OPENSSL_FAILURE(Sign(NID_sha256, digest, digest_length, signature,
-                              &signature_length, rsa.get()),
-                         expected_error);
+  EXPECT_OPENSSL_FAILURE(
+      Sign(NID_sha256, digest, digest_length, nullptr, nullptr, rsa.get()),
+      expected_error);
 }
 
 TEST_F(RsaTest, SignHandlesMissingRsaKeys) {
-  std::string expected_error = "mock RsaKey::Sign failed";
-
   auto rsa = MakeRsa();
   ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
 
   unsigned char digest[] = "sample digest";
   unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
-  unsigned char *signature;
-  unsigned int signature_length;
-  EXPECT_OPENSSL_FAILURE(Sign(NID_sha256, digest, digest_length, signature,
-                              &signature_length, rsa.get()),
-                         "No Cloud KMS key associated with RSA struct");
+  EXPECT_OPENSSL_FAILURE(
+      Sign(NID_sha256, digest, digest_length, nullptr, nullptr, rsa.get()),
+      "No Cloud KMS key associated with RSA struct");
+}
+
+TEST_F(RsaTest, SignHandlesBadNidDigestTypes) {
+  // Use MD5 as our "bad digest type" example, since it's not supported by
+  // Cloud KMS (and since it's an insecure algorithm, it probably won't be
+  // supported in the future).
+  constexpr int kBadDigestType = NID_md5;
+
+  MockRsaKey rsa_key;
+  EXPECT_CALL(rsa_key, Sign).Times(0);
+
+  auto rsa = MakeRsa();
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
+
+  unsigned char digest[] = "sample digest";
+  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
+  EXPECT_OPENSSL_FAILURE(
+      Sign(kBadDigestType, digest, digest_length, nullptr, nullptr, rsa.get()),
+      "Unsupported digest type");
 }
 
 }  // namespace
