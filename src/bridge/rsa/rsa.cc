@@ -79,7 +79,7 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
   auto rsa_key = GetRsaKeyFromOpenSslRsa(rsa);
   if (!rsa_key) {
     KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kInternal,
-        "No Cloud KMS RSA key resource ID associated with RSA struct"))
+        "No Cloud KMS key associated with RSA struct"))
     return false;
   }
 

@@ -24,9 +24,7 @@ cc_library(
     hdrs = ["nid_util.h"],
     linkopts = ["-lcrypto"],
     deps = [
-        "//src/backing/client:digest_case",
-        "//src/backing/status",
-        "//src/backing/status:status_or",
+        "//src/backing",
     ],
 )
 

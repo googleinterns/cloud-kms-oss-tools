@@ -46,8 +46,7 @@ cc_library(
     hdrs = ["rsa.h"],
     linkopts = ["-lcrypto"],
     deps = [
-        "//src/backing/rsa:rsa_key",
-        "//src/backing/status",
+        "//src/backing",
         "//src/bridge/error",
         "//src/bridge/ex_data_util",
         "//src/bridge/nid_util",
@@ -60,9 +59,9 @@ cc_test(
     srcs = ["rsa_test.cc"],
     deps = [
         ":rsa",
+        "//src/bridge/memory_util:openssl_structs",
         "//src/testing_util:mock_rsa_key",
         "//src/testing_util:test_matchers",
-        "//src/bridge/memory_util:openssl_structs",
         "@com_google_googletest//:gtest_main",
     ],
 )

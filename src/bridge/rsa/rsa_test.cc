@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <cstring>
 #include <string>
 
 #include <openssl/engine.h>
@@ -34,25 +35,100 @@ namespace {
 
 using ::testing::Return;
 using ::testing::StrEq;
+using ::testing::HasSubstr;
+using ::testing::Matches;
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockRsaKey;
 
-TEST(RsaTest, SignWorks) {
-  auto expected = "my signature";
+testing::AssertionResult IsOpenSslSuccess(const char* expr,
+                                          bool openssl_return) {
+  if (openssl_return) return testing::AssertionSuccess();
+
+  const char *file, *data;
+  int line, flags;
+  auto err = ERR_get_error_line_data(&file, &line, &data, &flags);
+  if (err) {
+    return testing::AssertionFailure()
+           << expr << " unexpectedly returned false and produced OpenSSL "
+           << "error...\n"
+           << "         Expected: success\n"
+           << "           Actual: error in " << file << ":" << line << "\n"
+           << "                   [" << data << "]";
+  } else {
+    return testing::AssertionFailure()
+           << expr << " unexpectedly returned false"
+           << "         Expected: success\n"
+           << "           Actual: failure (no OpenSSL error)";
+  }
+}
+
+testing::AssertionResult IsOpenSslFailure(const char* return_expr,
+                                          const char* status_expr,
+                                          bool openssl_return,
+                                          const char* substr_error) {
+  if (openssl_return) {
+    return testing::AssertionFailure()
+           << return_expr << " should have returned false, but returned "
+           << "true...\n"
+           << "         Expected: failure with OpenSSL error\n"
+           << "           Actual: success";
+  }
+
+  const char *file, *data;
+  int line, flags;
+  auto err = ERR_get_error_line_data(&file, &line, &data, &flags);
+  if (!err) {
+    return testing::AssertionFailure()
+           << return_expr << " returned false, but no OpenSSL "
+           << "         Expected: failure with OpenSSL error\n"
+           << "           Actual: failure, but no OpenSSL error";
+  }
+
+  if (Matches(HasSubstr(substr_error))(data)) {
+    return testing::AssertionSuccess();
+  } else {
+      return testing::AssertionFailure()
+         << return_expr << " returned false and produced OpenSSL error, but "
+         << "OpenSSL error did not contain expected substring...\n"
+         << "         Expected: error containing '" << substr_error << "'\n"
+         << "           Actual: error in " << file << ":" << line << "\n"
+         << "                   [" << data << "]";
+  }
+}
+
+#define ASSERT_OPENSSL_SUCCESS(val) \
+  ASSERT_PRED_FORMAT1(IsOpenSslSuccess, val)
+
+#define ASSERT_OPENSSL_FAILURE(val, status) \
+  ASSERT_PRED_FORMAT2(IsOpenSslFailure, val, status)
+
+// Test fixture for calling initialization functions (normally called by the
+// `EngineBind` function) needed for the RSA callbacks to work.
+class RsaTest : public ::testing::Test {
+  void SetUp() override {
+    ASSERT_THAT(InitExternalIndicies(), IsOk());
+  }
+
+  void TearDown() override {
+    FreeExternalIndicies();
+  }
+};
+
+TEST_F(RsaTest, SignWorks) {
+  std::string expected = "my signature";
 
   MockRsaKey rsa_key;
-  EXPECT_CALL(rsa_key, PublicEncrypt)
-      .WillOnce(Return(StatusOr<std::string>(expected)));
+  EXPECT_CALL(rsa_key, Sign).WillOnce(Return(StatusOr<std::string>(expected)));
 
-  unsigned char digest[] = "digest";
-  int digest_len = 6;
   auto rsa = MakeRsa();
-  EXPECT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
 
-  unsigned char signature[RSA_size(rsa.get())];
+  unsigned char digest[] = "sample digest";
+  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
+  unsigned char signature[expected.length()];
   unsigned int signature_length;
-  EXPECT_EQ(Sign(NID_sha256, digest, digest_len, signature, &signature_length,
-            rsa.get()), 1);
+  ASSERT_OPENSSL_SUCCESS(Sign(NID_sha256, digest, digest_length, signature,
+                              &signature_length, rsa.get()));
 
   std::string actual(reinterpret_cast<char *>(signature), signature_length);
   EXPECT_THAT(actual, StrEq(expected));
