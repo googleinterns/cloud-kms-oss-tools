@@ -42,6 +42,7 @@ using ::testing::StrEq;
 // Test fixture for calling initialization functions (normally called by the
 // `EngineBind` function) needed for the RSA callbacks to work.
 class RsaTest : public ::testing::Test {
+ protected:
   void SetUp() override {
     ASSERT_THAT(InitExternalIndicies(), IsOk());
   }
