@@ -105,7 +105,7 @@ testing::AssertionResult IsOpenSslFailure(const char* return_expr,
   } else {
     auto message = absl::StrFormat("%s returned false and produced OpenSSL "
                                    "error, but OpenSSL error did not contain "
-                                   "expected substring...". return_expr);
+                                   "expected substring...", return_expr);
     auto actual = absl::StrFormat("false, with error in %s:%d [%s]", file, line,
                                   data);
     return MakeFormattedAssertionFailure(message, expected, actual);
