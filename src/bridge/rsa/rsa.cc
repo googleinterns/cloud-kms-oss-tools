@@ -77,15 +77,13 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
   std::string digest(reinterpret_cast<const char *>(m), m_length);
 
   auto rsa_key = GetRsaKeyFromOpenSslRsa(rsa);
-  if (!rsa_key) {
-    KMSENGINE_SIGNAL_ERROR(
-        Status(StatusCode::kNotFound,
-               "No Cloud KMS key associated with RSA struct"));
+  if (!rsa_key.ok()) {
+    KMSENGINE_SIGNAL_ERROR(rsa_key.status());
     return false;
   }
 
   // Delegate handling of the signing operation to the backing layer.
-  auto result = rsa_key->Sign(digest_type.value(), digest);
+  auto result = rsa_key.value()->Sign(digest_type.value(), digest);
   if (!result.ok()) {
     KMSENGINE_SIGNAL_ERROR(result.status());
     return false;
