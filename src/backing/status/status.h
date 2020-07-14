@@ -118,33 +118,6 @@ inline bool operator!=(Status const& lhs, Status const& rhs) {
     }                                       \
   } while (false)
 
-// Helper macros to create identifiers from concatenation.
-#define __KMSENGINE_MACRO_CONCAT_INNER(__x, __y) __x##__y
-#define __KMSENGINE_MACRO_CONCAT(__x, __y) \
-  __KMSENGINE_MACRO_CONCAT_INNER(__x, __y)
-
-// Implementation of KMSENGINE_ASSIGN_OR_RETURN that uses a unique temporary
-// identifier for avoiding collision in the enclosing scope.
-#define __KMSENGINE_ASSIGN_OR_RETURN_IMPL(__lhs, __rhs, __name) \
-  auto __name = (__rhs);                                        \
-  if (!__name.ok()) {                                           \
-    return __name.status();                                     \
-  }                                                             \
-  __lhs = std::move(__name.value());
-
-// Early-returns the status if it is in error; otherwise, assigns the
-// right-hand-side expression to the left-hand-side expression.
-//
-// The right-hand-side expression is guaranteed to be evaluated exactly once.
-//
-// Note: KMSENGINE_ASSIGN_OR_RETURN expands into multiple statements; it cannot
-// be used in a single statement (for example, within an `if` statement).
-#define KMSENGINE_ASSIGN_OR_RETURN(__lhs, __rhs) \
-  __KMSENGINE_ASSIGN_OR_RETURN_IMPL(             \
-    __lhs, __rhs,                                \
-    __KMSENGINE_MACRO_CONCAT(__status_or_value,  \
-                             __COUNTER__))
-
 }  // namespace kmsengine
 
 #endif  // KMSENGINE_BACKING_STATUS_STATUS_H_
