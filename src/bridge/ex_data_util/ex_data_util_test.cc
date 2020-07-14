@@ -30,38 +30,76 @@ namespace {
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockClient;
 using ::kmsengine::testing_util::MockRsaKey;
-using ::testing::AtLeast;
 using ::testing::Not;
-using ::testing::Return;
-
-TEST(ExDataUtilTest, InitSuccess) {
-  auto status = InitExternalIndicies();
-  EXPECT_THAT(status, IsOk());
-
-  // Just check that FreeExternalIndicies is callable.
-  (void)FreeExternalIndicies();
-}
 
 TEST(ExDataUtilTest, RsaKeyRoundtrip) {
-  auto status = InitExternalIndicies();
-  ASSERT_THAT(status, IsOk());
+  ASSERT_THAT(InitExternalIndicies(), IsOk());
 
   auto rsa = MakeRsa();
   MockRsaKey rsa_key;
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
 
-  EXPECT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
-  EXPECT_EQ(GetRsaKeyFromOpenSslRsa(rsa.get()), &rsa_key);
+  auto actual = GetRsaKeyFromOpenSslRsa(rsa.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), &rsa_key);
+
+  FreeExternalIndicies();
 }
 
 TEST(ExDataUtilTest, ClientRoundtrip) {
-  auto status = InitExternalIndicies();
-  ASSERT_THAT(status, IsOk());
+  ASSERT_THAT(InitExternalIndicies(), IsOk());
 
   auto engine = MakeEngine();
   MockClient client;
+  ASSERT_THAT(AttachClientToOpenSslEngine(&client, engine.get()), IsOk());
 
-  EXPECT_THAT(AttachClientToOpenSslEngine(&client, engine.get()), IsOk());
-  EXPECT_EQ(GetClientFromOpenSslEngine(engine.get()), &client);
+  auto actual = GetClientFromOpenSslEngine(engine.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), &client);
+
+  FreeExternalIndicies();
+}
+
+TEST(ExDataUtilTest, HandlesNullRsaKey) {
+  ASSERT_THAT(InitExternalIndicies(), IsOk());
+
+  auto rsa = MakeRsa();
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
+  EXPECT_THAT(GetRsaKeyFromOpenSslRsa(rsa.get()), Not(IsOk()));
+
+  FreeExternalIndicies();
+}
+
+TEST(ExDataUtilTest, HandlesNullClient) {
+  ASSERT_THAT(InitExternalIndicies(), IsOk());
+
+  auto engine = MakeEngine();
+  ASSERT_THAT(AttachClientToOpenSslEngine(nullptr, engine.get()), IsOk());
+  EXPECT_THAT(GetClientFromOpenSslEngine(engine.get()), Not(IsOk()));
+
+  FreeExternalIndicies();
+}
+
+TEST(ExDataUtilTest, ReturnsErrorWhenRsaExternalIndiciesNotInitialized) {
+  // Explicitly not calling `InitExternalIndices` here.
+  auto rsa = MakeRsa();
+  MockRsaKey rsa_key;
+
+  EXPECT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), Not(IsOk()));
+  EXPECT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), Not(IsOk()));
+
+  EXPECT_THAT(GetRsaKeyFromOpenSslRsa(rsa.get()), Not(IsOk()));
+}
+
+TEST(ExDataUtilTest, ReturnsErrorWhenEngineExternalIndiciesNotInitialized) {
+  // Explicitly not calling `InitExternalIndices` here.
+  auto engine = MakeEngine();
+  MockClient client;
+
+  EXPECT_THAT(AttachClientToOpenSslEngine(&client, engine.get()), Not(IsOk()));
+  EXPECT_THAT(AttachClientToOpenSslEngine(nullptr, engine.get()), Not(IsOk()));
+
+  EXPECT_THAT(GetClientFromOpenSslEngine(engine.get()), Not(IsOk()));
 }
 
 }  // namespace

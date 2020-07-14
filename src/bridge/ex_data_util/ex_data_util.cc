@@ -25,6 +25,7 @@
 #include "src/backing/client/client.h"
 #include "src/backing/rsa/rsa_key.h"
 #include "src/backing/status/status.h"
+#include "src/backing/status/status_or.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -52,7 +53,6 @@ inline StatusOr<int> GetIndex(int index_type) {
 
 }  // namespace
 
-
 static int rsa_index = kUninitializedIndex;
 static int engine_index = kUninitializedIndex;
 
@@ -65,33 +65,58 @@ Status InitExternalIndicies() {
 void FreeExternalIndicies() {
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_RSA, rsa_index);
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_ENGINE, engine_index);
+  rsa_index = kUninitializedIndex;
+  engine_index = kUninitializedIndex;
 }
 
 Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
-  int result = RSA_set_ex_data(rsa, rsa_index,
-                               static_cast<void *>(rsa_key));
-  if (result == 0) {
-    return Status(StatusCode::kInternal, "OpenSSL RSA_set_ex_data failed");
+  if (rsa_index == kUninitializedIndex) {
+    return Status(StatusCode::kFailedPrecondition, "rsa_index uninitialized");
+  }
+
+  if (!RSA_set_ex_data(rsa, rsa_index, static_cast<void *>(rsa_key))) {
+    return Status(StatusCode::kInternal, "RSA_set_ex_data failed");
   }
   return {};
 }
 
-backing::RsaKey *GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
-  return static_cast<backing::RsaKey*>(RSA_get_ex_data(rsa, rsa_index));
+StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
+  if (rsa_index == kUninitializedIndex) {
+    return Status(StatusCode::kFailedPrecondition, "rsa_index uninitialized");
+  }
+
+  auto ex_data = RSA_get_ex_data(rsa, rsa_index);
+  if (ex_data == nullptr) {
+    return Status(StatusCode::kNotFound,
+                  "No Cloud KMS key associated with RSA struct");
+  }
+  return static_cast<backing::RsaKey *>(ex_data);
 }
 
 Status AttachClientToOpenSslEngine(backing::Client *client, ENGINE *engine) {
-  int result = ENGINE_set_ex_data(engine, engine_index,
-                                  static_cast<void *>(client));
-  if (result == 0) {
-    return Status(StatusCode::kInternal, "OpenSSL ENGINE_set_ex_data failed");
+  if (engine_index == kUninitializedIndex) {
+    return Status(StatusCode::kFailedPrecondition,
+                  "engine_index uninitialized");
+  }
+
+  if (!ENGINE_set_ex_data(engine, engine_index, static_cast<void *>(client))) {
+    return Status(StatusCode::kInternal, "ENGINE_set_ex_data failed");
   }
   return {};
 }
 
-backing::Client *GetClientFromOpenSslEngine(const ENGINE *engine) {
-  return static_cast<backing::Client*>(
-      ENGINE_get_ex_data(engine, engine_index));
+StatusOr<backing::Client *> GetClientFromOpenSslEngine(const ENGINE *engine) {
+  if (engine_index == kUninitializedIndex) {
+    return Status(StatusCode::kFailedPrecondition,
+                  "engine_index uninitialized");
+  }
+
+  auto ex_data = ENGINE_get_ex_data(engine, engine_index);
+  if (ex_data == nullptr) {
+    return Status(StatusCode::kNotFound,
+                  "No Cloud KMS Client associated with ENGINE struct");
+  }
+  return static_cast<backing::Client *>(ex_data);
 }
 
 }  // namespace bridge
