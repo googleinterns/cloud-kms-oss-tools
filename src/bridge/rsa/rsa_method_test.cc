@@ -60,12 +60,12 @@ class RsaMethodTest : public ::testing::Test {
 TEST_F(RsaMethodTest, SignReturnsSignature) {
   std::string expected_signature = "my signature";
 
-  MockRsaKey rsa_key;
-  EXPECT_CALL(rsa_key, Sign).WillOnce(Return(StatusOr<std::string>(
+  auto rsa_key = new MockRsaKey();
+  EXPECT_CALL(*rsa_key, Sign).WillOnce(Return(StatusOr<std::string>(
       expected_signature)));
 
   auto rsa = MakeRsa();
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa.get()), IsOk());
   RSA_set_method(rsa.get(), rsa_method.get());
 
   unsigned char digest[] = "sample digest";
@@ -83,12 +83,12 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
 TEST_F(RsaMethodTest, SignHandlesRsaKeySignMethodErrors) {
   constexpr auto expected_error_message = "mock RsaKey::Sign failed";
 
-  MockRsaKey rsa_key;
-  EXPECT_CALL(rsa_key, Sign).WillOnce(Return(StatusOr<std::string>(
+  auto rsa_key = new MockRsaKey();
+  EXPECT_CALL(*rsa_key, Sign).WillOnce(Return(StatusOr<std::string>(
       Status(StatusCode::kInternal, expected_error_message))));
 
   auto rsa = MakeRsa();
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa.get()), IsOk());
   RSA_set_method(rsa.get(), rsa_method.get());
 
   unsigned char digest[] = "sample digest";
@@ -116,11 +116,11 @@ TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
   // supported in the future).
   constexpr int kBadDigestNid = NID_md5;
 
-  MockRsaKey rsa_key;
-  EXPECT_CALL(rsa_key, Sign).Times(0);
+  auto rsa_key = new MockRsaKey();
+  EXPECT_CALL(*rsa_key, Sign).Times(0);
 
   auto rsa = MakeRsa();
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa.get()), IsOk());
   RSA_set_method(rsa.get(), rsa_method.get());
 
   unsigned char digest[] = "sample digest";
