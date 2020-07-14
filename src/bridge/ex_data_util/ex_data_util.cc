@@ -65,11 +65,13 @@ Status InitExternalIndicies() {
 void FreeExternalIndicies() {
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_RSA, rsa_index);
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_ENGINE, engine_index);
+  rsa_index = kUninitializedIndex;
+  engine_index = kUninitializedIndex;
 }
 
 Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
   if (rsa_index == kUninitializedIndex) {
-    return Status(Status::kFailedPrecondition, "rsa_index uninitialized");
+    return Status(StatusCode::kFailedPrecondition, "rsa_index uninitialized");
   }
 
   if (!RSA_set_ex_data(rsa, rsa_index, static_cast<void *>(rsa_key))) {
