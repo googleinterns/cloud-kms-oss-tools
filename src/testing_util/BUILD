@@ -65,3 +65,14 @@ cc_test(
         "@com_google_protobuf//:protobuf",
     ],
 )
+
+cc_library(
+    name = "openssl_assertions",
+    size = "small",
+    srcs = ["openssl_assertions.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        "@com_google_googletest//:gtest_main",
+        "@com_google_absl//absl/strings",
+    ],
+)
