@@ -92,10 +92,10 @@ int PrivateDecrypt(int flen, const unsigned char *from, unsigned char *to,
 
 int Sign(int type, const unsigned char *m, unsigned int m_length,
          unsigned char *sigret, unsigned int *siglen, const RSA *rsa) {
-  // Convert arguments to engine-native structures for convenience.
-  //
-  // These conversions need to take place within the bridge layer (as opposed
-  // to the backing layer) since they refer to specific OpenSSL APIs.
+  // Convert arguments to engine-native structures for convenience. These
+  // conversions need to take place within the bridge layer (as opposed to
+  // letting the `RsaKey::Sign` method handling the conversions) since the
+  // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa));
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
@@ -106,7 +106,6 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto signature, rsa_key->Sign(digest_type, digest));
 
-  // Output signature should be stored in `sigret` and its length in `siglen`.
   signature.copy(reinterpret_cast<char *>(sigret), signature.length());
   *siglen = signature.length();
   return true;
