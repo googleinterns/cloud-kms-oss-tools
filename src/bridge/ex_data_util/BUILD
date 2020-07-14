@@ -24,8 +24,7 @@ cc_library(
     hdrs = ["ex_data_util.h"],
     linkopts = ["-lcrypto"],
     deps = [
-        "//src/backing/client",
-        "//src/backing/rsa:rsa_key",
+        "//src/backing",
     ],
 )
 
