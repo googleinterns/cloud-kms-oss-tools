@@ -94,7 +94,7 @@ TEST_F(RsaMethodTest, SignHandlesRsaKeySignMethodErrors) {
   unsigned char digest[] = "sample digest";
   unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
   EXPECT_OPENSSL_FAILURE(
-      RSA_sign(NID_sha256, digest, digest_length, nullptr, nullptr, srsa.get()),
+      RSA_sign(NID_sha256, digest, digest_length, nullptr, nullptr, rsa.get()),
       expected_error_message);
 }
 
