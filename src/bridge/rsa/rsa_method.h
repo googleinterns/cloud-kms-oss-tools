@@ -21,7 +21,6 @@
 
 #include <openssl/rsa.h>
 
-#include "src/bridge/rsa/rsa.h"
 #include "src/bridge/memory_util/openssl_structs.h"
 
 namespace kmsengine {

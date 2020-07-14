@@ -14,73 +14,118 @@
  * limitations under the License.
  */
 
+#include <cstring>
 #include <string>
 
-#include <openssl/engine.h>
-#include <openssl/rsa.h>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <openssl/engine.h>
+#include <openssl/rsa.h>
 
+#include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/memory_util/openssl_structs.h"
-#include "src/bridge/rsa/rsa.h"
 #include "src/bridge/rsa/rsa_method.h"
 #include "src/testing_util/mock_rsa_key.h"
+#include "src/testing_util/openssl_assertions.h"
+#include "src/testing_util/test_matchers.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace rsa {
 namespace {
 
-using ::testing::Return;
+using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockRsaKey;
+using ::testing::Return;
+using ::testing::StrEq;
+using ::testing::NotNull;
 
-TEST(RsaMethodTest, ImplementationsAreAssigned) {
-  auto rsa_method = MakeKmsRsaMethod();
+// Test fixture for calling initialization functions (normally called by the
+// `EngineBind` function) needed for the RSA callbacks to work.
+class RsaTest : public ::testing::Test {
+  void SetUp() override {
+    ASSERT_THAT(InitExternalIndicies(), IsOk());
+    rsa_method = MakeKmsRsaMethod();
+    ASSERT_THAT(rsa_method, NotNull());
+  }
 
-  EXPECT_EQ(RSA_meth_get_pub_enc(rsa_method.get()), PublicEncrypt);
-  EXPECT_EQ(RSA_meth_get_pub_dec(rsa_method.get()), PublicDecrypt);
-  EXPECT_EQ(RSA_meth_get_priv_enc(rsa_method.get()), PrivateEncrypt);
-  EXPECT_EQ(RSA_meth_get_priv_dec(rsa_method.get()), PrivateDecrypt);
-  EXPECT_EQ(RSA_meth_get_sign(rsa_method.get()), Sign);
-  EXPECT_EQ(RSA_meth_get_verify(rsa_method.get()), Verify);
-  EXPECT_EQ(RSA_meth_get_mod_exp(rsa_method.get()), nullptr);
-  EXPECT_EQ(RSA_meth_get_bn_mod_exp(rsa_method.get()), nullptr);
-  EXPECT_EQ(RSA_meth_get_keygen(rsa_method.get()), nullptr);
-  EXPECT_EQ(RSA_meth_get_init(rsa_method.get()), nullptr);
-  EXPECT_EQ(RSA_meth_get_finish(rsa_method.get()), Finish);
+  void TearDown() override {
+    FreeExternalIndicies();
+  }
+
+  OpenSslRsaMethod rsa_method;
+};
+
+TEST_F(RsaTest, SignReturnsSignature) {
+  std::string expected_signature = "my signature";
+
+  MockRsaKey rsa_key;
+  EXPECT_CALL(rsa_key, Sign).WillOnce(Return(StatusOr<std::string>(
+      expected_signature)));
+
+  auto rsa = MakeRsa();
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
+
+  unsigned char digest[] = "sample digest";
+  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
+  unsigned char signature[expected_signature.length()];
+  unsigned int signature_length;
+  ASSERT_OPENSSL_SUCCESS(
+    rsa_method->Sign(NID_sha256, digest, digest_length, signature,
+                     &signature_length, rsa.get()));
+
+  std::string actual(reinterpret_cast<char *>(signature), signature_length);
+  EXPECT_THAT(actual, StrEq(expected_signature));
 }
 
-TEST(RsaMethodTest, SignWorks) {
-  // To make calls with the OpenSSL `RSA_*` functions, we need to generate an
-  // `RSA` struct and attach our `RSA_METHOD` implementation to it.
+TEST_F(RsaTest, SignHandlesRsaKeySignMethodErrors) {
+  constexpr auto expected_error_message = "mock RsaKey::Sign failed";
+
+  MockRsaKey rsa_key;
+  EXPECT_CALL(rsa_key, Sign).WillOnce(Return(StatusOr<std::string>(
+      Status(StatusCode::kInternal, expected_error_message))));
+
   auto rsa = MakeRsa();
-  auto rsa_method = MakeKmsRsaMethod();
-  ASSERT_TRUE(RSA_set_method(rsa.get(), rsa_method.get()));
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
 
-  int type = NID_sha256;
-  const unsigned int digest_len = 36;
-  const unsigned char digest[digest_len] = "testdigest";
-  unsigned char actual[RSA_size(rsa.get())];
-  unsigned int actual_length;
-  ASSERT_TRUE(RSA_sign(NID_sha256, digest, digest_len, actual, &actual_length,
-                       rsa.get()));
+  unsigned char digest[] = "sample digest";
+  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
+  EXPECT_OPENSSL_FAILURE(
+      rsa_method->Sign(NID_sha256, digest, digest_length, nullptr, nullptr,
+                       rsa.get()),
+      expected_error_message);
+}
 
+TEST_F(RsaTest, SignHandlesMissingRsaKeys) {
+  auto rsa = MakeRsa();
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
 
-  // auto expected = "my signature";
+  unsigned char digest[] = "sample digest";
+  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
+  EXPECT_OPENSSL_FAILURE(
+      rsa_method->Sign(NID_sha256, digest, digest_length, nullptr, nullptr,
+                       rsa.get()),
+      "No Cloud KMS key associated with RSA struct");
+}
 
-  // MockRsaKey rsa_key;
-  // EXPECT_CALL(rsa_key, PublicEncrypt).WillOnce(Return(StatusOr(expected)));
+TEST_F(RsaTest, SignHandlesBadNidDigestTypes) {
+  // Use MD5 as our "bad digest type" example, since it's not supported by
+  // Cloud KMS (and since it's an insecure algorithm, it probably won't be
+  // supported in the future).
+  constexpr int kBadDigestType = NID_md5;
 
-  // std::string fake_digest = "digest";
+  MockRsaKey rsa_key;
+  EXPECT_CALL(rsa_key, Sign).Times(0);
 
+  auto rsa = MakeRsa();
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
 
-  // EXPECT_EQ(Sign())
-
-  // EXPECT_EQ(RSA_sign(NID_sha256, static_cast<unsigned char*>(fake_digest),
-  //                    fake_digest.length(), actual, &actual_length, rsa),
-  //           OpenSSLReturn::kSuccess);
-  // EXPECT_STREQ(actual, expected);
-  // EXPECT_STREQ(actual_length, expected.length());
+  unsigned char digest[] = "sample digest";
+  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
+  EXPECT_OPENSSL_FAILURE(
+      rsa_method->Sign(kBadDigestType, digest, digest_length, nullptr,
+                       nullptr, rsa.get()),
+      "Unsupported digest type");
 }
 
 }  // namespace
