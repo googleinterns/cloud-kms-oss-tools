@@ -46,18 +46,17 @@ class RsaMethodTest : public ::testing::Test {
  protected:
   void SetUp() override {
     ASSERT_THAT(InitExternalIndicies(), IsOk());
-    rsa_method = MakeKmsRsaMethod();
-    ASSERT_THAT(rsa_method, NotNull());
   }
 
   void TearDown() override {
     FreeExternalIndicies();
   }
-
-  OpenSslRsaMethod rsa_method;
 };
 
 TEST_F(RsaMethodTest, SignReturnsSignature) {
+  auto rsa_method = MakeKmsRsaMethod();
+  ASSERT_THAT(rsa_method, NotNull());
+
   std::string expected_signature = "my signature";
 
   auto rsa_key = new MockRsaKey();
@@ -81,6 +80,9 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesRsaKeySignMethodErrors) {
+  auto rsa_method = MakeKmsRsaMethod();
+  ASSERT_THAT(rsa_method, NotNull());
+
   constexpr auto expected_error_message = "mock RsaKey::Sign failed";
 
   auto rsa_key = new MockRsaKey();
@@ -99,6 +101,9 @@ TEST_F(RsaMethodTest, SignHandlesRsaKeySignMethodErrors) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesMissingRsaKeys) {
+  auto rsa_method = MakeKmsRsaMethod();
+  ASSERT_THAT(rsa_method, NotNull());
+
   auto rsa = MakeRsa();
   ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
   RSA_set_method(rsa.get(), rsa_method.get());
@@ -111,6 +116,9 @@ TEST_F(RsaMethodTest, SignHandlesMissingRsaKeys) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
+  auto rsa_method = MakeKmsRsaMethod();
+  ASSERT_THAT(rsa_method, NotNull());
+
   // Use MD5 as our "bad digest type" example, since it's not supported by
   // Cloud KMS (and since it's an insecure algorithm, it probably won't be
   // supported in the future).

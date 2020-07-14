@@ -113,15 +113,23 @@ testing::AssertionResult IsOpenSslFailure(const char* return_expr,
 }
 
 // Wrapper macros around the `IsOpenSslSuccess` predicate.
+//
+// Clears the error queue prior to evaluating `val`.
 #define ASSERT_OPENSSL_SUCCESS(val) \
+  ERR_clear_error();                \
   ASSERT_PRED_FORMAT1(::kmsengine::testing_util::IsOpenSslSuccess, val)
 #define EXPECT_OPENSSL_SUCCESS(val) \
+  ERR_clear_error();                \
   EXPECT_PRED_FORMAT1(::kmsengine::testing_util::IsOpenSslSuccess, val)
 
 // Wrapper macros around the `IsOpenSslFailure` predicate.
+//
+// Clears the error queue prior to evaluating `val`.
 #define ASSERT_OPENSSL_FAILURE(val, status) \
+  ERR_clear_error();                \
   ASSERT_PRED_FORMAT2(::kmsengine::testing_util::IsOpenSslFailure, val, status)
 #define EXPECT_OPENSSL_FAILURE(val, status) \
+  ERR_clear_error();                \
   EXPECT_PRED_FORMAT2(::kmsengine::testing_util::IsOpenSslFailure, val, status)
 
 }  // namespace testing_util
