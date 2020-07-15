@@ -46,17 +46,22 @@ class RsaMethodTest : public ::testing::Test {
  protected:
   void SetUp() override {
     ASSERT_THAT(InitExternalIndicies(), IsOk());
+
+    rsa_method = MakeKmsRsaMethod();
+    ASSERT_THAT(rsa_method, NotNull());
   }
 
   void TearDown() override {
     FreeExternalIndicies();
   }
+
+  // Explicit `nullptr` needed here since these `unique_ptr`'s include a custom
+  // `Deleter` type, and `unique_ptr`'s with custom Deleter's have no default
+  // constructor.
+  OpenSslRsaMethod rsa_method {nullptr, nullptr};
 };
 
 TEST_F(RsaMethodTest, SignReturnsSignature) {
-  auto rsa_method = MakeKmsRsaMethod();
-  ASSERT_THAT(rsa_method, NotNull());
-
   std::string expected_signature = "my signature";
 
   auto rsa_key = new MockRsaKey();
@@ -64,8 +69,8 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
       expected_signature)));
 
   auto rsa = MakeRsa();
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa.get()), IsOk());
   RSA_set_method(rsa.get(), rsa_method.get());
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa.get()), IsOk());
 
   unsigned char digest[] = "sample digest";
   unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
@@ -80,9 +85,6 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesRsaKeySignMethodErrors) {
-  auto rsa_method = MakeKmsRsaMethod();
-  ASSERT_THAT(rsa_method, NotNull());
-
   constexpr auto expected_error_message = "mock RsaKey::Sign failed";
 
   auto rsa_key = new MockRsaKey();
@@ -90,8 +92,8 @@ TEST_F(RsaMethodTest, SignHandlesRsaKeySignMethodErrors) {
       Status(StatusCode::kInternal, expected_error_message))));
 
   auto rsa = MakeRsa();
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa.get()), IsOk());
   RSA_set_method(rsa.get(), rsa_method.get());
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa.get()), IsOk());
 
   unsigned char digest[] = "sample digest";
   unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
@@ -101,12 +103,9 @@ TEST_F(RsaMethodTest, SignHandlesRsaKeySignMethodErrors) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesMissingRsaKeys) {
-  auto rsa_method = MakeKmsRsaMethod();
-  ASSERT_THAT(rsa_method, NotNull());
-
   auto rsa = MakeRsa();
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
   RSA_set_method(rsa.get(), rsa_method.get());
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
 
   unsigned char digest[] = "sample digest";
   unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
@@ -116,9 +115,6 @@ TEST_F(RsaMethodTest, SignHandlesMissingRsaKeys) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
-  auto rsa_method = MakeKmsRsaMethod();
-  ASSERT_THAT(rsa_method, NotNull());
-
   // Use MD5 as our "bad digest type" example, since it's not supported by
   // Cloud KMS (and since it's an insecure algorithm, it probably won't be
   // supported in the future).
@@ -128,8 +124,8 @@ TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
   EXPECT_CALL(*rsa_key, Sign).Times(0);
 
   auto rsa = MakeRsa();
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa.get()), IsOk());
   RSA_set_method(rsa.get(), rsa_method.get());
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa.get()), IsOk());
 
   unsigned char digest[] = "sample digest";
   unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
