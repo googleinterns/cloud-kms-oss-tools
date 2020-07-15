@@ -61,8 +61,25 @@ class RsaMethodTest : public ::testing::Test {
   OpenSslRsaMethod rsa_method {nullptr, nullptr};
 };
 
+TEST_F(RsaMethodTest, FinishCleansUpRsaKey) {
+  // Using `RSA_new` instead of `MakeRsa` here so we can explicitly call
+  // `RSA_free` at the end to test that the mock got cleaned up.
+  auto rsa = RSA_new();
+  ASSERT_THAT(rsa, NotNull());
+  RSA_set_method(rsa, rsa_method.get());
+
+  // If mocks aren't deleted before the end of a test, an error is raised.
+  // Thus, if `RSA_free` doesn't delete the underlying `RsaKey`, then this test
+  // will fail.
+  auto rsa_key = new MockRsaKey();
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(rsa_key, rsa), IsOk());
+
+  RSA_free(rsa);
+}
+
 TEST_F(RsaMethodTest, SignReturnsSignature) {
   auto rsa = MakeRsa();
+  ASSERT_THAT(rsa, NotNull());
   RSA_set_method(rsa.get(), rsa_method.get());
 
   std::string expected = "my signature";
@@ -84,6 +101,7 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
 
 TEST_F(RsaMethodTest, SignHandlesRsaKeySignMethodErrors) {
   auto rsa = MakeRsa();
+  ASSERT_THAT(rsa, NotNull());
   RSA_set_method(rsa.get(), rsa_method.get());
 
   auto expected_error_message = "mock RsaKey::Sign failed";
@@ -101,6 +119,7 @@ TEST_F(RsaMethodTest, SignHandlesRsaKeySignMethodErrors) {
 
 TEST_F(RsaMethodTest, SignHandlesMissingRsaKeys) {
   auto rsa = MakeRsa();
+  ASSERT_THAT(rsa, NotNull());
   RSA_set_method(rsa.get(), rsa_method.get());
 
   ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
