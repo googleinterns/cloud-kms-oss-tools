@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/bridge/rsa/rsa_method.h"
+#include "src/bridge/rsa/rsa.h"
 
 #include <openssl/rsa.h>
 

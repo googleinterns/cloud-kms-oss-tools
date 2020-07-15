@@ -19,9 +19,9 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src/bridge:__subpackages__"])
 
 cc_library(
-    name = "rsa_method",
-    srcs = ["rsa_method.cc"],
-    hdrs = ["rsa_method.h"],
+    name = "rsa",
+    srcs = ["rsa.cc"],
+    hdrs = ["rsa.h"],
     linkopts = ["-lcrypto"],
     deps = [
         "//src/backing",
@@ -33,11 +33,11 @@ cc_library(
 )
 
 cc_test(
-    name = "rsa_method_test",
+    name = "rsa_test",
     size = "small",
-    srcs = ["rsa_method_test.cc"],
+    srcs = ["rsa_test.cc"],
     deps = [
-        ":rsa_method",
+        ":rsa",
         "//src/bridge/memory_util:openssl_structs",
         "//src/testing_util:mock_rsa_key",
         "//src/testing_util:openssl_assertions",
