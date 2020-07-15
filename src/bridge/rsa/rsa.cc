@@ -122,8 +122,8 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
   auto rsa_method = MakeRsaMethod(kRsaMethodName, kRsaMethodFlags);
   if (!rsa_method) return OpenSslRsaMethod(nullptr, nullptr);
 
-  // TODO(zesp): Investigate `PublicEncrypt` / `PublicDecrypt` / etc. are
-  // necessary given Sign and Verify.
+  // TODO(zesp): Investigate `PublicEncrypt`, `PublicDecrypt`, `PrivateEncrypt`,
+  // and `PrivateDecrypt` are necessary given Sign and Verify.
   if (!RSA_meth_set_pub_enc(rsa_method.get(), nullptr) ||
       !RSA_meth_set_pub_dec(rsa_method.get(), nullptr) ||
       !RSA_meth_set_priv_enc(rsa_method.get(), nullptr) ||
