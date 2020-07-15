@@ -36,9 +36,9 @@ namespace {
 
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockRsaKey;
+using ::testing::NotNull;
 using ::testing::Return;
 using ::testing::StrEq;
-using ::testing::NotNull;
 
 // Test fixture for calling initialization functions (normally called by the
 // `EngineBind` function) needed for the RSA callbacks to work.
