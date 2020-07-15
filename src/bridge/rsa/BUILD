@@ -24,8 +24,11 @@ cc_library(
     hdrs = ["rsa_method.h"],
     linkopts = ["-lcrypto"],
     deps = [
-        ":rsa",
+        "//src/backing",
+        "//src/bridge/error",
+        "//src/bridge/ex_data_util",
         "//src/bridge/memory_util:openssl_structs",
+        "//src/bridge/nid_util",
     ],
 )
 
@@ -35,33 +38,6 @@ cc_test(
     srcs = ["rsa_method_test.cc"],
     deps = [
         ":rsa_method",
-        "//src/bridge/memory_util:openssl_structs",
-        "//src/testing_util:mock_rsa_key",
-        "//src/testing_util:openssl_assertions",
-        "//src/testing_util:test_matchers",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "rsa",
-    srcs = ["rsa.cc"],
-    hdrs = ["rsa.h"],
-    linkopts = ["-lcrypto"],
-    deps = [
-        "//src/backing",
-        "//src/bridge/error",
-        "//src/bridge/ex_data_util",
-        "//src/bridge/nid_util",
-    ],
-)
-
-cc_test(
-    name = "rsa_test",
-    size = "small",
-    srcs = ["rsa_test.cc"],
-    deps = [
-        ":rsa",
         "//src/bridge/memory_util:openssl_structs",
         "//src/testing_util:mock_rsa_key",
         "//src/testing_util:openssl_assertions",
