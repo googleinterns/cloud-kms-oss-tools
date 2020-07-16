@@ -23,7 +23,7 @@
 #include "google/cloud/kms/v1/resources.pb.h"
 #include "google/cloud/kms/v1/service.pb.h"
 #include "src/backing/client/digest_case.h"
-#include "src/backing/client/proto_util/proto_util.h"
+#include "src/backing/client/grpc_client/proto_util.h"
 #include "src/backing/status/status.h"
 
 namespace kmsengine {

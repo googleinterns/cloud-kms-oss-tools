@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BACKING_CLIENT_PROTO_UTIL_PROTO_UTIL_H_
-#define KMSENGINE_BACKING_CLIENT_PROTO_UTIL_PROTO_UTIL_H_
+#ifndef KMSENGINE_BACKING_CLIENT_GRPC_CLIENT_PROTO_UTIL_H_
+#define KMSENGINE_BACKING_CLIENT_GRPC_CLIENT_PROTO_UTIL_H_
 
 #include <string>
 
@@ -61,4 +61,4 @@ constexpr CryptoKeyVersionAlgorithm FromProtoToCryptoKeyVersionAlgorithm(
 }  // namespace backing
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BACKING_CLIENT_PROTO_UTIL_PROTO_UTIL_H_
+#endif  // KMSENGINE_BACKING_CLIENT_GRPC_CLIENT_PROTO_UTIL_H_

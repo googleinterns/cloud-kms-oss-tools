@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/backing/client/proto_util/proto_util.h"
+#include "src/backing/client/grpc_client/proto_util.h"
 
 #include <memory>
 #include <string>
