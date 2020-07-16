@@ -71,7 +71,8 @@ enum class CryptoKeyVersionAlgorithm : int {
   kExternalSymmetricEncryption = 18,
 };
 
-// Helper function for casting a `DigestCase` to its underlying type.
+// Helper function for casting a `CryptoKeyVersionAlgorithm` to its underlying
+// type.
 constexpr int CryptoKeyVersionAlgorithmToInt(CryptoKeyVersionAlgorithm algo) {
   return static_cast<
       std::underlying_type<CryptoKeyVersionAlgorithm>::type>(algo);

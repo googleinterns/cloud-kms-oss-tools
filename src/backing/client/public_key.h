@@ -33,7 +33,7 @@ namespace backing {
 class PublicKey {
  public:
   explicit PublicKey(std::string pem, CryptoKeyVersionAlgorithm algorithm)
-      : pem_(std::move(pem)), algorithm_(algorithm) {}
+      : pem_(pem), algorithm_(algorithm) {}
 
   std::string const& pem() const { return pem_; }
   CryptoKeyVersionAlgorithm algorithm() const { return algorithm_; }
