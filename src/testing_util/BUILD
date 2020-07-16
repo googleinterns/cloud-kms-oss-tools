@@ -19,15 +19,6 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
-    name = "mock_client",
-    hdrs = ["mock_client.h"],
-    deps = [
-        "//src/backing/client",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
     name = "mock_key_management_service_stub",
     hdrs = ["mock_key_management_service_stub.h"],
     deps = [
