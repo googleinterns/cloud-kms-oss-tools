@@ -251,10 +251,6 @@ class StatusOr final {
   T const& operator*() const& { return value_; }
 
   T&& operator*() && { return std::move(value_); }
-
-#if GOOGLE_CLOUD_CPP_HAVE_CONST_REF_REF
-  T const&& operator*() const&& { return std::move(value_); }
-#endif  // GOOGLE_CLOUD_CPP_HAVE_CONST_REF_REF
   //@}
 
   //@{
@@ -294,12 +290,6 @@ class StatusOr final {
     return std::move(**this);
   }
 
-#if GOOGLE_CLOUD_CPP_HAVE_CONST_REF_REF
-  T const&& value() const&& {
-    CheckHasValue();
-    return std::move(**this);
-  }
-#endif  // GOOGLE_CLOUD_CPP_HAVE_CONST_REF_REF
   //@}
 
   //@{
@@ -313,10 +303,7 @@ class StatusOr final {
   Status& status() & { return status_; }
   Status const& status() const& { return status_; }
   Status&& status() && { return std::move(status_); }
-#if GOOGLE_CLOUD_CPP_HAVE_CONST_REF_REF
-  Status const&& status() const&& { return std::move(status_); }
-#endif  // GOOGLE_CLOUD_CPP_HAVE_CONST_REF_REF
-        //@}
+  //@}
 
  private:
   void CheckHasValue() const& {
@@ -357,6 +344,33 @@ template <typename T>
 StatusOr<T> make_status_or(T rhs) {
   return StatusOr<T>(std::move(rhs));
 }
+
+// Helper macros to create identifiers from concatenation.
+#define __KMSENGINE_MACRO_CONCAT_INNER(__x, __y) __x##__y
+#define __KMSENGINE_MACRO_CONCAT(__x, __y) \
+  __KMSENGINE_MACRO_CONCAT_INNER(__x, __y)
+
+// Implementation of KMSENGINE_ASSIGN_OR_RETURN that uses a unique temporary
+// identifier for avoiding collision in the enclosing scope.
+#define __KMSENGINE_ASSIGN_OR_RETURN_IMPL(__lhs, __rhs, __name) \
+  auto __name = (__rhs);                                        \
+  if (!__name.ok()) {                                           \
+    return __name.status();                                     \
+  }                                                             \
+  __lhs = std::move(__name.value());
+
+// Early-returns the status if it is in error; otherwise, assigns the
+// right-hand-side expression to the left-hand-side expression.
+//
+// The right-hand-side expression is guaranteed to be evaluated exactly once.
+//
+// Note: KMSENGINE_ASSIGN_OR_RETURN expands into multiple statements; it cannot
+// be used in a single statement (for example, within an `if` statement).
+#define KMSENGINE_ASSIGN_OR_RETURN(__lhs, __rhs) \
+  __KMSENGINE_ASSIGN_OR_RETURN_IMPL(             \
+    __lhs, __rhs,                                \
+    __KMSENGINE_MACRO_CONCAT(__status_or_value,  \
+                             __COUNTER__))
 
 }  // namespace kmsengine
 
