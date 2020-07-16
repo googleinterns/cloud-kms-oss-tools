@@ -26,7 +26,8 @@ namespace backing {
 //
 // Used in lieu of `google::cloud::kms::v1::Digest::DigestCase` from the Cloud
 // KMS API protobuf definitions since the bridge layer needs to refer to this
-// resource directly.
+// resource directly and the bridge layer is not able to include external
+// dependencies (such as the generated protobuf definitions).
 //
 // Underlying values should match the underlying values of the corresponding
 // cases in `google::cloud::kms::v1::Digest::DigestCase`; this allows for

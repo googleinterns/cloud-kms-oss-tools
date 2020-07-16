@@ -27,7 +27,8 @@ namespace backing {
 //
 // Used in lieu of `google::cloud::kms::v1::CryptoKeyVersionAlgorithm` from the
 // Cloud KMS API protobuf definitions since the bridge layer needs to refer to
-// this resource directly.
+// this resource directly and the bridge layer is not able to include external
+// dependencies (such as the generated protobuf definitions).
 //
 // Underlying values should match the underlying values of the corresponding
 // cases in `google::cloud::kms::v1::CryptoKeyVersionAlgorithm`; this allows for
@@ -70,7 +71,8 @@ enum class CryptoKeyVersionAlgorithm : int {
   kExternalSymmetricEncryption = 18,
 };
 
-// Helper function for casting a `DigestCase` to its underlying type.
+// Helper function for casting a `CryptoKeyVersionAlgorithm` to its underlying
+// type.
 constexpr int CryptoKeyVersionAlgorithmToInt(CryptoKeyVersionAlgorithm algo) {
   return static_cast<
       std::underlying_type<CryptoKeyVersionAlgorithm>::type>(algo);
