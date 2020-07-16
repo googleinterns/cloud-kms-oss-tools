@@ -24,11 +24,13 @@
 #include "src/backing/status/status.h"
 #include "src/bridge/engine_name.h"
 #include "src/bridge/error/error.h"
+#include "src/testing_util/test_matchers.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace {
 
+using ::kmsengine::testing_util::IsOk;
 using ::testing::ValuesIn;
 using ::testing::Combine;
 using ::testing::StrEq;
@@ -108,8 +110,8 @@ TEST(ErrorTest, LoadErrorStrings) {
   // Actual error string loading doesn't work outside of the engine context,
   // so for now just check that the loader functions are callable and returns a
   // success `Status`.
-  EXPECT_TRUE(LoadErrorStringsIntoOpenSSL().ok());
-  EXPECT_TRUE(UnloadErrorStringsFromOpenSSL().ok());
+  EXPECT_THAT(LoadErrorStringsIntoOpenSSL(), IsOk());
+  EXPECT_THAT(UnloadErrorStringsFromOpenSSL(), IsOk());
 }
 
 }  // namespace

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Modifications copyright 2020 Google LLC
+ * Original EqualsProto tests copyright 2020 Google LLC
  *
  *    - Renamed namespaces and file includes
  *    - Renamed IsProtoEqual to EqualsProto
@@ -34,13 +34,32 @@
 #include <google/protobuf/wrappers.pb.h>
 #include <gmock/gmock.h>
 
+#include <gmock/gmock.h>
+
+#include "src/backing/status/status.h"
+#include "src/backing/status/status_or.h"
 #include "src/testing_util/test_matchers.h"
 
 namespace kmsengine {
 namespace testing_util {
 namespace {
 
-using ::testing::Not;  // From gmock.
+using ::testing::Not;
+
+const Status kCancelled = Status(StatusCode::kCancelled, "cancelled");
+const Status kNotFound = Status(StatusCode::kNotFound, "not found");
+
+TEST(IsOk, WorksWithStatus) {
+  EXPECT_THAT(Status(StatusCode::kOk, "test"), IsOk());
+  EXPECT_THAT(kCancelled, Not(IsOk()));
+  EXPECT_THAT(kNotFound, Not(IsOk()));
+}
+
+TEST(IsOk, WorksWithStatusOr) {
+  EXPECT_THAT(StatusOr<int>(1), IsOk());
+  EXPECT_THAT(StatusOr<int>(kCancelled), Not(IsOk()));
+  EXPECT_THAT(StatusOr<int>(kNotFound), Not(IsOk()));
+}
 
 TEST(EqualsProto, Basic) {
   ::google::protobuf::StringValue actual;

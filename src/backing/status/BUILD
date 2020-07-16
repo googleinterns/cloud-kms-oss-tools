@@ -14,17 +14,59 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:__subpackages__"])
 
+# Headers that are safe to export to the bridge layer.
+filegroup(
+    name = "bridge_headers",
+    srcs = [
+        "status.h",
+        "status_or.h",
+    ],
+)
+
+filegroup(
+    name = "sources",
+    srcs = [
+        "status.cc",
+        "status.h",
+        "status_or.h",
+    ],
+)
+
+cc_library(
+    name = "status_or",
+    hdrs = ["status_or.h"],
+    deps = [
+        ":status",
+    ],
+)
+
+cc_test(
+    name = "status_or_test",
+    size = "small",
+    srcs = ["status_or_test.cc"],
+    deps = [
+        ":status_or",
+        "//src/testing_util:test_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "status",
-    hdrs = [
-        "status.h",
-        "status_macros.h",
-    ],
+    srcs = ["status.cc"],
+    hdrs = ["status.h"],
+)
+
+cc_test(
+    name = "status_test",
+    size = "small",
+    srcs = ["status_test.cc"],
     deps = [
-        "@com_github_googleapis_google_cloud_cpp//google/cloud:google_cloud_cpp_common",
+        ":status",
+        "@com_google_googletest//:gtest_main",
     ],
 )

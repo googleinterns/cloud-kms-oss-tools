@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Modifications copyright 2020 Google LLC
+ * Original EqualsProto version copyright 2020 Google LLC
  *
  *    - Renamed namespaces and file includes
  *    - Replaced Cloud C++ optional implementation with absl::optional
@@ -32,8 +32,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_
-#define KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_
+#ifndef KMSENGINE_TESTING_UTIL_TEST_MATCHERS_H_
+#define KMSENGINE_TESTING_UTIL_TEST_MATCHERS_H_
 
 #include <string>
 
@@ -59,7 +59,11 @@ MATCHER_P(EqualsProto, value,
   return !delta.has_value();
 }
 
+MATCHER(IsOk, absl::StrFormat("status %s ok", negation ? "is not" : "")) {
+  return arg.ok();
+}
+
 }  // namespace testing_util
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BACKING_CLIENT_TESTING_UTIL_IS_PROTO_EQUAL_H_
+#endif  // KMSENGINE_TESTING_UTIL_TEST_MATCHERS_H_
