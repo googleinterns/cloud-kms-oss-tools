@@ -31,6 +31,30 @@ filegroup(
 )
 
 cc_library(
+    name = "client_context_factory",
+    srcs = ["client_context_factory.cc"],
+    hdrs = ["client_context_factory.h"],
+    visibility = ["//src/testing_util:__pkg__"],
+    deps = [
+        "//src/backing/client:clock",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/memory",
+    ],
+)
+
+cc_test(
+    name = "client_context_factory_test",
+    size = "small",
+    srcs = ["client_context_factory_test.cc"],
+    deps = [
+        ":client_context_factory",
+        "//src/backing/client/testing_util:fake_clock",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "proto_util",
     srcs = ["proto_util.cc"],
     hdrs = ["proto_util.h"],
