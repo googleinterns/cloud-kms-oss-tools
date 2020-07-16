@@ -38,7 +38,9 @@ filegroup(
         ],
         allow_empty = False,
         exclude = ["**/*_test.cc"],
-    ),
+    ) + [
+        "//src/backing/client/grpc_client:sources",
+    ],
 )
 
 cc_library(
