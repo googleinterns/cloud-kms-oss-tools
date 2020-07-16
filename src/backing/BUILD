@@ -38,6 +38,7 @@ cc_binary(
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
         "//src/backing/client/grpc_client:proto_util",
+        "//src/backing/client/grpc_client:client_context_factory",
         "//src/backing/status",
         "//src/backing/status:status_or",
     ],
