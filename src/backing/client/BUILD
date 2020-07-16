@@ -23,6 +23,7 @@ filegroup(
     name = "bridge_headers",
     srcs = [
         "client.h",
+        "client_factory.h",
         "crypto_key_version_algorithm.h",
         "digest_case.h",
         "public_key.h",
@@ -40,6 +41,28 @@ filegroup(
         exclude = ["**/*_test.cc"],
     ) + [
         "//src/backing/client/grpc_client:sources",
+    ],
+)
+
+cc_library(
+    name = "client_factory",
+    srcs = ["client_factory.cc"],
+    hdrs = ["client_factory.h"],
+    deps = [
+        ":client",
+        "//src/backing/client/grpc_client",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/memory",
+    ],
+)
+
+cc_test(
+    name = "client_factory_test",
+    size = "small",
+    srcs = ["client_factory_test.cc"],
+    deps = [
+        "//src/backing",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 

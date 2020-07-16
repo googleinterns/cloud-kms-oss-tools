@@ -34,6 +34,7 @@ cc_binary(
     linkstatic = 1,
     deps = [
         "//src/backing/client",
+        "//src/backing/client:client_factory",
         "//src/backing/client:crypto_key_version_algorithm",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
