@@ -19,6 +19,33 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
+    name = "mock_client",
+    hdrs = ["mock_client.h"],
+    deps = [
+        "//src/backing/client",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mock_key_management_service_stub",
+    hdrs = ["mock_key_management_service_stub.h"],
+    deps = [
+        "//src/backing/client/grpc_client:key_management_service_stub",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mock_client_context_factory",
+    hdrs = ["mock_client_context_factory.h"],
+    deps = [
+        "//src/backing/client/grpc_client:client_context_factory",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "test_matchers",
     srcs = ["test_matchers.cc"],
     hdrs = ["test_matchers.h"],
