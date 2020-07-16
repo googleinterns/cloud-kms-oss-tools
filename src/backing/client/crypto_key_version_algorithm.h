@@ -27,7 +27,8 @@ namespace backing {
 //
 // Used in lieu of `google::cloud::kms::v1::CryptoKeyVersionAlgorithm` from the
 // Cloud KMS API protobuf definitions since the bridge layer needs to refer to
-// this resource directly.
+// this resource directly and the bridge layer is not able to include external
+// dependencies (such as the generated protobuf definitions).
 //
 // Underlying values should match the underlying values of the corresponding
 // cases in `google::cloud::kms::v1::CryptoKeyVersionAlgorithm`; this allows for

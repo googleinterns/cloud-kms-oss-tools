@@ -28,7 +28,8 @@ namespace backing {
 //
 // Used in lieu of `google::cloud::kms::v1::PublicKey` from the Cloud KMS API
 // protobuf definitions since the bridge layer needs to refer to this resource
-// directly.
+// directly and the bridge layer is not able to include external dependencies
+// (such as the generated protobuf definitions).
 class PublicKey {
  public:
   explicit PublicKey(std::string pem, CryptoKeyVersionAlgorithm algorithm)
