@@ -66,6 +66,7 @@ cc_library(
     name = "key_management_service_stub",
     srcs = ["key_management_service_stub.cc"],
     hdrs = ["key_management_service_stub.h"],
+    visibility = ["//src/backing:__subpackages__", "//src/testing_util:__pkg__"],
     deps = [
         ":proto_util",
         "//src/backing/status",
@@ -89,6 +90,7 @@ cc_library(
     name = "client_context_factory",
     srcs = ["client_context_factory.cc"],
     hdrs = ["client_context_factory.h"],
+    visibility = ["//src/backing:__subpackages__", "//src/testing_util:__pkg__"],
     deps = [
         "//src/backing/client:clock",
         "@com_github_grpc_grpc//:grpc++",
