@@ -33,6 +33,12 @@ TEST(OpenSSLMakeTest, MakeEngineSetsDeleter) {
   EXPECT_EQ(engine.get_deleter(), &ENGINE_free);
 }
 
+TEST(OpenSSLMakeTest, MakeEvpPkeySetsDeleter) {
+  auto engine = MakeEvpPkey();
+  ASSERT_THAT(engine, Not(IsNull()));
+  EXPECT_EQ(engine.get_deleter(), &ENGINE_free);
+}
+
 TEST(OpenSslStructsTest, MakeRsaSetsDeleter) {
   auto rsa = MakeRsa();
   ASSERT_THAT(rsa, Not(IsNull()));
