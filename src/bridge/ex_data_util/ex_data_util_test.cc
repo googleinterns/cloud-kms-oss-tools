@@ -28,7 +28,6 @@ namespace bridge {
 namespace {
 
 using ::kmsengine::testing_util::IsOk;
-using ::kmsengine::testing_util::MockClient;
 using ::kmsengine::testing_util::MockRsaKey;
 using ::testing::Not;
 
@@ -46,36 +45,12 @@ TEST(ExDataUtilTest, RsaKeyRoundtrip) {
   FreeExternalIndicies();
 }
 
-TEST(ExDataUtilTest, ClientRoundtrip) {
-  ASSERT_THAT(InitExternalIndicies(), IsOk());
-
-  auto engine = MakeEngine();
-  MockClient client;
-  ASSERT_THAT(AttachClientToOpenSslEngine(&client, engine.get()), IsOk());
-
-  auto actual = GetClientFromOpenSslEngine(engine.get());
-  EXPECT_THAT(actual, IsOk());
-  EXPECT_EQ(actual.value(), &client);
-
-  FreeExternalIndicies();
-}
-
 TEST(ExDataUtilTest, HandlesNullRsaKey) {
   ASSERT_THAT(InitExternalIndicies(), IsOk());
 
   auto rsa = MakeRsa();
   ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
   EXPECT_THAT(GetRsaKeyFromOpenSslRsa(rsa.get()), Not(IsOk()));
-
-  FreeExternalIndicies();
-}
-
-TEST(ExDataUtilTest, HandlesNullClient) {
-  ASSERT_THAT(InitExternalIndicies(), IsOk());
-
-  auto engine = MakeEngine();
-  ASSERT_THAT(AttachClientToOpenSslEngine(nullptr, engine.get()), IsOk());
-  EXPECT_THAT(GetClientFromOpenSslEngine(engine.get()), Not(IsOk()));
 
   FreeExternalIndicies();
 }
@@ -91,15 +66,42 @@ TEST(ExDataUtilTest, ReturnsErrorWhenRsaExternalIndiciesNotInitialized) {
   EXPECT_THAT(GetRsaKeyFromOpenSslRsa(rsa.get()), Not(IsOk()));
 }
 
+TEST(ExDataUtilTest, EngineDataRoundtrip) {
+  ASSERT_THAT(InitExternalIndicies(), IsOk());
+
+  auto engine = MakeEngine();
+  EngineData engine_data(nullptr, {nullptr, nullptr});
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
+              IsOk());
+
+  auto actual = GetEngineDataFromOpenSslEngine(engine.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), &engine_data);
+
+  FreeExternalIndicies();
+}
+
+TEST(ExDataUtilTest, HandlesNullEngineData) {
+  ASSERT_THAT(InitExternalIndicies(), IsOk());
+
+  auto engine = MakeEngine();
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());
+  EXPECT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), Not(IsOk()));
+
+  FreeExternalIndicies();
+}
+
 TEST(ExDataUtilTest, ReturnsErrorWhenEngineExternalIndiciesNotInitialized) {
   // Explicitly not calling `InitExternalIndices` here.
   auto engine = MakeEngine();
-  MockClient client;
+  EngineData engine_data(nullptr, {nullptr, nullptr});
 
-  EXPECT_THAT(AttachClientToOpenSslEngine(&client, engine.get()), Not(IsOk()));
-  EXPECT_THAT(AttachClientToOpenSslEngine(nullptr, engine.get()), Not(IsOk()));
+  EXPECT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
+              Not(IsOk()));
+  EXPECT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()),
+              Not(IsOk()));
 
-  EXPECT_THAT(GetClientFromOpenSslEngine(engine.get()), Not(IsOk()));
+  EXPECT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), Not(IsOk()));
 }
 
 }  // namespace

@@ -50,6 +50,10 @@ namespace bridge {
 // convenience.
 using OpenSslEngine = std::unique_ptr<ENGINE, decltype(&ENGINE_free)>;
 
+// Smart pointer wrapper around OpenSSL's EVP_PKEY struct. Just an alias for
+// convenience.
+using OpenSslEvpPkey = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
+
 // Smart pointer wrapper around OpenSSL's RSA struct. Just an alias for
 // convenience.
 using OpenSslRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
@@ -65,6 +69,15 @@ using OpenSslRsaMethod = std::unique_ptr<RSA_METHOD, decltype(&RSA_meth_free)>;
 // of the underlying RSA_METHOD instance when the pointer goes out of scope.
 inline OpenSslEngine MakeEngine() {
   return OpenSslEngine(ENGINE_new(), &ENGINE_free);
+}
+
+// Constructs a `std::unique_ptr` object which owns a fresh EVP_PKEY instance.
+// May return `nullptr` if no memory is available.
+//
+// The OpenSSL `EVP_PKEY_free` function is automatically called to dispose
+// of the underlying EVP_PKEY instance when the pointer goes out of scope.
+inline OpenSslEvpPkey MakeEvpPkey() {
+  return OpenSslEvpPkey(EVP_PKEY_new(), &EVP_PKEY_free);
 }
 
 // Constructs a `std::unique_ptr` object which owns a fresh RSA instance.

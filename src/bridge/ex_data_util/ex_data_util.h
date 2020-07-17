@@ -23,10 +23,10 @@
 #include <openssl/rsa.h>
 #include <openssl/x509.h>
 
-#include "src/backing/client/client.h"
 #include "src/backing/rsa/rsa_key.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
+#include "src/bridge/engine_data.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -51,14 +51,14 @@ Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa);
 StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa);
 
 // Attaches an `Client` instance to the OpenSSL `RSA` instance.
-Status AttachClientToOpenSslEngine(backing::Client *client, ENGINE *engine);
+Status AttachEngineDataToOpenSslEngine(EngineData *client, ENGINE *engine);
 
-// Returns a raw pointer to the `Client` instance attacked to the given
+// Returns a raw pointer to the `EngineData` instance attacked to the given
 // OpenSSL `ENGINE` struct, or an error status. Raw pointer will never be null
 // (if the underlying external data is null, then an error status is returned.)
 //
 // Attached data is only defined by a previous call to `AttachClientToENGINE`.
-StatusOr<backing::Client *> GetClientFromOpenSslEngine(const ENGINE *engine);
+StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine);
 
 }  // namespace bridge
 }  // namespace kmsengine

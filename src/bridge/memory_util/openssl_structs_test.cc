@@ -28,25 +28,31 @@ namespace {
 using ::testing::Not;
 using ::testing::IsNull;
 
-TEST(OpenSSLMakeTest, MakeENGINESetsDeleter) {
+TEST(OpenSSLMakeTest, MakeEngineSetsDeleter) {
   auto engine = MakeEngine();
   ASSERT_THAT(engine, Not(IsNull()));
   EXPECT_EQ(engine.get_deleter(), &ENGINE_free);
 }
 
-TEST(OpenSSLMakeTest, MakeRsaSetsDeleter) {
+TEST(OpenSSLMakeTest, MakeEvpPkeySetsDeleter) {
+  auto evp_pkey = MakeEvpPkey();
+  ASSERT_THAT(evp_pkey, Not(IsNull()));
+  EXPECT_EQ(evp_pkey.get_deleter(), &EVP_PKEY_free);
+}
+
+TEST(OpenSslStructsTest, MakeRsaSetsDeleter) {
   auto rsa = MakeRsa();
   ASSERT_THAT(rsa, Not(IsNull()));
   EXPECT_EQ(rsa.get_deleter(), &RSA_free);
 }
 
-TEST(OpenSSLMakeTest, MakeRsaMethodSetsDeleter) {
+TEST(OpenSslStructsTest, MakeRsaMethodSetsDeleter) {
   auto rsa_method = MakeRsaMethod("", 0);
   ASSERT_THAT(rsa_method, Not(IsNull()));
   EXPECT_EQ(rsa_method.get_deleter(), &RSA_meth_free);
 }
 
-TEST(OpenSSLMakeTest, MakeRsaMethodSetsName) {
+TEST(OpenSslStructsTest, MakeRsaMethodSetsName) {
   auto empty_name = MakeRsaMethod("", 0);
   ASSERT_THAT(empty_name, Not(IsNull()));
   EXPECT_STREQ(RSA_meth_get0_name(empty_name.get()), "");
@@ -56,7 +62,7 @@ TEST(OpenSSLMakeTest, MakeRsaMethodSetsName) {
   EXPECT_STREQ(RSA_meth_get0_name(some_name.get()), "my-name");
 }
 
-TEST(OpenSSLMakeTest, MakeRsaMethodSetsFlags) {
+TEST(OpenSslStructsTest, MakeRsaMethodSetsFlags) {
   auto with_flag = MakeRsaMethod("", RSA_FLAG_EXT_PKEY);
   ASSERT_THAT(with_flag, Not(IsNull()));
   EXPECT_TRUE(RSA_meth_get_flags(with_flag.get()) & RSA_FLAG_EXT_PKEY);
