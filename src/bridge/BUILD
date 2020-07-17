@@ -80,3 +80,25 @@ cc_library(
     hdrs = ["engine_setup.h"],
     linkopts = ["-lcrypto"],
 )
+
+cc_library(
+    name = "key_loader",
+    hdrs = ["key_loader.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        "//src/backing",
+        "//src/bridge/error",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/memory_util:openssl_structs",
+    ],
+)
+
+cc_test(
+    name = "key_loader_test",
+    size = "small",
+    srcs = ["key_loader_test.cc"],
+    deps = [
+        ":key_loader",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

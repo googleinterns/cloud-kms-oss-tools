@@ -48,9 +48,9 @@ class EngineData {
   EngineData(const EngineData&) = delete;
   EngineData& operator=(const EngineData&) = delete;
 
-  // Returns a reference to the `backing::Client` associated with the
+  // Returns a shared pointer to the `backing::Client` associated with the
   // `EngineData`.
-  inline backing::Client &client() const { return *client_; }
+  inline std::shared_ptr<backing::Client> client() const { return client_; }
 
   // Returns a raw pointer to the engine's `RSA_METHOD`.
   //
@@ -60,7 +60,7 @@ class EngineData {
   inline const RSA_METHOD *rsa_method() const { return rsa_method_.get(); }
 
  private:
-  std::unique_ptr<backing::Client> client_;
+  std::shared_ptr<backing::Client> client_;
   OpenSslRsaMethod rsa_method_;
 };
 
