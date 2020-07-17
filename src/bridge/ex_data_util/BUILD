@@ -25,6 +25,7 @@ cc_library(
     linkopts = ["-lcrypto"],
     deps = [
         "//src/backing",
+        "//src/bridge:engine_data"
     ],
 )
 
