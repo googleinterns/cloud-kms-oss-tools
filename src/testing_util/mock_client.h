@@ -32,7 +32,7 @@
 namespace kmsengine {
 namespace testing_util {
 
-class MockClient : public backing::Client {
+class MockClient : public ::kmsengine::backing::Client {
  public:
   MOCK_METHOD(StatusOr<std::string>, AsymmetricSign,
               (std::string key_version_resource_id, backing::DigestCase
