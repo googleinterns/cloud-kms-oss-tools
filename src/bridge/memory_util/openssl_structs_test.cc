@@ -34,9 +34,9 @@ TEST(OpenSSLMakeTest, MakeEngineSetsDeleter) {
 }
 
 TEST(OpenSSLMakeTest, MakeEvpPkeySetsDeleter) {
-  auto engine = MakeEvpPkey();
-  ASSERT_THAT(engine, Not(IsNull()));
-  EXPECT_EQ(engine.get_deleter(), &ENGINE_free);
+  auto evp_pkey = MakeEvpPkey();
+  ASSERT_THAT(evp_pkey, Not(IsNull()));
+  EXPECT_EQ(evp_pkey.get_deleter(), &EVP_PKEY_free);
 }
 
 TEST(OpenSslStructsTest, MakeRsaSetsDeleter) {
