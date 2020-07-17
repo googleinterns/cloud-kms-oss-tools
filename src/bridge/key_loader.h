@@ -45,10 +45,10 @@ using ::kmsengine::backing::RsaKey;
   __lhs = std::move(__name.value());
 
 // Signals an engine error to OpenSSL using the given StatusOr<T> and returns
-// false if it is an error status; otherwise, assigns the underlying
+// nullptr if it is an error status; otherwise, assigns the underlying
 // StatusOr<T> value to the left-hand-side expression. Should be used only in
 // engine-defined OpenSSL callbacks (for example, `RSA_METHOD` callbacks), since
-// the returned "false" value is intended for OpenSSL.
+// the returned "nullptr" value is intended for OpenSSL.
 //
 // The right-hand-side expression is guaranteed to be evaluated exactly once.
 //
@@ -133,6 +133,9 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
       auto kms_evp_pkey, MakeRsaEvpPkey(std::move(kms_rsa)));
   return kms_evp_pkey.release();
 }
+
+#undef __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL
+#undef KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR
 
 }  // namespace bridge
 }  // namespace kmsengine
