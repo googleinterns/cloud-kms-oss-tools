@@ -27,13 +27,13 @@ namespace {
 using ::testing::Not;
 using ::testing::IsNull;
 
-TEST(OpenSSLMakeTest, MakeEngineSetsDeleter) {
+TEST(OpenSslMakeTest, MakeEngineSetsDeleter) {
   auto engine = MakeEngine();
   ASSERT_THAT(engine, Not(IsNull()));
   EXPECT_EQ(engine.get_deleter(), &ENGINE_free);
 }
 
-TEST(OpenSSLMakeTest, MakeEvpPkeySetsDeleter) {
+TEST(OpenSslMakeTest, MakeEvpPkeySetsDeleter) {
   auto evp_pkey = MakeEvpPkey();
   ASSERT_THAT(evp_pkey, Not(IsNull()));
   EXPECT_EQ(evp_pkey.get_deleter(), &EVP_PKEY_free);
