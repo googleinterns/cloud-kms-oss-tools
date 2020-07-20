@@ -44,25 +44,6 @@ class RsaKey {
  public:
   virtual ~RsaKey() = default;
 
-  // TODO(zesp): Investigate if these are necessary given Sign and Verify.
-  // It may be sufficient for `PublicEncrypt` and `PublicDecrypt` to redirect
-  // to `Sign` and `Verify`; it also may be impossible for them to be used
-  // with the engine since the OpenSSL specification for `rsa_pub_enc` and
-  // `rsa_pub_dec` does not guarantee that the input will be a valid digest
-  // (in fact, the documentation suggests using these functions for signing
-  // strings of arbitrary length without hashing).
-  virtual StatusOr<std::string> PublicDecrypt(std::string message,
-                                              int padding) = 0;
-  virtual StatusOr<std::string> PrivateEncrypt(std::string message,
-                                               int padding) = 0;
-
-  // TODO(zesp): Currently out of scope for the engine (non-signing operations),
-  // but revisit this.
-  virtual StatusOr<std::string> PublicEncrypt(std::string message,
-                                              int padding) = 0;
-  virtual StatusOr<std::string> PrivateDecrypt(std::string message,
-                                               int padding) = 0;
-
   // Signs `message_digest` using the underlying RSA private key. Returns the
   // resulting signature as a `std::string`, or an error `Status`.
   virtual StatusOr<std::string> Sign(DigestCase type,

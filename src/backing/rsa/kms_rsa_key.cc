@@ -32,26 +32,6 @@ KmsRsaKey::KmsRsaKey(std::string key_resource_id,
     : key_resource_id_(key_resource_id), client_(client) {
 }
 
-StatusOr<std::string> KmsRsaKey::PublicEncrypt(std::string message,
-                                               int padding) {
-  return Status(StatusCode::kUnimplemented, __func__);
-}
-
-StatusOr<std::string> KmsRsaKey::PublicDecrypt(std::string message,
-                                               int padding) {
-  return Status(StatusCode::kUnimplemented, __func__);
-}
-
-StatusOr<std::string> KmsRsaKey::PrivateEncrypt(std::string message,
-                                                int padding) {
-  return Status(StatusCode::kUnimplemented, __func__);
-}
-
-StatusOr<std::string> KmsRsaKey::PrivateDecrypt(std::string message,
-                                                int padding) {
-  return Status(StatusCode::kUnimplemented, __func__);
-}
-
 StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
                                       std::string message_digest) {
   return client_->AsymmetricSign(key_resource_id(), digest_type,
