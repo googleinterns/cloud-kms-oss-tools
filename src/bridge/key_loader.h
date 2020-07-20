@@ -127,6 +127,28 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
                          UI_METHOD *ui_method, void *callback_data) {
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto engine_data, GetEngineDataFromOpenSslEngine(openssl_engine));
+
+  auto public_key = engine_data->client()->GetPublicKey("");
+  switch (public_key.algorithm()) {
+    case kRsaSignPss2048Sha256:
+    case kRsaSignPss3072Sha256:
+    case kRsaSignPss4096Sha256:
+    case kRsaSignPss4096Sha512:
+    case kRsaSignPkcs2048Sha256:
+    case kRsaSignPkcs3072Sha256:
+    case kRsaSignPkcs4096Sha256:
+    case kRsaSignPkcs4096Sha512:
+      // rsa
+    case kEcSignP256Sha256:
+    case kEcSignP384Sha384:
+      // ec sign
+    default:
+      auto message = "Cloud KMS key had unsupported type " +
+          CryptoKeyVersionAlgorithmToString(public_key.algorithm());
+      KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition, message));
+      return nullptr;
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto kms_rsa, MakeRsaWithKmsKey(engine_data, key_id));
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
