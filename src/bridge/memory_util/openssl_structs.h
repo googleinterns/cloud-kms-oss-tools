@@ -62,11 +62,11 @@ using OpenSslRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
 // convenience.
 using OpenSslRsaMethod = std::unique_ptr<RSA_METHOD, decltype(&RSA_meth_free)>;
 
-// Constructs a `std::unique_ptr` object which owns a fresh RSA_METHOD instance.
+// Constructs a `std::unique_ptr` object which owns a fresh ENGINE instance.
 // May return `nullptr` if no memory is available.
 //
-// The OpenSSL `RSA_meth_free` function is automatically called to dispose
-// of the underlying RSA_METHOD instance when the pointer goes out of scope.
+// The OpenSSL `ENGINE_free` function is automatically called to dispose
+// of the underlying ENGINE instance when the pointer goes out of scope.
 inline OpenSslEngine MakeEngine() {
   return OpenSslEngine(ENGINE_new(), &ENGINE_free);
 }

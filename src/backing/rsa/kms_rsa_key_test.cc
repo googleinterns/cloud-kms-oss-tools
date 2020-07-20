@@ -36,32 +36,57 @@ using ::testing::Not;
 using ::testing::Return;
 using ::testing::StrEq;
 
-TEST(KmsRsaKeyTest, SignSuccess) {
-  auto expected_key_id = "resource_id";
-  auto expected_signature = "signature";
+constexpr auto kSampleKeyResourceId = "resource_id";
 
+TEST(KmsRsaKeyTest, SignSuccess) {
+  auto expected_signature = "signature";
   auto client = std::make_shared<MockClient>();
-  EXPECT_CALL(*client, AsymmetricSign(expected_key_id, _, _))
+  EXPECT_CALL(*client, AsymmetricSign(kSampleKeyResourceId, _, _))
       .Times(1)
       .WillOnce(Return(StatusOr<std::string>(expected_signature)));
 
-  KmsRsaKey key(expected_key_id, client);
+  KmsRsaKey key(kSampleKeyResourceId, client);
   auto result = key.Sign(DigestCase::kSha256, "my digest");
   EXPECT_THAT(result, IsOk());
   EXPECT_EQ(result.value(), expected_signature);
 }
 
 TEST(KmsRsaKeyTest, SignFailure) {
-  auto expected_key_id = "resource_id";
   auto expected_status = Status(StatusCode::kCancelled, "cancelled");
-
   auto client = std::make_shared<MockClient>();
-  EXPECT_CALL(*client, AsymmetricSign(expected_key_id, _, _))
+  EXPECT_CALL(*client, AsymmetricSign(kSampleKeyResourceId, _, _))
       .Times(1)
       .WillOnce(Return(StatusOr<std::string>(expected_status)));
 
-  KmsRsaKey key(expected_key_id, client);
+  KmsRsaKey key(kSampleKeyResourceId, client);
   auto result = key.Sign(DigestCase::kSha256, "my digest");
+  EXPECT_THAT(result, Not(IsOk()));
+  EXPECT_EQ(result.status(), expected_status);
+}
+
+TEST(KmsRsaKeyTest, GetPublicKeySuccess) {
+  PublicKey expected("my public key",
+                     CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256);
+  auto client = std::make_shared<MockClient>();
+  EXPECT_CALL(*client, GetPublicKey(kSampleKeyResourceId))
+      .Times(1)
+      .WillOnce(Return(StatusOr<PublicKey>(expected)));
+
+  KmsRsaKey key(kSampleKeyResourceId, client);
+  auto result = key.GetPublicKey();
+  EXPECT_THAT(result, IsOk());
+  EXPECT_EQ(result.value(), expected);
+}
+
+TEST(KmsRsaKeyTest, GetPublicKeyFailure) {
+  auto expected_status = Status(StatusCode::kCancelled, "cancelled");
+  auto client = std::make_shared<MockClient>();
+  EXPECT_CALL(*client, GetPublicKey(kSampleKeyResourceId))
+      .Times(1)
+      .WillOnce(Return(StatusOr<PublicKey>(expected_status)));
+
+  KmsRsaKey key(kSampleKeyResourceId, client);
+  auto result = key.GetPublicKey();
   EXPECT_THAT(result, Not(IsOk()));
   EXPECT_EQ(result.status(), expected_status);
 }
