@@ -19,6 +19,7 @@
 
 #include <openssl/engine.h>
 
+#include "src/backing/client/crypto_key_version_algorithm.h"
 #include "src/backing/rsa/kms_rsa_key.h"
 #include "src/backing/rsa/rsa_key.h"
 #include "src/backing/status/status.h"
@@ -111,6 +112,8 @@ StatusOr<OpenSslEvpPkey> MakeRsaEvpPkey(OpenSslRsa rsa) {
 
 }  // namespace
 
+using CryptoKeyAlgorithm = ::kmsengine::backing::CryptoKeyVersionAlgorithm;
+
 // Loads a Cloud HSM private key from the `key_id` file.
 //
 // Implements the `ENGINE_LOAD_KEY_PTR` prototype from OpenSSL for use with
@@ -127,20 +130,21 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
                          UI_METHOD *ui_method, void *callback_data) {
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto engine_data, GetEngineDataFromOpenSslEngine(openssl_engine));
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      auto public_key, engine_data->client()->GetPublicKey(""));
 
-  auto public_key = engine_data->client()->GetPublicKey("");
   switch (public_key.algorithm()) {
-    case kRsaSignPss2048Sha256:
-    case kRsaSignPss3072Sha256:
-    case kRsaSignPss4096Sha256:
-    case kRsaSignPss4096Sha512:
-    case kRsaSignPkcs2048Sha256:
-    case kRsaSignPkcs3072Sha256:
-    case kRsaSignPkcs4096Sha256:
-    case kRsaSignPkcs4096Sha512:
+    case CryptoKeyAlgorithm::kRsaSignPss2048Sha256:
+    case CryptoKeyAlgorithm::kRsaSignPss3072Sha256:
+    case CryptoKeyAlgorithm::kRsaSignPss4096Sha256:
+    case CryptoKeyAlgorithm::kRsaSignPss4096Sha512:
+    case CryptoKeyAlgorithm::kRsaSignPkcs2048Sha256:
+    case CryptoKeyAlgorithm::kRsaSignPkcs3072Sha256:
+    case CryptoKeyAlgorithm::kRsaSignPkcs4096Sha256:
+    case CryptoKeyAlgorithm::kRsaSignPkcs4096Sha512:
       // rsa
-    case kEcSignP256Sha256:
-    case kEcSignP384Sha384:
+    case CryptoKeyAlgorithm::kEcSignP256Sha256:
+    case CryptoKeyAlgorithm::kEcSignP384Sha384:
       // ec sign
     default:
       auto message = "Cloud KMS key had unsupported type " +
