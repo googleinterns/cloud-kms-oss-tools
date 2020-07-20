@@ -22,6 +22,7 @@
 
 #include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
+#include "src/backing/client/public_key.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 #include "src/backing/rsa/rsa_key.h"
@@ -32,26 +33,20 @@ namespace backing {
 // Implementation of RsaKey with Cloud KMS operations.
 class KmsRsaKey : public RsaKey {
  public:
-  KmsRsaKey(std::string key_resource_id,
-            std::shared_ptr<Client> client_);
+  KmsRsaKey(std::string key_resource_id, std::shared_ptr<Client> client);
+  ~KmsRsaKey() = default;
+
+  // `KmsRsaKey` is copyable and moveable.
+  KmsRsaKey(const KmsRsaKey& other) = default;
+  KmsRsaKey& operator=(const KmsRsaKey& other) = default;
 
   // Getter for the Cloud KMS key resource ID.
   std::string const& key_resource_id() const { return key_resource_id_; }
 
   // RsaKey methods.
-  StatusOr<std::string> PublicEncrypt(std::string message,
-                                      int padding) override;
-  StatusOr<std::string> PublicDecrypt(std::string message,
-                                      int padding) override;
-  StatusOr<std::string> PrivateEncrypt(std::string message,
-                                       int padding) override;
-  StatusOr<std::string> PrivateDecrypt(std::string message,
-                                       int padding) override;
   StatusOr<std::string> Sign(DigestCase digest_type,
                              std::string message_digest) override;
-  Status Verify(DigestCase digest_type,
-                std::string message_digest,
-                std::string signature) override;
+  StatusOr<PublicKey> GetPublicKey() override;
 
  private:
   std::string key_resource_id_;
