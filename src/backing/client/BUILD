@@ -18,6 +18,90 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:__subpackages__"])
 
+# Headers that are safe to export to the bridge layer.
+filegroup(
+    name = "bridge_headers",
+    srcs = [
+        "client.h",
+        "crypto_key_version_algorithm.h",
+        "digest_case.h",
+        "public_key.h",
+    ],
+)
+
+filegroup(
+    name = "sources",
+    srcs = glob(
+        [
+            "**/*.h",
+            "**/*.cc",
+        ],
+        allow_empty = False,
+        exclude = ["**/*_test.cc"],
+    ),
+)
+
+cc_library(
+    name = "client",
+    hdrs = ["client.h"],
+    deps = [
+        ":digest_case",
+        ":public_key",
+        "//src/backing/status",
+        "//src/backing/status:status_or",
+    ],
+)
+
+cc_library(
+    name = "digest_case",
+    hdrs = ["digest_case.h"],
+)
+
+cc_test(
+    name = "digest_case_test",
+    size = "small",
+    srcs = ["digest_case_test.cc"],
+    deps = [
+        ":digest_case",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "public_key",
+    hdrs = ["public_key.h"],
+    deps = [
+        ":crypto_key_version_algorithm",
+    ],
+)
+
+cc_test(
+    name = "public_key_test",
+    size = "small",
+    srcs = ["public_key_test.cc"],
+    deps = [
+        ":public_key",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "crypto_key_version_algorithm",
+    hdrs = ["crypto_key_version_algorithm.h"],
+)
+
+cc_test(
+    name = "crypto_key_version_algorithm_test",
+    size = "small",
+    srcs = ["crypto_key_version_algorithm_test.cc"],
+    deps = [
+        ":crypto_key_version_algorithm",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 cc_library(
     name = "clock",
     hdrs = ["clock.h"],
