@@ -24,7 +24,7 @@
 
 #include "src/backing/rsa/rsa_key.h"
 #include "src/backing/client/digest_case.h"
-#include "src/backing/status/status.h"
+#include "src/backing/client/public_key.h"
 #include "src/backing/status/status_or.h"
 
 namespace kmsengine {
@@ -32,21 +32,11 @@ namespace testing_util {
 
 class MockRsaKey : public ::kmsengine::backing::RsaKey {
  public:
-  MOCK_METHOD(StatusOr<std::string>, PublicEncrypt,
-              (std::string message, int padding), (override));
-  MOCK_METHOD(StatusOr<std::string>, PublicDecrypt,
-              (std::string message, int padding), (override));
-  MOCK_METHOD(StatusOr<std::string>, PrivateEncrypt,
-              (std::string message, int padding), (override));
-  MOCK_METHOD(StatusOr<std::string>, PrivateDecrypt,
-              (std::string message, int padding), (override));
   MOCK_METHOD(StatusOr<std::string>, Sign,
               (::kmsengine::backing::DigestCase type,
                std::string message_digest),
               (override));
-  MOCK_METHOD(Status, Verify, (::kmsengine::backing::DigestCase type,
-                               std::string message_digest,
-                               std::string signature),
+  MOCK_METHOD(StatusOr<::kmsengine::backing::PublicKey>, GetPublicKey, (),
               (override));
 };
 
