@@ -50,7 +50,6 @@ cc_library(
         "//src/backing/client:public_key",
         "//src/backing/status",
         "//src/backing/status:status_or",
-        "@com_google_absl//absl/types:optional",
     ],
 )
 
@@ -62,7 +61,6 @@ cc_test(
         ":kms_rsa_key",
         "//src/testing_util:mock_client",
         "//src/testing_util:test_matchers",
-        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
