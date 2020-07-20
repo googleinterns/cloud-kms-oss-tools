@@ -142,22 +142,29 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
     case CryptoKeyAlgorithm::kRsaSignPkcs3072Sha256:
     case CryptoKeyAlgorithm::kRsaSignPkcs4096Sha256:
     case CryptoKeyAlgorithm::kRsaSignPkcs4096Sha512:
-      // rsa
+      {
+        KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+          auto kms_rsa, MakeRsaWithKmsKey(engine_data, key_id));
+        KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+            auto kms_evp_pkey, MakeRsaEvpPkey(std::move(kms_rsa)));
+        return kms_evp_pkey.release();
+      }
     case CryptoKeyAlgorithm::kEcSignP256Sha256:
     case CryptoKeyAlgorithm::kEcSignP384Sha384:
-      // ec sign
+      {
+        // TODO(zesp): Implement ECDSA.
+        KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kUnimplemented,
+            "ECDSA not yet implemented"));
+        return nullptr;
+      }
     default:
-      auto message = "Cloud KMS key had unsupported type " +
-          CryptoKeyVersionAlgorithmToString(public_key.algorithm());
-      KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition, message));
-      return nullptr;
+      {
+        KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
+            "Cloud KMS key had unsupported type " +
+            CryptoKeyVersionAlgorithmToString(public_key.algorithm())));
+        return nullptr;
+      }
   }
-
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto kms_rsa, MakeRsaWithKmsKey(engine_data, key_id));
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto kms_evp_pkey, MakeRsaEvpPkey(std::move(kms_rsa)));
-  return kms_evp_pkey.release();
 }
 
 #undef __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL
