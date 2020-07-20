@@ -40,7 +40,7 @@ class Client {
       std::string digest_bytes) = 0;
 
   // Returns the `PublicKey` for the given `key_version_resource_id`.
-  virtual StatusOr<std::unique_ptr<PublicKey>> GetPublicKey(
+  virtual StatusOr<PublicKey> GetPublicKey(
       std::string key_version_resource_id) = 0;
 };
 

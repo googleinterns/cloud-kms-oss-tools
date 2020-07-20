@@ -17,6 +17,7 @@
 #ifndef KMSENGINE_BACKING_CLIENT_CRYPTO_KEY_VERSION_ALGORITHM_H_
 #define KMSENGINE_BACKING_CLIENT_CRYPTO_KEY_VERSION_ALGORITHM_H_
 
+#include <string>
 #include <type_traits>
 
 namespace kmsengine {
@@ -77,6 +78,10 @@ constexpr int CryptoKeyVersionAlgorithmToInt(CryptoKeyVersionAlgorithm algo) {
   return static_cast<
       std::underlying_type<CryptoKeyVersionAlgorithm>::type>(algo);
 }
+
+// Converts a `CryptoKeyVersionAlgorithm` to a human-readable string.
+std::string CryptoKeyVersionAlgorithmToString(CryptoKeyVersionAlgorithm algo);
+std::ostream& operator<<(std::ostream& os, CryptoKeyVersionAlgorithm code);
 
 }  // namespace backing
 }  // namespace kmsengine
