@@ -21,6 +21,7 @@
 
 #include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
+#include "src/backing/client/public_key.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 
@@ -32,36 +33,14 @@ KmsRsaKey::KmsRsaKey(std::string key_resource_id,
     : key_resource_id_(key_resource_id), client_(client) {
 }
 
-StatusOr<std::string> KmsRsaKey::PublicEncrypt(std::string message,
-                                               int padding) {
-  return Status(StatusCode::kUnimplemented, __func__);
-}
-
-StatusOr<std::string> KmsRsaKey::PublicDecrypt(std::string message,
-                                               int padding) {
-  return Status(StatusCode::kUnimplemented, __func__);
-}
-
-StatusOr<std::string> KmsRsaKey::PrivateEncrypt(std::string message,
-                                                int padding) {
-  return Status(StatusCode::kUnimplemented, __func__);
-}
-
-StatusOr<std::string> KmsRsaKey::PrivateDecrypt(std::string message,
-                                                int padding) {
-  return Status(StatusCode::kUnimplemented, __func__);
-}
-
 StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
                                       std::string message_digest) {
   return client_->AsymmetricSign(key_resource_id(), digest_type,
                                  message_digest);
 }
 
-Status KmsRsaKey::Verify(DigestCase digest_type,
-                         std::string message_digest,
-                         std::string signature) {
-  return Status(StatusCode::kUnimplemented, __func__);
+StatusOr<PublicKey> KmsRsaKey::GetPublicKey() {
+  return client_->GetPublicKey(key_resource_id());
 }
 
 }  // namespace backing

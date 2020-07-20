@@ -38,7 +38,7 @@ class MockClient : public ::kmsengine::backing::Client {
               (std::string key_version_resource_id, backing::DigestCase
                digest_case, std::string digest_bytes),
               (override));
-  MOCK_METHOD(StatusOr<std::unique_ptr<backing::PublicKey>>, GetPublicKey,
+  MOCK_METHOD(StatusOr<backing::PublicKey>, GetPublicKey,
               (std::string key_version_resource_id), (override));
 };
 
