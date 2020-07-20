@@ -47,8 +47,10 @@ cc_library(
         ":rsa_key",
         "//src/backing/client",
         "//src/backing/client:digest_case",
+        "//src/backing/client:public_key",
         "//src/backing/status",
         "//src/backing/status:status_or",
+        "@com_google_absl//absl/types:optional",
     ],
 )
 
@@ -60,6 +62,7 @@ cc_test(
         ":kms_rsa_key",
         "//src/testing_util:mock_client",
         "//src/testing_util:test_matchers",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -69,6 +72,7 @@ cc_library(
     hdrs = ["rsa_key.h"],
     deps = [
         "//src/backing/client:digest_case",
+        "//src/backing/client:public_key",
         "//src/backing/status",
         "//src/backing/status:status_or",
     ],

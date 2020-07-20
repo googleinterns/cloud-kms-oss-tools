@@ -20,8 +20,10 @@
 #include <memory>
 #include <string>
 
+#include "absl/types/optional.h"
 #include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
+#include "src/backing/client/public_key.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 #include "src/backing/rsa/rsa_key.h"
@@ -45,9 +47,7 @@ class KmsRsaKey : public RsaKey {
   // RsaKey methods.
   StatusOr<std::string> Sign(DigestCase digest_type,
                              std::string message_digest) override;
-  Status Verify(DigestCase digest_type,
-                std::string message_digest,
-                std::string signature) override;
+  StatusOr<PublicKey> GetPublicKey() override;
 
  private:
   std::string key_resource_id_;

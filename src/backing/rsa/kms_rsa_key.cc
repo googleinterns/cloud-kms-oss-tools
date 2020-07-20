@@ -21,6 +21,7 @@
 
 #include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
+#include "src/backing/client/public_key.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 
@@ -38,10 +39,8 @@ StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
                                  message_digest);
 }
 
-Status KmsRsaKey::Verify(DigestCase digest_type,
-                         std::string message_digest,
-                         std::string signature) {
-  return Status(StatusCode::kUnimplemented, __func__);
+StatusOr<PublicKey> KmsRsaKey::GetPublicKey() {
+  return client_->GetPublicKey(key_resource_id());
 }
 
 }  // namespace backing
