@@ -30,9 +30,10 @@ namespace kmsengine {
 namespace backing {
 namespace {
 
-using ::testing::ValuesIn;
 using ::testing::Combine;
 using ::testing::StrEq;
+using ::testing::Values;
+using ::testing::ValuesIn;
 
 // Gets the underlying `bytes` attached to a `Digest` protobuf.
 std::string GetDigestBytes(google::cloud::kms::v1::Digest digest) {
@@ -48,12 +49,7 @@ std::string GetDigestBytes(google::cloud::kms::v1::Digest digest) {
   }
 }
 
-constexpr DigestCase kDigestCases[] = {
-  DigestCase::kSha256,
-  DigestCase::kSha384,
-  DigestCase::kSha512,
-};
-
+// Sample digests for testing purposes.
 const std::string kSampleDigests[] = {
   // Example SHA-256 digest of "hello world" for testing.
   "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
@@ -68,7 +64,10 @@ class MakeDigestTest : public
 
 INSTANTIATE_TEST_SUITE_P(
     DigestParameters, MakeDigestTest,
-    Combine(ValuesIn(kDigestCases), ValuesIn(kSampleDigests)));
+    Combine(Values(DigestCase::kSha256,
+                   DigestCase::kSha384,
+                   DigestCase::kSha512),
+            ValuesIn(kSampleDigests)));
 
 TEST_P(MakeDigestTest, MakeDigest) {
   auto expected_digest_type = std::get<0>(GetParam());
@@ -79,64 +78,7 @@ TEST_P(MakeDigestTest, MakeDigest) {
   EXPECT_THAT(GetDigestBytes(actual), StrEq(expected_digest_bytes));
 }
 
-using CryptoKeyVersion = google::cloud::kms::v1::CryptoKeyVersion;
-
-// Mapping between `DigestCase` cases and their protobuf equivalents.
-struct CorrespondingCryptoKeyVersionAlgorithm {
-  CryptoKeyVersionAlgorithm expected;
-  google::cloud::kms::v1::CryptoKeyVersion_CryptoKeyVersionAlgorithm proto;
-} kCryptoKeyVersionAlgorithmMapping[]{
-    {CryptoKeyVersionAlgorithm::kAlgorithmUnspecified,
-        CryptoKeyVersion::CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED},
-    {CryptoKeyVersionAlgorithm::kGoogleSymmetricEncryption,
-        CryptoKeyVersion::GOOGLE_SYMMETRIC_ENCRYPTION},
-    {CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256,
-        CryptoKeyVersion::RSA_SIGN_PSS_2048_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256,
-        CryptoKeyVersion::RSA_SIGN_PSS_3072_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha256,
-        CryptoKeyVersion::RSA_SIGN_PSS_4096_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha512,
-        CryptoKeyVersion::RSA_SIGN_PSS_4096_SHA512},
-    {CryptoKeyVersionAlgorithm::kRsaSignPkcs2048Sha256,
-        CryptoKeyVersion::RSA_SIGN_PKCS1_2048_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPkcs3072Sha256,
-        CryptoKeyVersion::RSA_SIGN_PKCS1_3072_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha256,
-        CryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512,
-        CryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA512},
-    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep2048Sha256,
-        CryptoKeyVersion::RSA_DECRYPT_OAEP_2048_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep3072Sha256,
-        CryptoKeyVersion::RSA_DECRYPT_OAEP_3072_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha256,
-        CryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha512,
-        CryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA512},
-    {CryptoKeyVersionAlgorithm::kEcSignP256Sha256,
-        CryptoKeyVersion::EC_SIGN_P256_SHA256},
-    {CryptoKeyVersionAlgorithm::kEcSignP384Sha384,
-        CryptoKeyVersion::EC_SIGN_P384_SHA384},
-    {CryptoKeyVersionAlgorithm::kExternalSymmetricEncryption,
-        CryptoKeyVersion::EXTERNAL_SYMMETRIC_ENCRYPTION},
-};
-
-class FromProtoToCryptoKeyVersionAlgorithmTest : public
-    testing::TestWithParam<CorrespondingCryptoKeyVersionAlgorithm> {
-  // Purposely empty; no fixtures to instantiate.
-};
-
-INSTANTIATE_TEST_SUITE_P(CryptoKeyVersionAlgorithmParameters,
-                         FromProtoToCryptoKeyVersionAlgorithmTest,
-                         ValuesIn(kCryptoKeyVersionAlgorithmMapping));
-
-TEST_P(FromProtoToCryptoKeyVersionAlgorithmTest, ConversionsWork) {
-  auto mapping = GetParam();
-  EXPECT_EQ(mapping.expected,
-            FromProtoToCryptoKeyVersionAlgorithm(mapping.proto));
-}
-
+// Mapping between `StatusCode` cases and their protobuf equivalents.
 struct CorrespondingStatusCode {
   grpc::StatusCode proto;
   StatusCode code;
@@ -165,8 +107,7 @@ class FromGrpcStatusToStatusTest : public
   // Purposely empty; no fixtures to instantiate.
 };
 
-INSTANTIATE_TEST_SUITE_P(StatusCodeParameters,
-                         FromGrpcStatusToStatusTest,
+INSTANTIATE_TEST_SUITE_P(StatusCodeParameters, FromGrpcStatusToStatusTest,
                          ValuesIn(kStatusCodeMapping));
 
 TEST_P(FromGrpcStatusToStatusTest, ConversionsWork) {
@@ -176,6 +117,90 @@ TEST_P(FromGrpcStatusToStatusTest, ConversionsWork) {
   auto const expected = Status(mapping.code, message);
   auto const actual = FromGrpcStatusToStatus(original);
   EXPECT_EQ(expected, actual);
+}
+
+using ProtoDigestCase = google::cloud::kms::v1::Digest::DigestCase;
+
+// Mapping between `DigestCase` cases and their protobuf equivalents.
+struct CorrespondingDigestCase {
+  DigestCase expected;
+  ProtoDigestCase proto;
+} const kDigestMapping[]{
+    {DigestCase::kSha256, ProtoDigestCase::kSha256},
+    {DigestCase::kSha384, ProtoDigestCase::kSha384},
+    {DigestCase::kSha512, ProtoDigestCase::kSha512},
+};
+
+class FromProtoToDigestCaseTest : public
+    testing::TestWithParam<CorrespondingDigestCase> {
+  // Purposely empty; no fixtures to instantiate.
+};
+
+INSTANTIATE_TEST_SUITE_P(DigestCaseParameters, FromProtoToDigestCaseTest,
+                         ValuesIn(kDigestMapping));
+
+TEST_P(FromProtoToDigestCaseTest, ConversionsWork) {
+  auto mapping = GetParam();
+  EXPECT_EQ(mapping.expected, FromProtoToDigestCase(mapping.proto));
+}
+
+using ProtoCryptoKeyVersion = google::cloud::kms::v1::CryptoKeyVersion;
+
+// Mapping between `CryptoKeyVersionAlgorithm` cases and their protobuf
+// equivalents.
+struct CorrespondingCryptoKeyVersionAlgorithm {
+  CryptoKeyVersionAlgorithm expected;
+  google::cloud::kms::v1::CryptoKeyVersion_CryptoKeyVersionAlgorithm proto;
+} kCryptoKeyVersionAlgorithmMapping[]{
+    {CryptoKeyVersionAlgorithm::kAlgorithmUnspecified,
+        ProtoCryptoKeyVersion::CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED},
+    {CryptoKeyVersionAlgorithm::kGoogleSymmetricEncryption,
+        ProtoCryptoKeyVersion::GOOGLE_SYMMETRIC_ENCRYPTION},
+    {CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256,
+        ProtoCryptoKeyVersion::RSA_SIGN_PSS_2048_SHA256},
+    {CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256,
+        ProtoCryptoKeyVersion::RSA_SIGN_PSS_3072_SHA256},
+    {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha256,
+        ProtoCryptoKeyVersion::RSA_SIGN_PSS_4096_SHA256},
+    {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha512,
+        ProtoCryptoKeyVersion::RSA_SIGN_PSS_4096_SHA512},
+    {CryptoKeyVersionAlgorithm::kRsaSignPkcs2048Sha256,
+        ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_2048_SHA256},
+    {CryptoKeyVersionAlgorithm::kRsaSignPkcs3072Sha256,
+        ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_3072_SHA256},
+    {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha256,
+        ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA256},
+    {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512,
+        ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA512},
+    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep2048Sha256,
+        ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_2048_SHA256},
+    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep3072Sha256,
+        ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_3072_SHA256},
+    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha256,
+        ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA256},
+    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha512,
+        ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA512},
+    {CryptoKeyVersionAlgorithm::kEcSignP256Sha256,
+        ProtoCryptoKeyVersion::EC_SIGN_P256_SHA256},
+    {CryptoKeyVersionAlgorithm::kEcSignP384Sha384,
+        ProtoCryptoKeyVersion::EC_SIGN_P384_SHA384},
+    {CryptoKeyVersionAlgorithm::kExternalSymmetricEncryption,
+        ProtoCryptoKeyVersion::EXTERNAL_SYMMETRIC_ENCRYPTION},
+};
+
+class FromProtoToCryptoKeyVersionAlgorithmTest : public
+    testing::TestWithParam<CorrespondingCryptoKeyVersionAlgorithm> {
+  // Purposely empty; no fixtures to instantiate.
+};
+
+INSTANTIATE_TEST_SUITE_P(CryptoKeyVersionAlgorithmParameters,
+                         FromProtoToCryptoKeyVersionAlgorithmTest,
+                         ValuesIn(kCryptoKeyVersionAlgorithmMapping));
+
+TEST_P(FromProtoToCryptoKeyVersionAlgorithmTest, ConversionsWork) {
+  auto mapping = GetParam();
+  EXPECT_EQ(mapping.expected,
+            FromProtoToCryptoKeyVersionAlgorithm(mapping.proto));
 }
 
 }  // namespace
