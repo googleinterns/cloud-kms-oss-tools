@@ -21,6 +21,7 @@
 #include "src/bridge/engine_name.h"
 #include "src/bridge/engine_setup.h"
 #include "src/bridge/error/error.h"
+#include "src/bridge/key_loader.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -47,7 +48,8 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
       !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
       !ENGINE_set_init_function(e, EngineInit) ||
       !ENGINE_set_finish_function(e, EngineFinish) ||
-      !ENGINE_set_destroy_function(e, EngineDestroy)) {
+      !ENGINE_set_destroy_function(e, EngineDestroy) ||
+      !ENGINE_set_load_privkey_function(e, LoadPrivateKey)) {
     return 0;
   }
 

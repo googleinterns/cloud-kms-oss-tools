@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#include <openssl/engine.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <openssl/engine.h>
 
 #include "src/bridge/engine_bind.h"
 #include "src/bridge/engine_name.h"
@@ -24,15 +25,23 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+using ::testing::Not;
+using ::testing::IsNull;
+
 TEST(EngineBindTest, InitializesExpectedEngineStructFields) {
   ENGINE *engine = ENGINE_new();
   ASSERT_NE(engine, nullptr);  // Sanity check for malloc errors.
 
   EngineBind(engine, NULL);
+
   EXPECT_STREQ(ENGINE_get_id(engine), kEngineId);
   EXPECT_STREQ(ENGINE_get_name(engine), kEngineName);
-  EXPECT_NE(ENGINE_get_init_function(engine), nullptr);
-  EXPECT_NE(ENGINE_get_finish_function(engine), nullptr);
+
+  EXPECT_THAT(ENGINE_get_init_function(engine), Not(IsNull()));
+  EXPECT_THAT(ENGINE_get_finish_function(engine), Not(IsNull()));
+  EXPECT_THAT(ENGINE_get_destroy_function(engine), Not(IsNull()));
+  EXPECT_THAT(ENGINE_get_load_privkey_function(engine), Not(IsNull()));
+
   EXPECT_TRUE(ENGINE_get_flags(engine) & ENGINE_FLAGS_NO_REGISTER_ALL);
 
   ENGINE_free(engine);

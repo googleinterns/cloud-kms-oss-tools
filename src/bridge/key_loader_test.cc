@@ -23,6 +23,10 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+TEST(KeyLoaderTest, LoadPrivateKey) {
+
+}
+
 }  // namespace
 }  // namespace bridge
 }  // namespace kmsengine
