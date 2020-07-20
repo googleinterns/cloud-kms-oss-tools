@@ -50,6 +50,9 @@ class EngineData {
 
   // Returns a shared pointer to the `backing::Client` associated with the
   // `EngineData`.
+  //
+  // The return type is a shared pointer to simplify construction of `RsaKey`
+  // objects which are constructed from a shared `Client` pointer.
   inline std::shared_ptr<backing::Client> client() const { return client_; }
 
   // Returns a raw pointer to the engine's `RSA_METHOD`.

@@ -39,7 +39,7 @@ TEST(EngineDataTest, ClientRoundtrip) {
   EngineData engine_data(std::move(client), std::move(rsa_method));
 
   // Check that we got the client back using a mock call.
-  (void)engine_data.client().GetPublicKey("");
+  (void)engine_data.client()->GetPublicKey("");
 }
 
 TEST(EngineDataTest, RsaMethodRoundtrip) {
