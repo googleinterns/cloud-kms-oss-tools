@@ -78,6 +78,10 @@ constexpr int CryptoKeyVersionAlgorithmToInt(CryptoKeyVersionAlgorithm algo) {
       std::underlying_type<CryptoKeyVersionAlgorithm>::type>(algo);
 }
 
+// Converts a `CryptoKeyVersionAlgorithm` to a human-readable string.
+std::string CryptoKeyVersionAlgorithmToString(CryptoKeyVersionAlgorithm algo);
+std::ostream& operator<<(std::ostream& os, CryptoKeyVersionAlgorithm code);
+
 }  // namespace backing
 }  // namespace kmsengine
 
