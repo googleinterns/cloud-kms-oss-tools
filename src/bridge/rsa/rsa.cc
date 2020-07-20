@@ -122,12 +122,22 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
   auto rsa_method = MakeRsaMethod(kRsaMethodName, kRsaMethodFlags);
   if (!rsa_method) return OpenSslRsaMethod(nullptr, nullptr);
 
-  // TODO(zesp): Investigate `PublicEncrypt`, `PublicDecrypt`, `PrivateEncrypt`,
-  // and `PrivateDecrypt` are necessary given Sign and Verify.
+  // TODO(zesp): Investigate `PublicEncrypt` and `PublicDecrypt` are 
+  // necessary given Sign and Verify.
+  //
+  // It may be sufficient for `PublicEncrypt` and `PublicDecrypt` to redirect
+  // to `Sign` and `Verify`. Conversely, it may be impossible for them to be 
+  // used with the engine since the OpenSSL specification for `rsa_pub_enc` and
+  // `rsa_pub_dec` does not guarantee that the input will be a valid digest
+  // (in fact, the documentation suggests using these functions for signing
+  // strings of arbitrary length without hashing). These kinds of arbitrary
+  // plaintext operations are unsupported by Cloud KMS.
   if (!RSA_meth_set_pub_enc(rsa_method.get(), nullptr) ||
-      !RSA_meth_set_pub_dec(rsa_method.get(), nullptr) ||
-      !RSA_meth_set_priv_enc(rsa_method.get(), nullptr) ||
       !RSA_meth_set_priv_dec(rsa_method.get(), nullptr) ||
+      // `PrivateEncrypt` and `PublicDecrypt` are currently out-of-scope of
+      // the engine's capabilities.
+      !RSA_meth_set_priv_enc(rsa_method.get(), nullptr) ||
+      !RSA_meth_set_pub_dec(rsa_method.get(), nullptr) ||
       !RSA_meth_set_sign(rsa_method.get(), Sign) ||
       !RSA_meth_set_verify(rsa_method.get(), Verify) ||
       // `mod_exp` and `bn_mod_exp` are called by the default OpenSSL RSA
