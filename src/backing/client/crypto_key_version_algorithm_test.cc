@@ -113,7 +113,9 @@ TEST(CryptoKeyVersionAlgorithmTest, ToStringIsOneToOne) {
     used_strings.insert(actual);
   }
 
-  EXPECT_EQ(used_strings.size(), kAlgorithms.size());
+  EXPECT_EQ(used_strings.size(), kAlgorithms.size())
+      << "Number of unique strings should equal number of unique "
+         "CryptoKeyVersionAlgorithm enums";
 }
 
 TEST(CryptoKeyVersionAlgorithmTest, HandlesInvalidEnums) {
