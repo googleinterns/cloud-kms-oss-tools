@@ -30,12 +30,15 @@
  * limitations under the License.
  */
 
-#include "src/backing/status/status.h"
+#include "src/backing/client/crypto_key_version_algorithm.h"
 
 #include <sstream>
 #include <string>
 
+#include "absl/strings/str_format.h"
+
 namespace kmsengine {
+namespace backing {
 
 std::string CryptoKeyVersionAlgorithmToString(CryptoKeyVersionAlgorithm algo) {
   switch (algo) {
@@ -74,12 +77,14 @@ std::string CryptoKeyVersionAlgorithmToString(CryptoKeyVersionAlgorithm algo) {
     case CryptoKeyVersionAlgorithm::kExternalSymmetricEncryption:
       return "EXTERNAL_SYMMETRIC_ENCRYPTION";
     default:
-      return "UNEXPECTED_STATUS_CODE=" + std::to_string(static_cast<int>(code));
+      return absl::StrFormat("UNEXPECTED_CRYPTO_KEY_VERSION_ALGORITHM=%i",
+                             static_cast<int>(algo));
   }
 }
 
-std::ostream& operator<<(std::ostream& os, CryptoKeyVersionAlgorithm code) {
-  return os << CryptoKeyVersionAlgorithmToString(code);
+std::ostream& operator<<(std::ostream& os, CryptoKeyVersionAlgorithm algo) {
+  return os << CryptoKeyVersionAlgorithmToString(algo);
 }
 
+}  // namespace backing
 }  // namespace kmsengine

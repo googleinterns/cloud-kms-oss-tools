@@ -83,6 +83,29 @@ TEST_P(CryptoKeyVersionAlgorithmTest, UnderlyingValueMatchesProtoValues) {
   EXPECT_EQ(CryptoKeyVersionAlgorithmToInt(mapping.actual), mapping.proto);
 }
 
+TEST(CryptoKeyVersionAlgorithmTest, CryptoKeyVersionAlgorithmToString) {
+  EXPECT_EQ("ALGORITHM_UNSPECIFIED",
+            CryptoKeyVersionAlgorithmToString(
+                CryptoKeyVersionAlgorithm::kAlgorithmUnspecified));
+  EXPECT_EQ("RSA_SIGN_PSS_2048_SHA256",
+            CryptoKeyVersionAlgorithmToString(
+                CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256));
+  EXPECT_EQ("RSA_SIGN_PSS_3072_SHA256",
+            CryptoKeyVersionAlgorithmToString(
+                CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256));
+  EXPECT_EQ("RSA_SIGN_PSS_4096_SHA512", CryptoKeyVersionAlgorithmToString(
+                CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha512));
+  EXPECT_EQ("EC_SIGN_P256_SHA256",
+            CryptoKeyVersionAlgorithmToString(
+                CryptoKeyVersionAlgorithm::kEcSignP256Sha256));
+  EXPECT_EQ("EC_SIGN_P384_SHA384",
+            CryptoKeyVersionAlgorithmToString(
+                CryptoKeyVersionAlgorithm::kEcSignP384Sha384));
+  EXPECT_EQ("UNEXPECTED_CRYPTO_KEY_VERSION_ALGORITHM=42",
+            CryptoKeyVersionAlgorithmToString(
+                static_cast<CryptoKeyVersionAlgorithm>(42)));
+}
+
 }  // namespace
 }  // namespace backing
 }  // namespace kmsengine
