@@ -21,7 +21,7 @@
 #include <openssl/rsa.h>
 
 #include "absl/memory/memory.h"
-#include "src/bridge/engine_data.h"
+#include "src/bridge/ex_data_util/engine_data.h"
 #include "src/testing_util/mock_client.h"
 
 namespace kmsengine {

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BRIDGE_ENGINE_H_
-#define KMSENGINE_BRIDGE_ENGINE_H_
+#ifndef KMSENGINE_BRIDGE_EX_DATA_UTIL_ENGINE_DATA_H_
+#define KMSENGINE_BRIDGE_EX_DATA_UTIL_ENGINE_DATA_H_
 
 #include <memory>
 #include <string>
@@ -67,4 +67,4 @@ class EngineData {
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BRIDGE_ENGINE_H_
+#endif  // KMSENGINE_BRIDGE_EX_DATA_UTIL_ENGINE_DATA_H_

@@ -16,45 +16,26 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//src:__subpackages__"])
+package(default_visibility = ["//src/bridge:__subpackages__"])
 
 cc_library(
-    name = "bridge",
-    srcs = ["main.c"],
-    linkopts = ["-lcrypto"],
-    deps = ["//src/bridge:engine_bind"],
-)
-
-cc_library(
-    name = "engine_bind",
-    srcs = ["engine_bind.cc"],
-    hdrs = ["engine_bind.h"],
+    name = "engine_data",
+    hdrs = ["engine_data.h"],
     linkopts = ["-lcrypto"],
     deps = [
-        ":engine_name",
-        ":engine_setup",
-        "//src/bridge/error",
+        "//src/backing",
+        "//src/bridge/memory_util:openssl_structs",
     ],
 )
 
 cc_test(
-    name = "engine_bind_test",
+    name = "engine_data_test",
     size = "small",
-    srcs = ["engine_bind_test.cc"],
+    srcs = ["engine_data_test.cc"],
     deps = [
-        ":engine_bind",
+        ":engine_data",
+        "//src/testing_util:mock_client",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
-)
-
-cc_library(
-    name = "engine_name",
-    hdrs = ["engine_name.h"],
-)
-
-cc_library(
-    name = "engine_setup",
-    srcs = ["engine_setup.cc"],
-    hdrs = ["engine_setup.h"],
-    linkopts = ["-lcrypto"],
 )
