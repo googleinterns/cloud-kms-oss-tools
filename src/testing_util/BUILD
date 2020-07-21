@@ -25,7 +25,6 @@ cc_library(
         "//src/backing/client",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
-        "//src/backing/status",
         "//src/backing/status:status_or",
     ],
 )
