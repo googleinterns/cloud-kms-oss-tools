@@ -50,7 +50,7 @@ int engine_index = kUninitializedIndex;
 // Valid index types are the `CRYPTO_EX_INDEX_*` constants found in OpenSSL's
 // crypto.h header.
 //
-// Returns the external index on success or -1 on failure.
+// Returns the external index on success or an error `Status`.
 StatusOr<int> GetIndex(int index_type) {
   // We ignore the argl and argp parameters (the second and third parameters)
   // since they're used in the callback functions (the fourth, fifth, and
