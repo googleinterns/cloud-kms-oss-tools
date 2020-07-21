@@ -43,7 +43,7 @@ cc_test(
     ],
 )
 
-cc_test(
+cc_library(
     name = "engine_data",
     hdrs = ["engine_data.h"],
     linkopts = ["-lcrypto"],
@@ -53,7 +53,7 @@ cc_test(
     ],
 )
 
-cc_library(
+cc_test(
     name = "engine_data_test",
     size = "small",
     srcs = ["engine_data_test.cc"],
