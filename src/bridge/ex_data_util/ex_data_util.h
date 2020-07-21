@@ -17,11 +17,8 @@
 #ifndef KMSENGINE_BRIDGE_EX_DATA_UTIL_EX_DATA_UTIL_H_
 #define KMSENGINE_BRIDGE_EX_DATA_UTIL_EX_DATA_UTIL_H_
 
-#include <memory>
-
 #include <openssl/engine.h>
 #include <openssl/rsa.h>
-#include <openssl/x509.h>
 
 #include "src/backing/rsa/rsa_key.h"
 #include "src/backing/status/status.h"
