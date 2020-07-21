@@ -105,6 +105,7 @@ cc_test(
         "//src/bridge/memory_util:openssl_structs",
         "//src/testing_util:mock_client",
         "//src/testing_util:test_matchers",
+        "//src/testing_util:openssl_assertions",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
