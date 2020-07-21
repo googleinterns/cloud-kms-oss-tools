@@ -84,6 +84,7 @@ cc_library(
 
 cc_library(
     name = "key_loader",
+    srcs = ["key_loader.cc"],
     hdrs = ["key_loader.h"],
     linkopts = ["-lcrypto"],
     deps = [
@@ -100,6 +101,11 @@ cc_test(
     srcs = ["key_loader_test.cc"],
     deps = [
         ":key_loader",
+        "//src/bridge:engine_data",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/testing_util:mock_client",
+        "//src/testing_util:test_matchers",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )

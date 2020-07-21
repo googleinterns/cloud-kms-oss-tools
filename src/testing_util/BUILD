@@ -34,9 +34,9 @@ cc_library(
     name = "mock_rsa_key",
     hdrs = ["mock_rsa_key.h"],
     deps = [
-        "//src/backing/rsa:rsa_key",
         "//src/backing/client:digest_case",
-        "//src/backing/status:status",
+        "//src/backing/rsa:rsa_key",
+        "//src/backing/status",
         "//src/backing/status:status_or",
         "@com_google_googletest//:gtest_main",
     ],
