@@ -90,8 +90,8 @@ cc_test(
 
 cc_library(
     name = "crypto_key_version_algorithm",
-    hdrs = ["crypto_key_version_algorithm.h"],
     srcs = ["crypto_key_version_algorithm.cc"],
+    hdrs = ["crypto_key_version_algorithm.h"],
     deps = [
         "@com_google_absl//absl/strings:str_format",
     ],
