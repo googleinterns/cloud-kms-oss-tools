@@ -19,16 +19,20 @@
 
 #include "src/bridge/engine_bind.h"
 #include "src/bridge/engine_name.h"
+#include "src/testing_util/openssl_assertions.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace {
 
 TEST(EngineBindTest, InitializesExpectedEngineStructFields) {
+  OPENSSL_init_crypto(0, nullptr);
+  ERR_load_crypto_strings();
+
   ENGINE *engine = ENGINE_new();
   ASSERT_NE(engine, nullptr);  // Sanity check for malloc errors.
 
-  EngineBind(engine, NULL);
+  ASSERT_OPENSSL_SUCCESS(EngineBind(engine, NULL));
   EXPECT_STREQ(ENGINE_get_id(engine), kEngineId);
   EXPECT_STREQ(ENGINE_get_name(engine), kEngineName);
   EXPECT_NE(ENGINE_get_init_function(engine), nullptr);

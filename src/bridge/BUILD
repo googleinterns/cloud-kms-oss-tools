@@ -31,9 +31,14 @@ cc_library(
     hdrs = ["engine_bind.h"],
     linkopts = ["-lcrypto"],
     deps = [
+        ":engine_data",
         ":engine_name",
         ":engine_setup",
+        "//src/backing",
         "//src/bridge/error",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/bridge/rsa",
     ],
 )
 
@@ -43,6 +48,7 @@ cc_test(
     srcs = ["engine_bind_test.cc"],
     deps = [
         ":engine_bind",
+        "//src/testing_util:openssl_assertions",
         "@com_google_googletest//:gtest_main",
     ],
 )
