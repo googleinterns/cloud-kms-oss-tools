@@ -111,8 +111,7 @@ StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
   return static_cast<backing::RsaKey *>(ex_data);
 }
 
-Status AttachEngineDataToOpenSslEngine(EngineData *data,
-                                       ENGINE *engine) {
+Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEngineIndex());
   if (!ENGINE_set_ex_data(engine, index, static_cast<void *>(data))) {
     return Status(StatusCode::kInternal, "ENGINE_set_ex_data failed");
