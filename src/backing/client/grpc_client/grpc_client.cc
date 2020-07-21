@@ -52,7 +52,7 @@ StatusOr<std::string> GrpcClient::AsymmetricSign(
   return std::move(proto_response.signature());
 }
 
-StatusOr<std::unique_ptr<PublicKey>> GrpcClient::GetPublicKey(
+StatusOr<PublicKey> GrpcClient::GetPublicKey(
     std::string key_version_resource_id) {
   google::cloud::kms::v1::GetPublicKeyRequest proto_request;
   proto_request.set_name(std::move(key_version_resource_id));
@@ -62,7 +62,7 @@ StatusOr<std::unique_ptr<PublicKey>> GrpcClient::GetPublicKey(
   KMSENGINE_RETURN_IF_ERROR(stub_->GetPublicKey(context.get(), proto_request,
                                                 &proto_response));
 
-  return absl::make_unique<PublicKey>(
+  return PublicKey(
       proto_response.pem(),
       FromProtoToCryptoKeyVersionAlgorithm(proto_response.algorithm()));
 }
