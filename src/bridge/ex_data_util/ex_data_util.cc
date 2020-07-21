@@ -34,6 +34,16 @@ namespace {
 // OpenSSL CRYPTO_get_ex_new_index returns -1 on failure.
 constexpr int kUninitializedIndex = -1;
 
+// External index assigned by OpenSSL on a `RSA` struct. If uninitialized, it
+// has value `kUninitializedIndex`. Used in `AttachRsaKeyToOpenSslRsa` and
+// `GetRsaKeyFromOpenSslRsa`.
+int rsa_index = kUninitializedIndex;
+
+// External index assigned by OpenSSL on a `ENGINE` struct. If uninitialized, it
+// has value `kUninitializedIndex`. Used in `AttachEngineDataToOpenSslEngine`
+// and `GetEngineDataFromOpenSslEngine`.
+int engine_index = kUninitializedIndex;
+
 // Requests an external index from OpenSSL for the index type `index_type`.
 // Valid index types are the `CRYPTO_EX_INDEX_*` constants found in OpenSSL's
 // crypto.h header.
@@ -51,15 +61,29 @@ StatusOr<int> GetIndex(int index_type) {
   return index;
 }
 
-}  // namespace
+// Returns `rsa_index` if it is initialized, or an error `Status`.
+inline StatusOr<int> GetRsaIndex() {
+  if (rsa_index == kUninitializedIndex) {
+    return Status(StatusCode::kFailedPrecondition, "rsa_index uninitialized");
+  }
+  return rsa_index;
+}
 
-static int rsa_index = kUninitializedIndex;
-static int engine_index = kUninitializedIndex;
+// Returns `engine_index` if it is initialized, or an error `Status`.
+inline StatusOr<int> GetEngineIndex() {
+  if (engine_index == kUninitializedIndex) {
+    return Status(StatusCode::kFailedPrecondition,
+                  "engine_index uninitialized");
+  }
+  return engine_index;
+}
+
+}  // namespace
 
 Status InitExternalIndicies() {
   KMSENGINE_ASSIGN_OR_RETURN(rsa_index, GetIndex(CRYPTO_EX_INDEX_RSA));
   KMSENGINE_ASSIGN_OR_RETURN(engine_index, GetIndex(CRYPTO_EX_INDEX_ENGINE));
-  return {};
+  return Status();
 }
 
 void FreeExternalIndicies() {
@@ -70,22 +94,16 @@ void FreeExternalIndicies() {
 }
 
 Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
-  if (rsa_index == kUninitializedIndex) {
-    return Status(StatusCode::kFailedPrecondition, "rsa_index uninitialized");
-  }
-
-  if (!RSA_set_ex_data(rsa, rsa_index, static_cast<void *>(rsa_key))) {
+  KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
+  if (!RSA_set_ex_data(rsa, index, static_cast<void *>(rsa_key))) {
     return Status(StatusCode::kInternal, "RSA_set_ex_data failed");
   }
-  return {};
+  return Status();
 }
 
 StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
-  if (rsa_index == kUninitializedIndex) {
-    return Status(StatusCode::kFailedPrecondition, "rsa_index uninitialized");
-  }
-
-  auto ex_data = RSA_get_ex_data(rsa, rsa_index);
+  KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
+  auto ex_data = RSA_get_ex_data(rsa, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
                   "No Cloud KMS key associated with RSA struct");
@@ -95,24 +113,16 @@ StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
 
 Status AttachEngineDataToOpenSslEngine(EngineData *data,
                                        ENGINE *engine) {
-  if (engine_index == kUninitializedIndex) {
-    return Status(StatusCode::kFailedPrecondition,
-                  "engine_index uninitialized");
-  }
-
-  if (!ENGINE_set_ex_data(engine, engine_index, static_cast<void *>(data))) {
+  KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEngineIndex());
+  if (!ENGINE_set_ex_data(engine, index, static_cast<void *>(data))) {
     return Status(StatusCode::kInternal, "ENGINE_set_ex_data failed");
   }
-  return {};
+  return Status();
 }
 
 StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine) {
-  if (engine_index == kUninitializedIndex) {
-    return Status(StatusCode::kFailedPrecondition,
-                  "engine_index uninitialized");
-  }
-
-  auto ex_data = ENGINE_get_ex_data(engine, engine_index);
+  KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEngineIndex());
+  auto ex_data = ENGINE_get_ex_data(engine, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
                   "No Cloud KMS Client associated with ENGINE struct");
