@@ -28,10 +28,34 @@ cc_library(
 )
 
 cc_library(
+    name = "mock_client",
+    hdrs = ["mock_client.h"],
+    deps = [
+        "//src/backing/client",
+        "//src/backing/client:digest_case",
+        "//src/backing/client:public_key",
+        "//src/backing/status",
+        "//src/backing/status:status_or",
+    ],
+)
+
+cc_library(
     name = "mock_client_context_factory",
     hdrs = ["mock_client_context_factory.h"],
     deps = [
         "//src/backing/client/grpc_client:client_context_factory",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mock_rsa_key",
+    hdrs = ["mock_rsa_key.h"],
+    deps = [
+        "//src/backing/client:digest_case",
+        "//src/backing/rsa:rsa_key",
+        "//src/backing/status",
+        "//src/backing/status:status_or",
         "@com_google_googletest//:gtest_main",
     ],
 )

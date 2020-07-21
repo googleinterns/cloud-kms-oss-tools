@@ -14,37 +14,35 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BACKING_CLIENT_CLIENT_H_
-#define KMSENGINE_BACKING_CLIENT_CLIENT_H_
+#ifndef KMSENGINE_TESTING_UTIL_MOCK_CLIENT_H_
+#define KMSENGINE_TESTING_UTIL_MOCK_CLIENT_H_
 
+#include <memory>
 #include <string>
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 
 namespace kmsengine {
-namespace backing {
+namespace testing_util {
 
-// Defines the interface used to communicate with the Google Cloud KMS API.
-class Client {
+class MockClient : public ::kmsengine::backing::Client {
  public:
-  virtual ~Client() = default;
-
-  // Signs data using the CryptoKeyVersion `key_version_resource_id`. Produces
-  // a signature that can be verified with the public key retrieved from
-  // `GetPublicKey`.
-  virtual StatusOr<std::string> AsymmetricSign(
-      std::string key_version_resource_id, DigestCase digest_case,
-      std::string digest_bytes) = 0;
-
-  // Returns the `PublicKey` for the given `key_version_resource_id`.
-  virtual StatusOr<PublicKey> GetPublicKey(
-      std::string key_version_resource_id) = 0;
+  MOCK_METHOD(StatusOr<std::string>, AsymmetricSign,
+              (std::string key_version_resource_id, backing::DigestCase
+               digest_case, std::string digest_bytes),
+              (override));
+  MOCK_METHOD(StatusOr<backing::PublicKey>, GetPublicKey,
+              (std::string key_version_resource_id), (override));
 };
 
-}  // namespace backing
+}  // namespace testing_util
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BACKING_CLIENT_CLIENT_H_
+#endif  // KMSENGINE_TESTING_UTIL_MOCK_CLIENT_H_

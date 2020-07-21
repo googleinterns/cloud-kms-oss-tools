@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BACKING_CLIENT_CLIENT_H_
-#define KMSENGINE_BACKING_CLIENT_CLIENT_H_
+#include "src/backing/rsa/kms_rsa_key.h"
 
+#include <memory>
 #include <string>
 
+#include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
 #include "src/backing/status/status.h"
@@ -27,24 +28,20 @@
 namespace kmsengine {
 namespace backing {
 
-// Defines the interface used to communicate with the Google Cloud KMS API.
-class Client {
- public:
-  virtual ~Client() = default;
+KmsRsaKey::KmsRsaKey(std::string key_resource_id,
+                     std::shared_ptr<Client> client)
+    : key_resource_id_(key_resource_id), client_(client) {
+}
 
-  // Signs data using the CryptoKeyVersion `key_version_resource_id`. Produces
-  // a signature that can be verified with the public key retrieved from
-  // `GetPublicKey`.
-  virtual StatusOr<std::string> AsymmetricSign(
-      std::string key_version_resource_id, DigestCase digest_case,
-      std::string digest_bytes) = 0;
+StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
+                                      std::string message_digest) {
+  return client_->AsymmetricSign(key_resource_id(), digest_type,
+                                 message_digest);
+}
 
-  // Returns the `PublicKey` for the given `key_version_resource_id`.
-  virtual StatusOr<PublicKey> GetPublicKey(
-      std::string key_version_resource_id) = 0;
-};
+StatusOr<PublicKey> KmsRsaKey::GetPublicKey() {
+  return client_->GetPublicKey(key_resource_id());
+}
 
 }  // namespace backing
 }  // namespace kmsengine
-
-#endif  // KMSENGINE_BACKING_CLIENT_CLIENT_H_
