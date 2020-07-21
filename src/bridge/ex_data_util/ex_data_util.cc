@@ -39,7 +39,7 @@ constexpr int kUninitializedIndex = -1;
 // crypto.h header.
 //
 // Returns the external index on success or -1 on failure.
-inline StatusOr<int> GetIndex(int index_type) {
+StatusOr<int> GetIndex(int index_type) {
   // We ignore the argl and argp parameters (the second and third parameters)
   // since they're used in the callback functions (the fourth, fifth, and
   // sixth parameters), which we're just setting to `nullptr`.
