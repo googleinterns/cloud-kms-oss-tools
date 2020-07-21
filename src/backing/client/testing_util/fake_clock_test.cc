@@ -39,7 +39,7 @@
 
 namespace kmsengine {
 namespace backing {
-namespace testing_util {
+namespace client {
 namespace {
 
 TEST(Clock, FakeClock) {
@@ -63,6 +63,6 @@ TEST(Clock, FakeClock) {
 }
 
 }  // namespace
-}  // namespace testing_util
+}  // namespace client
 }  // namespace backing
 }  // namespace kmsengine

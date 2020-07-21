@@ -54,7 +54,7 @@ class ClientContextFactory {
 // Creates a ClientContextFactory.
 std::unique_ptr<ClientContextFactory> CreateClientContextFactory(
     absl::optional<std::chrono::nanoseconds> timeout,
-    std::shared_ptr<SystemClock> clock);
+    std::shared_ptr<client::SystemClock> clock);
 
 }  // namespace grpc_client
 }  // namespace backing

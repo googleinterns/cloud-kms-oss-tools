@@ -27,7 +27,8 @@ namespace backing {
 namespace grpc_client {
 namespace {
 
-using ::kmsengine::backing::testing_util::FakeSystemClock;
+using ::kmsengine::backing::client::FakeSystemClock;
+using ::kmsengine::backing::client::SystemClock;
 using ::testing::Range;
 
 class ClientContextFactoryTest : public

@@ -41,7 +41,7 @@
 
 namespace kmsengine {
 namespace backing {
-namespace testing_util {
+namespace client {
 
 // A fake clock intended for use in tests.
 //
@@ -78,12 +78,12 @@ class FakeClock : public RealClock {
 };
 
 using FakeSteadyClock =
-    FakeClock<kmsengine::backing::SteadyClock>;
+    FakeClock<kmsengine::backing::client::SteadyClock>;
 
 using FakeSystemClock =
-    FakeClock<kmsengine::backing::SystemClock>;
+    FakeClock<kmsengine::backing::client::SystemClock>;
 
-}  // namespace testing_util
+}  // namespace client
 }  // namespace backing
 }  // namespace kmsengine
 
