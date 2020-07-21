@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BRIDGE_ENGINE_H_
-#define KMSENGINE_BRIDGE_ENGINE_H_
+#ifndef KMSENGINE_BRIDGE_EX_DATA_UTIL_ENGINE_DATA_H_
+#define KMSENGINE_BRIDGE_EX_DATA_UTIL_ENGINE_DATA_H_
 
 #include <memory>
 #include <string>
@@ -48,12 +48,9 @@ class EngineData {
   EngineData(const EngineData&) = delete;
   EngineData& operator=(const EngineData&) = delete;
 
-  // Returns a shared pointer to the `backing::Client` associated with the
+  // Returns a reference to the `backing::Client` associated with the
   // `EngineData`.
-  //
-  // The return type is a shared pointer to simplify construction of `RsaKey`
-  // objects which are constructed from a shared `Client` pointer.
-  inline std::shared_ptr<backing::Client> client() const { return client_; }
+  inline backing::Client &client() const { return *client_; }
 
   // Returns a raw pointer to the engine's `RSA_METHOD`.
   //
@@ -63,11 +60,11 @@ class EngineData {
   inline const RSA_METHOD *rsa_method() const { return rsa_method_.get(); }
 
  private:
-  std::shared_ptr<backing::Client> client_;
+  std::unique_ptr<backing::Client> client_;
   OpenSslRsaMethod rsa_method_;
 };
 
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BRIDGE_ENGINE_H_
+#endif  // KMSENGINE_BRIDGE_EX_DATA_UTIL_ENGINE_DATA_H_

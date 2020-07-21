@@ -42,3 +42,25 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "engine_data",
+    hdrs = ["engine_data.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        "//src/backing",
+        "//src/bridge/memory_util:openssl_structs",
+    ],
+)
+
+cc_library(
+    name = "engine_data_test",
+    size = "small",
+    srcs = ["engine_data_test.cc"],
+    deps = [
+        ":engine_data",
+        "//src/testing_util:mock_client",
+        "@com_google_absl//absl/memory",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
