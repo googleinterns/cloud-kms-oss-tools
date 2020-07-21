@@ -16,7 +16,6 @@
 
 #include "src/backing/rsa/kms_rsa_key.h"
 
-#include <memory>
 #include <string>
 
 #include "src/backing/client/client.h"
@@ -28,19 +27,14 @@
 namespace kmsengine {
 namespace backing {
 
-KmsRsaKey::KmsRsaKey(std::string key_resource_id,
-                     std::shared_ptr<Client> client)
-    : key_resource_id_(key_resource_id), client_(client) {
-}
-
 StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
                                       std::string message_digest) {
-  return client_->AsymmetricSign(key_resource_id(), digest_type,
-                                 message_digest);
+  return client_.AsymmetricSign(key_resource_id(), digest_type,
+                                message_digest);
 }
 
 StatusOr<PublicKey> KmsRsaKey::GetPublicKey() {
-  return client_->GetPublicKey(key_resource_id());
+  return client_.GetPublicKey(key_resource_id());
 }
 
 }  // namespace backing

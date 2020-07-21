@@ -17,7 +17,6 @@
 #ifndef KMSENGINE_BACKING_RSA_KMS_RSA_KEY_H_
 #define KMSENGINE_BACKING_RSA_KMS_RSA_KEY_H_
 
-#include <memory>
 #include <string>
 
 #include "src/backing/client/client.h"
@@ -33,7 +32,8 @@ namespace backing {
 // Implementation of RsaKey with Cloud KMS operations.
 class KmsRsaKey : public RsaKey {
  public:
-  KmsRsaKey(std::string key_resource_id, std::shared_ptr<Client> client);
+  KmsRsaKey(std::string key_resource_id, Client *client)
+    : key_resource_id_(key_resource_id), client_(*client) {}
   ~KmsRsaKey() = default;
 
   // `KmsRsaKey` is copyable and moveable.
@@ -41,7 +41,7 @@ class KmsRsaKey : public RsaKey {
   KmsRsaKey& operator=(const KmsRsaKey& other) = default;
 
   // Getter for the Cloud KMS key resource ID.
-  std::string const& key_resource_id() const { return key_resource_id_; }
+  inline std::string const& key_resource_id() const { return key_resource_id_; }
 
   // RsaKey methods.
   StatusOr<std::string> Sign(DigestCase digest_type,
@@ -50,7 +50,7 @@ class KmsRsaKey : public RsaKey {
 
  private:
   std::string key_resource_id_;
-  std::shared_ptr<Client> client_;
+  Client &client_;
 };
 
 }  // namespace backing
