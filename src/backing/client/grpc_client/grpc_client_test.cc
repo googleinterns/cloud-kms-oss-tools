@@ -168,8 +168,8 @@ TEST_P(GetPublicKeyTest, GetPublicKeyReturnsResponse) {
   GrpcClient client(std::move(stub), std::move(context_factory));
   auto actual = client.GetPublicKey(key);
   EXPECT_THAT(actual, IsOk());
-  EXPECT_THAT(actual.value()->pem(), StrEq("my public key"));
-  EXPECT_EQ(actual.value()->algorithm(),
+  EXPECT_THAT(actual.value().pem(), StrEq("my public key"));
+  EXPECT_EQ(actual.value().algorithm(),
             CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256);
 }
 

@@ -49,7 +49,7 @@ class GrpcClient : public Client {
   StatusOr<std::string> AsymmetricSign(
       std::string key_version_resource_id, DigestCase digest_case,
       std::string digest_bytes) override;
-  StatusOr<std::unique_ptr<PublicKey>> GetPublicKey(
+  StatusOr<PublicKey> GetPublicKey(
       std::string key_version_resource_id) override;
 
  private:
