@@ -30,7 +30,7 @@ namespace grpc_client {
 
 // Factory class for making a `grpc::ClientContext`.
 //
-// Defined separately from `GrpcClient` primarly for testing and extensibility.
+// Defined as an interface so it can be mocked in tests.
 //
 // TODO(zesp): There are other `grpc::ClientContext` options that may be useful
 // to add in the future, such as compression options.
