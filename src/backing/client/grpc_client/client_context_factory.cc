@@ -29,10 +29,7 @@ namespace backing {
 namespace grpc_client {
 namespace {
 
-// Factory class for making a `grpc::ClientContext` from a set of
-// `GrpcClientOptions`.
-//
-// Defined separately from `GrpcClient` primarly for testing.
+// Implementation for `ClientContextFactory`.
 class GrpcClientContextFactory : public ClientContextFactory {
  public:
   // While the underlying `timeout` is stored as `std::chrono::nanoseconds`,
