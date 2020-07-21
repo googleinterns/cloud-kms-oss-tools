@@ -17,7 +17,6 @@
 #ifndef KMSENGINE_TESTING_UTIL_MOCK_CLIENT_H_
 #define KMSENGINE_TESTING_UTIL_MOCK_CLIENT_H_
 
-#include <memory>
 #include <string>
 
 #include <gmock/gmock.h>
@@ -26,7 +25,6 @@
 #include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
-#include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 
 namespace kmsengine {
@@ -35,10 +33,11 @@ namespace testing_util {
 class MockClient : public ::kmsengine::backing::Client {
  public:
   MOCK_METHOD(StatusOr<std::string>, AsymmetricSign,
-              (std::string key_version_resource_id, backing::DigestCase
-               digest_case, std::string digest_bytes),
+              (std::string key_version_resource_id,
+               ::kmsengine::backing::DigestCase digest_case,
+               std::string digest_bytes),
               (override));
-  MOCK_METHOD(StatusOr<backing::PublicKey>, GetPublicKey,
+  MOCK_METHOD(StatusOr<::kmsengine::backing::PublicKey>, GetPublicKey,
               (std::string key_version_resource_id), (override));
 };
 
