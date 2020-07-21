@@ -24,8 +24,8 @@ cc_library(
     hdrs = ["ex_data_util.h"],
     linkopts = ["-lcrypto"],
     deps = [
+        ":engine_data",
         "//src/backing",
-        "//src/bridge:engine_data",
     ],
 )
 
