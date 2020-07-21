@@ -37,6 +37,7 @@ cc_binary(
         "//src/backing/client:crypto_key_version_algorithm",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
+        "//src/backing/client/grpc_client:proto_util",
         "//src/backing/status",
         "//src/backing/status:status_or",
     ],
