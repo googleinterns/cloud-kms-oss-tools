@@ -35,10 +35,11 @@ namespace testing_util {
 class MockClient : public ::kmsengine::backing::Client {
  public:
   MOCK_METHOD(StatusOr<std::string>, AsymmetricSign,
-              (std::string key_version_resource_id, backing::DigestCase
-               digest_case, std::string digest_bytes),
+              (std::string key_version_resource_id,
+               ::kmsengine::backing::DigestCase digest_case,
+               std::string digest_bytes),
               (override));
-  MOCK_METHOD(StatusOr<backing::PublicKey>, GetPublicKey,
+  MOCK_METHOD(StatusOr<::kmsengine::backing::PublicKey>, GetPublicKey,
               (std::string key_version_resource_id), (override));
 };
 
