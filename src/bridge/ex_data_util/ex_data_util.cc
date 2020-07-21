@@ -106,7 +106,7 @@ StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
   auto ex_data = RSA_get_ex_data(rsa, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
-                  "No Cloud KMS key associated with RSA struct");
+                  "RSA instance was not initialized with Cloud KMS data");
   }
   return static_cast<backing::RsaKey *>(ex_data);
 }
@@ -124,7 +124,7 @@ StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine) {
   auto ex_data = ENGINE_get_ex_data(engine, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
-                  "No Cloud KMS Client associated with ENGINE struct");
+                  "ENGINE instance was not initialized with Cloud KMS data");
   }
   return static_cast<EngineData *>(ex_data);
 }
