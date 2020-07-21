@@ -42,6 +42,7 @@
 namespace kmsengine {
 namespace backing {
 namespace client {
+namespace testing_util {
 
 // A fake clock intended for use in tests.
 //
@@ -83,6 +84,7 @@ using FakeSteadyClock =
 using FakeSystemClock =
     FakeClock<kmsengine::backing::client::SystemClock>;
 
+}  // namespace testing_util
 }  // namespace client
 }  // namespace backing
 }  // namespace kmsengine

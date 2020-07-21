@@ -42,6 +42,8 @@ namespace backing {
 namespace client {
 namespace {
 
+using ::kmsengine::backing::client::testing_util::FakeClock;
+
 TEST(Clock, FakeClock) {
   SteadyClock real_clock;
   FakeClock<SteadyClock> clock;
