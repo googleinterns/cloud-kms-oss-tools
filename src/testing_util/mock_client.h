@@ -17,7 +17,6 @@
 #ifndef KMSENGINE_TESTING_UTIL_MOCK_CLIENT_H_
 #define KMSENGINE_TESTING_UTIL_MOCK_CLIENT_H_
 
-#include <memory>
 #include <string>
 
 #include <gmock/gmock.h>
@@ -26,7 +25,6 @@
 #include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
-#include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 
 namespace kmsengine {
