@@ -27,7 +27,7 @@ namespace bridge {
 namespace error_impl {
 namespace {
 
-const StatusCode kStatusCodes[] = {
+constexpr StatusCode kStatusCodes[] = {
   StatusCode::kOk,
   StatusCode::kCancelled,
   StatusCode::kUnknown,
