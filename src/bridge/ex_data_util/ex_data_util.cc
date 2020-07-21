@@ -31,7 +31,9 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
-// OpenSSL CRYPTO_get_ex_new_index returns -1 on failure.
+// Represents an uninitialized OpenSSL external index. Value is -1 since
+// OpenSSL's `CRYPTO_get_ex_new_index` function for requesting external indicies
+// returns -1 on failure.
 constexpr int kUninitializedIndex = -1;
 
 // External index assigned by OpenSSL on a `RSA` struct. If uninitialized, it
