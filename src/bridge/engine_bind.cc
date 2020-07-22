@@ -35,6 +35,12 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+EngineData *MakeDefaultEngineData() {
+  std::unique_ptr<backing::Client> client = backing::MakeDefaultClientWithoutTimeout();
+  OpenSslRsaMethod rsa_method = rsa::MakeKmsRsaMethod();
+  return new EngineData(std::move(client), std::move(rsa_method));
+}
+
 // Destroys the ENGINE context.
 //
 // This function should perform any cleanup of structures that were created in
@@ -60,9 +66,12 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
     return 0;
   }
 
-  std::unique_ptr<backing::Client> client = backing::MakeDefaultClientWithoutTimeout();
-  OpenSslRsaMethod rsa_method = rsa::MakeKmsRsaMethod();
-  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  auto engine_data = MakeDefaultEngineData();
+  if (engine_data == nullptr) {
+    KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kResourceUnavailable,
+                                  "no memory available"));
+    return 0;
+  }
 
   auto attach_status = AttachEngineDataToOpenSslEngine(engine_data, e);
   if (!attach_status.ok()) {
