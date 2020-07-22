@@ -37,6 +37,7 @@
 
 namespace kmsengine {
 namespace backing {
+namespace client {
 
 // A simple `Clock` class that can be overridden for testing. Use when you
 // need to test operations that depend on a call to
@@ -59,13 +60,14 @@ class Clock {
 // `SteadyClock` is a monotonic clock where time points cannot decrease as
 // physical time moves forward. It is not related to wall clock time.
 using SteadyClock =
-    ::kmsengine::backing::Clock<std::chrono::steady_clock>;
+    ::kmsengine::backing::client::Clock<std::chrono::steady_clock>;
 
 // `SystemClock` represents the system-wide real time wall clock.
 // It may not be monotonic.
 using SystemClock =
-    ::kmsengine::backing::Clock<std::chrono::system_clock>;
+    ::kmsengine::backing::client::Clock<std::chrono::system_clock>;
 
+}  // namespace client
 }  // namespace backing
 }  // namespace kmsengine
 

@@ -28,10 +28,12 @@ namespace kmsengine {
 namespace backing {
 namespace grpc_client {
 
-// Factory class for making a `grpc::ClientContext` from a set of
-// `GrpcClientOptions`.
+// Factory class for making a `grpc::ClientContext`.
 //
-// Defined separately from `GrpcClient` primarly for testing.
+// Defined as an interface so it can be mocked in tests.
+//
+// TODO(zesp): There are other `grpc::ClientContext` options that may be useful
+// to add in the future, such as compression options.
 class ClientContextFactory {
  public:
   virtual ~ClientContextFactory() = default;
@@ -51,10 +53,10 @@ class ClientContextFactory {
   ClientContextFactory() = default;
 };
 
-// Creates a ClientContextFactory.
+// Creates a `unique_ptr` containing a `ClientContextFactory` implementation.
 std::unique_ptr<ClientContextFactory> CreateClientContextFactory(
     absl::optional<std::chrono::nanoseconds> timeout,
-    std::shared_ptr<SystemClock> clock);
+    std::shared_ptr<client::SystemClock> clock);
 
 }  // namespace grpc_client
 }  // namespace backing
