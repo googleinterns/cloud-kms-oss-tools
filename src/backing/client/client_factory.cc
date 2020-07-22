@@ -20,6 +20,7 @@
 #include <memory>
 #include <utility>
 
+#include "absl/types/optional.h"
 #include "absl/memory/memory.h"
 #include "grpcpp/grpcpp.h"
 #include "src/backing/client/client.h"
@@ -44,12 +45,10 @@ std::unique_ptr<Client> MakeDefaultClient(
   auto stub = grpc_client::CreateKeyManagementServiceStub(kDefaultApiEndpoint,
                                                           credentials);
 
-  auto clock = std::make_shared<SystemClock>();
-  auto context_factory = grpc_client::CreateClientContextFactory(timeout,
-                                                                 clock);
+  auto clock = std::make_shared<client::SystemClock>();
+  auto factory = grpc_client::CreateClientContextFactory(timeout, clock);
 
-  return absl::make_unique<GrpcClient>(std::move(stub),
-                                       std::move(context_factory));
+  return absl::make_unique<GrpcClient>(std::move(stub), std::move(factory));
 }
 
 }  // namespace
