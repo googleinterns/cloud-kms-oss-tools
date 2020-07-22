@@ -44,7 +44,7 @@ std::unique_ptr<Client> MakeDefaultClient(
   auto stub = grpc_client::CreateKeyManagementServiceStub(kDefaultApiEndpoint,
                                                           credentials);
 
-  auto clock = std::make_shared<SystemClock>();
+  auto clock = std::make_shared<client::SystemClock>();
   auto context_factory = grpc_client::CreateClientContextFactory(timeout,
                                                                  clock);
 
