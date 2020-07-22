@@ -46,6 +46,10 @@ cc_test(
     name = "engine_bind_test",
     size = "small",
     srcs = ["engine_bind_test.cc"],
+    # Statically link in libcrypto in test environment only to avoid symbol
+    # issues with BoringSSL which only appear in the test environment.
+    linkstatic = True,
+    linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":engine_bind",
         "//src/testing_util:openssl_assertions",
