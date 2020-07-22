@@ -34,7 +34,7 @@ struct CorrespondingDigestCase {
   ProtoDigestCase proto;
 };
 
-constexpr CorrespondingDigestCase kDigestMapping[]{
+constexpr CorrespondingDigestCase kDigestMapping[] = {
   {DigestCase::kSha256, ProtoDigestCase::kSha256},
   {DigestCase::kSha384, ProtoDigestCase::kSha384},
   {DigestCase::kSha512, ProtoDigestCase::kSha512},
