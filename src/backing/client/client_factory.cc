@@ -20,6 +20,7 @@
 #include <memory>
 #include <utility>
 
+#include "absl/types/optional.h"
 #include "absl/memory/memory.h"
 #include "grpcpp/grpcpp.h"
 #include "src/backing/client/client.h"
