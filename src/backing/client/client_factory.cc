@@ -46,11 +46,9 @@ std::unique_ptr<Client> MakeDefaultClient(
                                                           credentials);
 
   auto clock = std::make_shared<client::SystemClock>();
-  auto context_factory = grpc_client::CreateClientContextFactory(timeout,
-                                                                 clock);
+  auto factory = grpc_client::CreateClientContextFactory(timeout, clock);
 
-  return absl::make_unique<GrpcClient>(std::move(stub),
-                                       std::move(context_factory));
+  return absl::make_unique<GrpcClient>(std::move(stub), std::move(factory));
 }
 
 }  // namespace
