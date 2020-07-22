@@ -32,8 +32,9 @@ namespace grpc_client {
 //
 // Defined as an interface so it can be mocked in tests.
 //
-// TODO(zesp): There are other `grpc::ClientContext` options that may be useful
-// to add in the future, such as compression options.
+// TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/78): There
+// are other `grpc::ClientContext` options that may be useful to add in the
+// future, such as compression options.
 class ClientContextFactory {
  public:
   virtual ~ClientContextFactory() = default;
