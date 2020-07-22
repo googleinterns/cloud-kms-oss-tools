@@ -29,10 +29,7 @@ namespace backing {
 namespace grpc_client {
 namespace {
 
-// Factory class for making a `grpc::ClientContext` from a set of
-// `GrpcClientOptions`.
-//
-// Defined separately from `GrpcClient` primarly for testing.
+// Implementation for `ClientContextFactory`.
 class GrpcClientContextFactory : public ClientContextFactory {
  public:
   // While the underlying `timeout` is stored as `std::chrono::nanoseconds`,
@@ -48,7 +45,7 @@ class GrpcClientContextFactory : public ClientContextFactory {
   // connection is dropped, which makes `absl::nullopt` a reasonable setting for
   // clients to set.
   GrpcClientContextFactory(absl::optional<std::chrono::nanoseconds> timeout,
-                           std::shared_ptr<SystemClock> clock)
+                           std::shared_ptr<client::SystemClock> clock)
       : timeout_duration_(timeout), clock_(std::move(clock)) {}
 
   // Instantiates a `grpc::ClientContext` for use in making gRPC calls based on
@@ -68,14 +65,14 @@ class GrpcClientContextFactory : public ClientContextFactory {
 
  private:
   absl::optional<std::chrono::nanoseconds> timeout_duration_;
-  std::shared_ptr<SystemClock> clock_;
+  std::shared_ptr<client::SystemClock> clock_;
 };
 
 }  // namespace
 
 std::unique_ptr<ClientContextFactory> CreateClientContextFactory(
     absl::optional<std::chrono::nanoseconds> timeout,
-    std::shared_ptr<SystemClock> clock) {
+    std::shared_ptr<client::SystemClock> clock) {
   return absl::make_unique<GrpcClientContextFactory>(timeout, std::move(clock));
 }
 

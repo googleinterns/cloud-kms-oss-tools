@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#include <set>
+#include <vector>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -81,6 +84,44 @@ INSTANTIATE_TEST_SUITE_P(CryptoKeyVersionAlgorithmParameters,
 TEST_P(CryptoKeyVersionAlgorithmTest, UnderlyingValueMatchesProtoValues) {
   auto mapping = GetParam();
   EXPECT_EQ(CryptoKeyVersionAlgorithmToInt(mapping.actual), mapping.proto);
+}
+
+TEST(CryptoKeyVersionAlgorithmTest, ToStringIsOneToOne) {
+  const std::vector<CryptoKeyVersionAlgorithm> kAlgorithms = {
+    CryptoKeyVersionAlgorithm::kAlgorithmUnspecified,
+    CryptoKeyVersionAlgorithm::kGoogleSymmetricEncryption,
+    CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256,
+    CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256,
+    CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha256,
+    CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha512,
+    CryptoKeyVersionAlgorithm::kRsaSignPkcs2048Sha256,
+    CryptoKeyVersionAlgorithm::kRsaSignPkcs3072Sha256,
+    CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha256,
+    CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512,
+    CryptoKeyVersionAlgorithm::kRsaDecryptOaep2048Sha256,
+    CryptoKeyVersionAlgorithm::kRsaDecryptOaep3072Sha256,
+    CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha256,
+    CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha512,
+    CryptoKeyVersionAlgorithm::kEcSignP256Sha256,
+    CryptoKeyVersionAlgorithm::kEcSignP384Sha384,
+    CryptoKeyVersionAlgorithm::kExternalSymmetricEncryption,
+  };
+
+  std::set<std::string> used_strings;
+  for (auto algorithm : kAlgorithms) {
+    auto actual = CryptoKeyVersionAlgorithmToString(algorithm);
+    used_strings.insert(actual);
+  }
+
+  EXPECT_EQ(used_strings.size(), kAlgorithms.size())
+      << "Number of unique strings should equal number of unique "
+         "CryptoKeyVersionAlgorithm enums";
+}
+
+TEST(CryptoKeyVersionAlgorithmTest, HandlesInvalidEnums) {
+  EXPECT_EQ("UNEXPECTED_CRYPTO_KEY_VERSION_ALGORITHM=42",
+            CryptoKeyVersionAlgorithmToString(
+                static_cast<CryptoKeyVersionAlgorithm>(42)));
 }
 
 }  // namespace
