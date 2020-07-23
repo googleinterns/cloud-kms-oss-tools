@@ -36,8 +36,8 @@ namespace bridge {
 namespace {
 
 EngineData *MakeDefaultEngineData() {
-  std::unique_ptr<backing::Client> client = backing::MakeDefaultClientWithoutTimeout();
-  OpenSslRsaMethod rsa_method = rsa::MakeKmsRsaMethod();
+  auto client = backing::MakeDefaultClientWithoutTimeout();
+  auto rsa_method = rsa::MakeKmsRsaMethod();
   return new EngineData(std::move(client), std::move(rsa_method));
 }
 
@@ -68,7 +68,7 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
 
   auto engine_data = MakeDefaultEngineData();
   if (engine_data == nullptr) {
-    KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kResourceUnavailable,
+    KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kResourceExhausted,
                                   "no memory available"));
     return 0;
   }
