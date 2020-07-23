@@ -21,7 +21,7 @@
 #include <openssl/rsa.h>
 
 #include "absl/memory/memory.h"
-#include "src/bridge/engine_data.h"
+#include "src/bridge/ex_data_util/engine_data.h"
 #include "src/testing_util/mock_client.h"
 
 namespace kmsengine {
@@ -33,13 +33,13 @@ using ::testing::StrEq;
 
 TEST(EngineDataTest, ClientRoundtrip) {
   auto client = absl::make_unique<MockClient>();
-  EXPECT_CALL(*client, GetPublicKey);
+  EXPECT_CALL(*client, GetPublicKey("hello world"));
 
   auto rsa_method = MakeRsaMethod("", 0);
   EngineData engine_data(std::move(client), std::move(rsa_method));
 
-  // Check that we got the client back using a mock call.
-  (void)engine_data.client()->GetPublicKey("");
+  // Check that we got the same client back using a mock call.
+  (void)engine_data.client().GetPublicKey("hello world");
 }
 
 TEST(EngineDataTest, RsaMethodRoundtrip) {

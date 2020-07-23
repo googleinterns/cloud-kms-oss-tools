@@ -24,8 +24,8 @@ cc_library(
     hdrs = ["ex_data_util.h"],
     linkopts = ["-lcrypto"],
     deps = [
+        ":engine_data",
         "//src/backing",
-        "//src/bridge:engine_data",
     ],
 )
 
@@ -39,6 +39,28 @@ cc_test(
         "//src/testing_util:mock_client",
         "//src/testing_util:mock_rsa_key",
         "//src/testing_util:test_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "engine_data",
+    hdrs = ["engine_data.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        "//src/backing",
+        "//src/bridge/memory_util:openssl_structs",
+    ],
+)
+
+cc_test(
+    name = "engine_data_test",
+    size = "small",
+    srcs = ["engine_data_test.cc"],
+    deps = [
+        ":engine_data",
+        "//src/testing_util:mock_client",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
