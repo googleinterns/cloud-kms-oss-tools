@@ -32,10 +32,11 @@ cc_library(
     linkopts = ["-lcrypto"],
     deps = [
         ":engine_name",
-        ":engine_setup",
         "//src/backing",
         "//src/bridge/error",
         "//src/bridge/ex_data_util",
+        "//src/bridge/ex_data_util:engine_data",
+        "//src/bridge/rsa",
     ],
 )
 
@@ -49,7 +50,12 @@ cc_test(
     linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":engine_bind",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/testing_util:mock_rsa_key",
+        "//src/testing_util:mock_client",
+        "//src/testing_util:test_matchers",
         "//src/testing_util:openssl_assertions",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -57,18 +63,4 @@ cc_test(
 cc_library(
     name = "engine_name",
     hdrs = ["engine_name.h"],
-)
-
-cc_library(
-    name = "engine_setup",
-    srcs = ["engine_setup.cc"],
-    hdrs = ["engine_setup.h"],
-    linkopts = ["-lcrypto"],
-    deps = [
-        "//src/backing",
-        "//src/bridge/error",
-        "//src/bridge/ex_data_util",
-        "//src/bridge/ex_data_util:engine_data",
-        "//src/bridge/rsa",
-    ],
 )

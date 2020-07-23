@@ -19,13 +19,87 @@
 #include <openssl/engine.h>
 
 #include "src/bridge/engine_name.h"
-#include "src/bridge/engine_setup.h"
 #include "src/bridge/error/error.h"
+#include "src/bridge/ex_data_util/engine_data.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
+#include "src/bridge/rsa/rsa.h"
+#include "src/backing/client/client_factory.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace {
+
+// Initializes a `EngineData` structure for the Cloud KMS OpenSSL engine that
+// contains the Cloud KMS `RSA_METHOD` implementation and an authenticated
+// `Client`.
+StatusOr<EngineData *> MakeDefaultEngineData() {
+  // TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/79): Add
+  // support for setting a timeout duration in the OpenSSL configuration file.
+
+  // `MakeDefaultClientWithoutTimeout` will automatically authenticate the
+  // client using the Google Application Default Credentials strategy. See
+  // https://cloud.google.com/docs/authentication/production#automatically for
+  // more information.
+  auto client = backing::MakeDefaultClientWithoutTimeout();
+
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+
+  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  if (engine_data == nullptr) {
+    return Status(StatusCode::kResourceExhausted, "no memory available");
+  }
+  return engine_data;
+}
+
+// Initializes a "functional reference" to the Cloud KMS OpenSSL Engine.
+// Specifically, it initializes the engine-specific substructures that are
+// needed to provide the engine's intended cryptographic functionaliy (for
+// example, an authenticated Cloud KMS API client). Returns 1 on success and 0
+// if an error occurred.
+//
+// See https://www.openssl.org/docs/man1.1.0/man3/ENGINE_init.html for more
+// information on "functional references".
+//
+// Function signature follows the `ENGINE_GEN_INT_FUNC_PTR` prototype from
+// OpenSSL so `EngineBind` can use `ENGINE_set_init_function` to set
+// `EngineInit` as the "init function" for the Cloud KMS engine. `EngineBind` is
+// always called prior to calling `EngineInit`.
+int EngineInit(ENGINE *e) {
+  auto engine_data_or = MakeDefaultEngineData();
+  if (!engine_data_or.ok()) {
+    KMSENGINE_SIGNAL_ERROR(engine_data_or.status());
+    return false;
+  }
+  auto engine_data = engine_data_or.value();
+
+  auto attach_status = AttachEngineDataToOpenSslEngine(engine_data, e);
+  if (!attach_status.ok()) {
+    delete engine_data;
+    KMSENGINE_SIGNAL_ERROR(attach_status);
+    return false;
+  }
+
+  return true;
+}
+
+// Cleans up `ENGINE` substructures initialized in `EngineInit`. Returns 1 on
+// success and 0 if an error occured.
+//
+// Function signature follows the `ENGINE_GEN_INT_FUNC_PTR` prototype from
+// OpenSSL so `EngineBind` can use `ENGINE_set_finish_function` to set
+// `EngineFinish` as the "finish function" for the Cloud KMS engine.
+// `EngineFinish` is always called before `EngineDestroy`.
+int EngineFinish(ENGINE *e) {
+  auto engine_data_or = GetEngineDataFromOpenSslEngine(e);
+  if (!engine_data_or.ok()) {
+    KMSENGINE_SIGNAL_ERROR(engine_data_or.status());
+    return false;
+  }
+
+  delete engine_data_or.value();
+
+  return true;
+}
 
 // Destroys the ENGINE context.
 //
@@ -47,7 +121,7 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
   auto init_status = InitExternalIndicies();
   if (!init_status.ok()) {
     KMSENGINE_SIGNAL_ERROR(init_status);
-    return 0;
+    return false;
   }
 
   // ENGINE_FLAGS_NO_REGISTER_ALL tells OpenSSL that our engine does not
@@ -58,11 +132,16 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
       !ENGINE_set_init_function(e, EngineInit) ||
       !ENGINE_set_finish_function(e, EngineFinish) ||
       !ENGINE_set_destroy_function(e, EngineDestroy)) {
-    return 0;
+    return false;
   }
 
-  LoadErrorStringsIntoOpenSSL();
-  return 1;
+  auto error_status = LoadErrorStringsIntoOpenSSL();
+  if (!error_status.ok()) {
+    KMSENGINE_SIGNAL_ERROR(error_status);
+    return false;
+  }
+
+  return true;
 }
 
 }  // namespace bridge
