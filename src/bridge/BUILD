@@ -77,13 +77,18 @@ cc_test(
     name = "key_loader_test",
     size = "small",
     srcs = ["key_loader_test.cc"],
+    # Statically link in libcrypto in test environment only to avoid symbol
+    # issues with BoringSSL which only appear in the test environment.
+    linkstatic = True,
+    linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":key_loader",
-        "//src/bridge:engine_data",
+        "//src/bridge/ex_data_util:engine_data",
         "//src/bridge/memory_util:openssl_structs",
+        "//src/bridge/rsa",
         "//src/testing_util:mock_client",
-        "//src/testing_util:test_matchers",
         "//src/testing_util:openssl_assertions",
+        "//src/testing_util:test_matchers",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],

@@ -21,11 +21,13 @@
 
 #include "absl/memory/memory.h"
 #include "src/bridge/key_loader.h"
-#include "src/bridge/engine_data.h"
+#include "src/bridge/ex_data_util/engine_data.h"
+#include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/testing_util/mock_client.h"
 #include "src/testing_util/test_matchers.h"
 #include "src/bridge/memory_util/openssl_structs.h"
 #include "src/backing/rsa/kms_rsa_key.h"
+#include "src/bridge/rsa/rsa.h"
 #include "src/testing_util/openssl_assertions.h"
 
 namespace kmsengine {
@@ -54,48 +56,74 @@ constexpr CryptoKeyVersionAlgorithm kRsaSignAlgorithms[] = {
   CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512,
 };
 
+constexpr CryptoKeyVersionAlgorithm kEcSignAlgorithms[] = {
+  CryptoKeyVersionAlgorithm::kEcSignP256Sha256,
+  CryptoKeyVersionAlgorithm::kEcSignP384Sha384,
+};
+
+constexpr CryptoKeyVersionAlgorithm kUnsupportedAlgorithms[] = {
+  CryptoKeyVersionAlgorithm::kAlgorithmUnspecified,
+  CryptoKeyVersionAlgorithm::kGoogleSymmetricEncryption,
+  CryptoKeyVersionAlgorithm::kRsaDecryptOaep2048Sha256,
+  CryptoKeyVersionAlgorithm::kRsaDecryptOaep3072Sha256,
+  CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha256,
+  CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha512,
+  CryptoKeyVersionAlgorithm::kExternalSymmetricEncryption,
+};
+
+constexpr char kKeyResourceId[] = "resource_id";
+
+TEST(KeyLoaderTest, HandlesBadEngineData) {
+  EXPECT_THAT(InitExternalIndicies(), IsOk());
+
+  // Should fail since no `EngineData` is attached to `ENGINE`.
+  auto engine = MakeEngine();
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());
+  EXPECT_OPENSSL_FAILURE(
+      LoadPrivateKey(engine.get(), "resource_id", nullptr, nullptr),
+      "ENGINE instance was not initialized with Cloud KMS data");
+
+  FreeExternalIndicies();
+}
+
 class KeyLoaderTest : public
     ::testing::TestWithParam<CryptoKeyVersionAlgorithm> {
  protected:
-  KeyLoaderTest() : engine(MakeEngine()) {}
+  KeyLoaderTest()
+      : public_key_(PublicKey("my pem", GetParam())),
+        engine_(MakeEngine()) {}
 
   void SetUp() override {
-    EXPECT_THAT(InitExternalIndicies(), IsOk());
-
-    const auto algorithm = GetParam();
-    const auto public_key = PublicKey("my pem", algorithm);
-
-    auto client = absl::make_unique<MockClient>();
-    ON_CALL(*client, GetPublicKey).WillByDefault(Return(public_key));
-
-    auto rsa_method = MakeRsaMethod("mock RSA_METHOD", 0);
-    engine_data = new EngineData(std::move(client), std::move(rsa_method));
-
-    ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data, engine.get()),
-                IsOk());
-    ASSERT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), IsOk());
+    ASSERT_THAT(InitExternalIndicies(), IsOk());
   }
 
   void TearDown() override {
-    delete engine_data;
+    FreeExternalIndicies();
   }
 
-  EngineData *engine_data;
-  const OpenSslEngine engine;
+  PublicKey public_key() { return public_key_; }
+  ENGINE *engine() { return engine_.get(); }
+
+ private:
+  PublicKey public_key_;
+  OpenSslEngine engine_;
 };
 
-INSTANTIATE_TEST_SUITE_P(RsaCryptoKeyVersionAlgorithmParameters,
-                         KeyLoaderTest,
+class RsaKeyLoaderTest : public KeyLoaderTest {};
+INSTANTIATE_TEST_SUITE_P(RsaAlgorithmParameters, RsaKeyLoaderTest,
                          ValuesIn(kRsaSignAlgorithms));
 
-TEST_P(KeyLoaderTest, LoadPrivateKey) {
-  const auto kKeyResourceId = "resource_id";
+TEST_P(RsaKeyLoaderTest, LoadPrivateKey) {
+  auto client = absl::make_unique<MockClient>();
+  EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
 
-  auto evp_pkey = LoadPrivateKey(engine.get(), kKeyResourceId, nullptr,
-                                 nullptr);
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data, engine()), IsOk());
+
+  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
   ASSERT_THAT(evp_pkey, Not(IsNull()));
-
-  EXPECT_THAT(EVP_PKEY_id(evp_pkey), EVP_PKEY_RSA)
+  EXPECT_EQ(EVP_PKEY_id(evp_pkey), EVP_PKEY_RSA)
       << "Object ID of EVP_PKEY should be EVP_PKEY_RSA";
 
   auto rsa = EVP_PKEY_get1_RSA(evp_pkey);
@@ -111,20 +139,49 @@ TEST_P(KeyLoaderTest, LoadPrivateKey) {
               StrEq(kKeyResourceId))
       << "RsaKey should contain the key resource ID loaded in LoadPrivateKey";
 
-  delete rsa_key;
   RSA_free(rsa);
   EVP_PKEY_free(evp_pkey);
+  delete engine_data;
 }
 
-TEST(KeyLoaderTest, HandlesBadEngineData) {
-  EXPECT_THAT(InitExternalIndicies(), IsOk());
+class EcKeyLoaderTest : public KeyLoaderTest {};
+INSTANTIATE_TEST_SUITE_P(EcAlgorithmParameters,
+                         EcKeyLoaderTest,
+                         ValuesIn(kEcSignAlgorithms));
 
-  // Should fail since no `EngineData` is attached to `ENGINE`.
-  auto engine = MakeEngine();
-  ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());
+TEST_P(EcKeyLoaderTest, LoadPrivateKey) {
+  auto client = absl::make_unique<MockClient>();
+  EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
+
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data, engine()), IsOk());
+
   EXPECT_OPENSSL_FAILURE(
-      LoadPrivateKey(engine.get(), "resource_id", nullptr, nullptr),
-      "No Cloud KMS Client associated with ENGINE struct");
+      LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr),
+      "ECDSA not yet implemented");
+
+  delete engine_data;
+}
+
+class UnsupportedKeyLoaderTest : public KeyLoaderTest {};
+INSTANTIATE_TEST_SUITE_P(UnsupportedAlgorithmParameters,
+                         UnsupportedKeyLoaderTest,
+                         ValuesIn(kUnsupportedAlgorithms));
+
+TEST_P(UnsupportedKeyLoaderTest, LoadPrivateKey) {
+  auto client = absl::make_unique<MockClient>();
+  EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
+
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data, engine()), IsOk());
+
+  EXPECT_OPENSSL_FAILURE(
+      LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr),
+      "Cloud KMS key had unsupported type");
+
+  delete engine_data;
 }
 
 }  // namespace

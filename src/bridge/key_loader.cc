@@ -109,34 +109,32 @@ StatusOr<OpenSslEvpPkey> MakeRsaEvpPkey(OpenSslRsa rsa) {
 
 }  // namespace
 
-
 EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
                          UI_METHOD *ui_method, void *callback_data) {
-  using CryptoKeyAlgorithm = ::kmsengine::backing::CryptoKeyVersionAlgorithm;
-
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto engine_data, GetEngineDataFromOpenSslEngine(openssl_engine));
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto public_key, engine_data->client()->GetPublicKey(key_id));
+      auto public_key, engine_data->client().GetPublicKey(key_id));
 
+  using CryptoKeyVersionAlgorithm = backing::CryptoKeyVersionAlgorithm;
   switch (public_key.algorithm()) {
-    case CryptoKeyAlgorithm::kRsaSignPss2048Sha256:
-    case CryptoKeyAlgorithm::kRsaSignPss3072Sha256:
-    case CryptoKeyAlgorithm::kRsaSignPss4096Sha256:
-    case CryptoKeyAlgorithm::kRsaSignPss4096Sha512:
-    case CryptoKeyAlgorithm::kRsaSignPkcs2048Sha256:
-    case CryptoKeyAlgorithm::kRsaSignPkcs3072Sha256:
-    case CryptoKeyAlgorithm::kRsaSignPkcs4096Sha256:
-    case CryptoKeyAlgorithm::kRsaSignPkcs4096Sha512:
+    case CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256:
+    case CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256:
+    case CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha256:
+    case CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha512:
+    case CryptoKeyVersionAlgorithm::kRsaSignPkcs2048Sha256:
+    case CryptoKeyVersionAlgorithm::kRsaSignPkcs3072Sha256:
+    case CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha256:
+    case CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512:
       {
         KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-          auto kms_rsa, MakeRsaWithKmsKey(engine_data, key_id));
+            auto kms_rsa, MakeRsaWithKmsKey(engine_data, key_id));
         KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
             auto kms_evp_pkey, MakeRsaEvpPkey(std::move(kms_rsa)));
         return kms_evp_pkey.release();
       }
-    case CryptoKeyAlgorithm::kEcSignP256Sha256:
-    case CryptoKeyAlgorithm::kEcSignP384Sha384:
+    case CryptoKeyVersionAlgorithm::kEcSignP256Sha256:
+    case CryptoKeyVersionAlgorithm::kEcSignP384Sha384:
       {
         // TODO(zesp): Implement ECDSA. Can reuse `RsaKey` for this since the
         // backing layer is exactly the same; probably should refactor
@@ -146,12 +144,10 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
         return nullptr;
       }
     default:
-      {
-        KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
-            "Cloud KMS key had unsupported type " +
-            CryptoKeyVersionAlgorithmToString(public_key.algorithm())));
-        return nullptr;
-      }
+      KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
+          "Cloud KMS key had unsupported type " +
+          CryptoKeyVersionAlgorithmToString(public_key.algorithm())));
+      return nullptr;
   }
 }
 
