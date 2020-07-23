@@ -53,7 +53,7 @@ StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa);
 
 // Attaches an `Client` instance to the OpenSSL `RSA` instance. Returns an
 // error `Status` if an error occurred.
-Status AttachEngineDataToOpenSslEngine(EngineData *client, ENGINE *engine);
+Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine);
 
 // Returns a raw pointer to the `EngineData` instance attacked to the given
 // OpenSSL `ENGINE` struct, or an error status. Raw pointer will never be null
