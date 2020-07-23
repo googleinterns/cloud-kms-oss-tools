@@ -46,7 +46,7 @@ class GrpcKeyManagementServiceStub : public KeyManagementServiceStub {
   Status AsymmetricSign(
       grpc::ClientContext *client_context,
       kms_proto::AsymmetricSignRequest const& request,
-      kms_proto::AsymmetricSignResponse *response) override {
+      kms_proto::AsymmetricSignResponse *response) const override {
     return FromGrpcStatusToStatus(
         grpc_stub_->AsymmetricSign(client_context, request, response));
   }
@@ -54,7 +54,7 @@ class GrpcKeyManagementServiceStub : public KeyManagementServiceStub {
   Status GetPublicKey(
       grpc::ClientContext *client_context,
       kms_proto::GetPublicKeyRequest const& request,
-      kms_proto::PublicKey *response) override {
+      kms_proto::PublicKey *response) const override {
     return FromGrpcStatusToStatus(
         grpc_stub_->GetPublicKey(client_context, request, response));
   }

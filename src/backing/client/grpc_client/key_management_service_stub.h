@@ -59,11 +59,11 @@ class KeyManagementServiceStub {
   virtual Status AsymmetricSign(
       grpc::ClientContext *client_context,
       google::cloud::kms::v1::AsymmetricSignRequest const& request,
-      google::cloud::kms::v1::AsymmetricSignResponse *response) = 0;
+      google::cloud::kms::v1::AsymmetricSignResponse *response) const = 0;
   virtual Status GetPublicKey(
       grpc::ClientContext *client_context,
       google::cloud::kms::v1::GetPublicKeyRequest const& request,
-      google::cloud::kms::v1::PublicKey *response) = 0;
+      google::cloud::kms::v1::PublicKey *response) const = 0;
 
  protected:
   KeyManagementServiceStub() = default;
