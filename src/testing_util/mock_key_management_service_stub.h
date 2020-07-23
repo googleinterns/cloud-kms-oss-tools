@@ -35,12 +35,12 @@ class MockKeyManagementServiceStub :
       (grpc::ClientContext *client_context,
        google::cloud::kms::v1::AsymmetricSignRequest const& request,
        google::cloud::kms::v1::AsymmetricSignResponse *response),
-      (override));
+      (const, override));
   MOCK_METHOD(Status, GetPublicKey,
       (grpc::ClientContext *client_context,
        google::cloud::kms::v1::GetPublicKeyRequest const& request,
        google::cloud::kms::v1::PublicKey *response),
-      (override));
+      (const, override));
 };
 
 }  // namespace testing_util

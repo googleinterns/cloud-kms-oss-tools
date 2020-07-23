@@ -48,9 +48,9 @@ class GrpcClient : public Client {
   // `Client` interface methods.
   StatusOr<std::string> AsymmetricSign(
       std::string key_version_resource_id, DigestCase digest_case,
-      std::string digest_bytes) override;
+      std::string digest_bytes) const override;
   StatusOr<PublicKey> GetPublicKey(
-      std::string key_version_resource_id) override;
+      std::string key_version_resource_id) const override;
 
  private:
   std::unique_ptr<KeyManagementServiceStub> stub_;
