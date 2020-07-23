@@ -26,12 +26,12 @@ namespace kmsengine {
 namespace backing {
 
 StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
-                                      std::string message_digest) {
+                                      std::string message_digest) const {
   return client_.AsymmetricSign(key_resource_id(), digest_type,
                                 message_digest);
 }
 
-StatusOr<PublicKey> KmsRsaKey::GetPublicKey() {
+StatusOr<PublicKey> KmsRsaKey::GetPublicKey() const {
   return client_.GetPublicKey(key_resource_id());
 }
 
