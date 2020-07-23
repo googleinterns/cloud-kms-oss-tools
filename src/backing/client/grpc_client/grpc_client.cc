@@ -38,7 +38,7 @@ namespace grpc_client {
 StatusOr<std::string> GrpcClient::AsymmetricSign(
     std::string key_version_resource_id,
     DigestCase digest_case,
-    std::string digest_bytes) {
+    std::string digest_bytes) const {
   google::cloud::kms::v1::AsymmetricSignRequest proto_request;
   proto_request.set_name(std::move(key_version_resource_id));
   proto_request.mutable_digest()->CopyFrom(
@@ -53,7 +53,7 @@ StatusOr<std::string> GrpcClient::AsymmetricSign(
 }
 
 StatusOr<PublicKey> GrpcClient::GetPublicKey(
-    std::string key_version_resource_id) {
+    std::string key_version_resource_id) const {
   google::cloud::kms::v1::GetPublicKeyRequest proto_request;
   proto_request.set_name(std::move(key_version_resource_id));
 
