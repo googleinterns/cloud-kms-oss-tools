@@ -98,6 +98,12 @@ int EngineFinish(ENGINE *e) {
 
   delete engine_data_or.value();
 
+  auto attach_status = AttachEngineDataToOpenSslEngine(nullptr, e);
+  if (!attach_status.ok()) {
+    KMSENGINE_SIGNAL_ERROR(attach_status);
+    return false;
+  }
+
   return true;
 }
 

@@ -56,7 +56,7 @@ TEST(EngineBindTest, InitializesExpectedEngineStructFields) {
          "Engine does not support all cryptography operations";
 }
 
-TEST(EngineBindTest, ExternalDataSystemInitializedAfterEngineBind) {
+TEST(EngineBindTest, InitializesExternalDataSystem) {
   auto engine = MakeEngine();
   ASSERT_OPENSSL_SUCCESS(EngineBind(engine.get(), nullptr));
 
@@ -76,7 +76,7 @@ TEST(EngineBindTest, ExternalDataSystemInitializedAfterEngineBind) {
          "EngineBind";
 }
 
-TEST(EngineBindTest, EngineDestroyCleansUpExternalDataSystem) {
+TEST(EngineDestroyTest, CleansUpExternalDataSystem) {
   ENGINE *engine = ENGINE_new();
   ASSERT_OPENSSL_SUCCESS(EngineBind(engine, nullptr));
   ENGINE_free(engine);  // `EngineDestroy` should be called by free.
@@ -97,6 +97,44 @@ TEST(EngineBindTest, EngineDestroyCleansUpExternalDataSystem) {
               Not(IsOk()))
       << "ex_data_util ENGINE operations should have been cleaned up after "
          "EngineDestroy";
+}
+
+// Fixture for testing `EngineInit`. `EngineInit` can only be called on
+// engines that have been bound, so this fixture instantiates a new OpenSSL
+// `ENGINE` and binds the Cloud KMS OpenSSL Engine to it. Users can then call
+// the `ENGINE_init` function from OpenSSL on the bound `ENGINE`, which should
+// delegate to our engine's implementation of `EngineInit`.
+class EngineInitTest : public ::testing::Test {
+ protected:
+  EngineInitTest() : engine_(MakeEngine()) {}
+
+  void SetUp() override {
+    ASSERT_THAT(engine(), Not(IsNull()));
+    ASSERT_OPENSSL_SUCCESS(EngineBind(engine(), nullptr));
+  }
+
+  // Returns a raw pointer to a bound `ENGINE` struct.
+  ENGINE *engine() const { return engine_.get(); }
+
+ private:
+  const OpenSslEngine engine_;
+};
+
+TEST_F(EngineInitTest, EngineDataRoundtrip) {
+  ASSERT_OPENSSL_SUCCESS(ENGINE_init(engine()));
+
+  auto engine_data_or = GetEngineDataFromOpenSslEngine(engine());
+  ASSERT_THAT(engine_data_or, IsOk());
+  auto engine_data = engine_data_or.value();
+
+  ASSERT_THAT(engine_data, Not(IsNull()));
+  ASSERT_THAT(engine_data->rsa_method(), Not(IsNull()));
+
+  ASSERT_OPENSSL_SUCCESS(ENGINE_finish(engine()));
+
+  ASSERT_THAT(GetEngineDataFromOpenSslEngine(engine()), Not(IsOk()))
+      << "EngineData attached to ENGINE struct should have been nulled-out "
+         "on EngineDestroy";
 }
 
 }  // namespace
