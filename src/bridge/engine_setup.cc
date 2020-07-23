@@ -30,8 +30,19 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+// Initializes a `EngineData` structure for the Cloud KMS OpenSSL engine that
+// contains the Cloud KMS `RSA_METHOD` implementation and an authenticated
+// `Client`.
 StatusOr<EngineData *> MakeDefaultEngineData() {
+  // TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/79): Add
+  // support for setting a timeout duration in the OpenSSL configuration file.
+
+  // `MakeDefaultClientWithoutTimeout` will automatically authenticate the
+  // client using the Google Application Default Credentials strategy. See
+  // https://cloud.google.com/docs/authentication/production#automatically for
+  // more information.
   auto client = backing::MakeDefaultClientWithoutTimeout();
+
   auto rsa_method = rsa::MakeKmsRsaMethod();
 
   auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
