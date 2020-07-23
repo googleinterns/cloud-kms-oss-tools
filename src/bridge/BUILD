@@ -31,14 +31,11 @@ cc_library(
     hdrs = ["engine_bind.h"],
     linkopts = ["-lcrypto"],
     deps = [
-        ":engine_data",
         ":engine_name",
         ":engine_setup",
         "//src/backing",
         "//src/bridge/error",
         "//src/bridge/ex_data_util",
-        "//src/bridge/memory_util:openssl_structs",
-        "//src/bridge/rsa",
     ],
 )
 
@@ -67,4 +64,11 @@ cc_library(
     srcs = ["engine_setup.cc"],
     hdrs = ["engine_setup.h"],
     linkopts = ["-lcrypto"],
+    deps = [
+        "//src/backing",
+        "//src/bridge/error",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/ex_data_util:engine_data",
+        "//src/bridge/rsa",
+    ],
 )

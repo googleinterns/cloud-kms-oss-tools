@@ -22,17 +22,28 @@
 namespace kmsengine {
 namespace bridge {
 
-// Initializes ENGINE substructures. Returns 1 on success and 0 if an error
-// occured.
+// Initializes a "functional reference" to the Cloud KMS OpenSSL Engine.
+// Specifically, it initializes the engine-specific substructures that are
+// needed to provide the engine's intended cryptographic functionaliy (for
+// example, an authenticated Cloud KMS API client). Returns 1 on success and 0
+// if an error occurred.
 //
-// Used as the init_function in the OpenSSL engine. EngineBind is always called
-// prior to calling EngineInit.
+// See https://www.openssl.org/docs/man1.1.0/man3/ENGINE_init.html for more
+// information on "functional references".
+//
+// Function signature follows the `ENGINE_GEN_INT_FUNC_PTR` prototype from
+// OpenSSL so `EngineBind` can use `ENGINE_set_init_function` to set
+// `EngineInit` as the "init function" for the Cloud KMS engine. `EngineBind` is
+// always called prior to calling `EngineInit`.
 int EngineInit(ENGINE *e);
 
-// Cleans up ENGINE substructures. Returns 1 on success and 0 if an error
-// occured.
+// Cleans up `ENGINE` substructures initialized in `EngineInit`. Returns 1 on
+// success and 0 if an error occured.
 //
-// Used as the finish_function in the OpenSSL engine..
+// Function signature follows the `ENGINE_GEN_INT_FUNC_PTR` prototype from
+// OpenSSL so `EngineBind` can use `ENGINE_set_finish_function` to set
+// `EngineFinish` as the "finish function" for the Cloud KMS engine.
+// `EngineFinish` is always called before `EngineDestroy`.
 int EngineFinish(ENGINE *e);
 
 }  // namespace bridge

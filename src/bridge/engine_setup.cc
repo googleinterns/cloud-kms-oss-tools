@@ -16,19 +16,59 @@
 
 #include "src/bridge/engine_setup.h"
 
+#include <utility>
+
 #include <openssl/engine.h>
+
+#include "src/bridge/error/error.h"
+#include "src/bridge/ex_data_util/engine_data.h"
+#include "src/bridge/ex_data_util/ex_data_util.h"
+#include "src/bridge/rsa/rsa.h"
+#include "src/backing/client/client_factory.h"
 
 namespace kmsengine {
 namespace bridge {
+namespace {
+
+StatusOr<EngineData *> MakeDefaultEngineData() {
+  auto client = backing::MakeDefaultClientWithoutTimeout();
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+
+  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  if (engine_data == nullptr) {
+    return Status(StatusCode::kResourceExhausted, "no memory available");
+  }
+  return engine_data;
+}
+
+}  // namespace
 
 int EngineInit(ENGINE *e) {
-  // TODO(zesp): Initialize necessary ex_data on ENGINE.
-  printf("Engine initialized!\n");
+  auto engine_data_or = MakeDefaultEngineData();
+  if (!engine_data_or.ok()) {
+    KMSENGINE_SIGNAL_ERROR(engine_data_or.status());
+    return 0;
+  }
+  auto engine_data = engine_data_or.value();
+
+  auto attach_status = AttachEngineDataToOpenSslEngine(engine_data, e);
+  if (!attach_status.ok()) {
+    delete engine_data;
+    KMSENGINE_SIGNAL_ERROR(attach_status);
+    return 0;
+  }
+
   return 1;
 }
 
 int EngineFinish(ENGINE *e) {
-  // TODO(zesp): Deallocate data initialized in EngineInit.
+  auto engine_data_or = GetEngineDataFromOpenSslEngine(e);
+  if (!engine_data_or.ok()) {
+    KMSENGINE_SIGNAL_ERROR(engine_data_or.status());
+    return 0;
+  }
+
+  delete engine_data_or.value();
   return 1;
 }
 

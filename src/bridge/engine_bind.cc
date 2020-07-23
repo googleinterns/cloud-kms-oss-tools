@@ -16,30 +16,16 @@
 
 #include "src/bridge/engine_bind.h"
 
-#include <memory>
-#include <utility>
-
 #include <openssl/engine.h>
 
 #include "src/bridge/engine_name.h"
 #include "src/bridge/engine_setup.h"
 #include "src/bridge/error/error.h"
-#include "src/bridge/memory_util/openssl_structs.h"
-#include "src/bridge/engine_data.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
-#include "src/backing/client/client.h"
-#include "src/bridge/rsa/rsa.h"
-#include "src/backing/client/client_factory.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace {
-
-EngineData *MakeDefaultEngineData() {
-  auto client = backing::MakeDefaultClientWithoutTimeout();
-  auto rsa_method = rsa::MakeKmsRsaMethod();
-  return new EngineData(std::move(client), std::move(rsa_method));
-}
 
 // Destroys the ENGINE context.
 //
@@ -48,35 +34,19 @@ EngineData *MakeDefaultEngineData() {
 //
 // EngineFinish will have executed before EngineDestroy is called.
 int EngineDestroy(ENGINE *e) {
-  auto engine_data_or = GetEngineDataFromOpenSslEngine(e);
-  if (engine_data_or.ok()) delete engine_data_or.value();
-
-  auto unload_status = UnloadErrorStringsFromOpenSSL();
-
-  // Return 1 if everything was successful; otherwise, return 0.
-  return (engine_data_or.ok() && unload_status.ok());
+  FreeExternalIndicies();
+  return UnloadErrorStringsFromOpenSSL().ok();
 }
 
 }  // namespace
 
 extern "C" int EngineBind(ENGINE *e, const char *id) {
+  // We initialize external indicies in `EngineBind` as opposed to `EngineInit`
+  // since the external indicies are global variables that all instances of the
+  // Cloud KMS engine should share.
   auto init_status = InitExternalIndicies();
   if (!init_status.ok()) {
     KMSENGINE_SIGNAL_ERROR(init_status);
-    return 0;
-  }
-
-  auto engine_data = MakeDefaultEngineData();
-  if (engine_data == nullptr) {
-    KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kResourceExhausted,
-                                  "no memory available"));
-    return 0;
-  }
-
-  auto attach_status = AttachEngineDataToOpenSslEngine(engine_data, e);
-  if (!attach_status.ok()) {
-    delete engine_data;
-    KMSENGINE_SIGNAL_ERROR(attach_status);
     return 0;
   }
 
