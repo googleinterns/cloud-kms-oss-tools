@@ -54,7 +54,7 @@ class GrpcClientContextFactory : public ClientContextFactory {
   // This method does not directly return a `grpc::ClientContext` instance
   // since `grpc::ClientContext` is non-movable. (See related discussion at
   // https://github.com/grpc/grpc/issues/16680.)
-  std::unique_ptr<grpc::ClientContext> MakeContext() override {
+  std::unique_ptr<grpc::ClientContext> MakeContext() const override {
     auto context = absl::make_unique<grpc::ClientContext>();
     if (timeout_duration_.has_value()) {
       auto deadline = clock_->Now() + timeout_duration_.value();
