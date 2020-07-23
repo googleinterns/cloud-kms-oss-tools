@@ -17,45 +17,48 @@
 #ifndef KMSENGINE_BRIDGE_EX_DATA_UTIL_EX_DATA_UTIL_H_
 #define KMSENGINE_BRIDGE_EX_DATA_UTIL_EX_DATA_UTIL_H_
 
-#include <memory>
-
 #include <openssl/engine.h>
 #include <openssl/rsa.h>
-#include <openssl/x509.h>
 
 #include "src/backing/rsa/rsa_key.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
-#include "src/bridge/engine_data.h"
+#include "src/bridge/ex_data_util/engine_data.h"
 
 namespace kmsengine {
 namespace bridge {
 
-// Attempts to request ex_data indices from OpenSSL, and, if successful,
+// Attempts to request ex_data indicies from OpenSSL, and, if successful,
 // returns a success `Status`.
 //
-// The optional `service` parameter is for testing purposes.
+// This function must be called before any of the `Attach*` or `Get*` functions
+// are called. Callers of `InitExternalIndicies` should then call
+// `FreeExternalIndicies` to release the ex_data indicies back to OpenSSL after
+// they have finished using them to avoid memory leaks.
 Status InitExternalIndicies();
 
 // Frees the ex_data indicies requested from OpenSSL.
 void FreeExternalIndicies();
 
-// Attaches an `RsaKey` instance to the OpenSSL `RSA` instance.
+// Attaches an `RsaKey` instance to the OpenSSL `RSA` instance. Returns an
+// error `Status` if an error occurred.
 Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa);
 
 // Returns a raw pointer to the `RsaKey` instance attacked to the given
 // OpenSSL `RSA` struct. Raw pointer will never be null (if the underlying
-// external data is null, then an error status is returned.)
+// external data is null, then an error `Status` is returned.)
 //
 // Attached data is only defined by a previous call to `AttachRsaKeyToRSA`.
 StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa);
 
-// Attaches an `Client` instance to the OpenSSL `RSA` instance.
+// Attaches an `Client` instance to the OpenSSL `RSA` instance. Returns an
+// error `Status` if an error occurred.
 Status AttachEngineDataToOpenSslEngine(EngineData *client, ENGINE *engine);
 
 // Returns a raw pointer to the `EngineData` instance attacked to the given
 // OpenSSL `ENGINE` struct, or an error status. Raw pointer will never be null
-// (if the underlying external data is null, then an error status is returned.)
+// (if the underlying external data is null, then an error `Status` is
+// returned.)
 //
 // Attached data is only defined by a previous call to `AttachClientToENGINE`.
 StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine);

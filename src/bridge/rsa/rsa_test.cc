@@ -130,7 +130,7 @@ TEST_F(RsaMethodTest, SignHandlesMissingRsaKeys) {
   unsigned int msg_length = std::strlen(reinterpret_cast<char *>(msg));
   EXPECT_OPENSSL_FAILURE(
       RSA_sign(NID_sha256, msg, msg_length, nullptr, nullptr, rsa.get()),
-      "No Cloud KMS key associated with RSA struct");
+      "RSA instance was not initialized with Cloud KMS data");
 }
 
 TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
