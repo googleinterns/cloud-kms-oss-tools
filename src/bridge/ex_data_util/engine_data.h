@@ -50,7 +50,7 @@ class EngineData {
 
   // Returns a reference to the `backing::Client` associated with the
   // `EngineData`.
-  inline backing::Client &client() const { return *client_; }
+  inline backing::Client const& client() const { return *client_; }
 
   // Returns a raw pointer to the engine's `RSA_METHOD`.
   //
