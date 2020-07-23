@@ -48,7 +48,7 @@ class ClientContextFactory {
   // This method does not directly return a `grpc::ClientContext` instance
   // since `grpc::ClientContext` is non-movable. (See discussion at
   // https://github.com/grpc/grpc/issues/16680.)
-  virtual std::unique_ptr<grpc::ClientContext> MakeContext() = 0;
+  virtual std::unique_ptr<grpc::ClientContext> MakeContext() const = 0;
 
  protected:
   ClientContextFactory() = default;
