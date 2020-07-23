@@ -29,7 +29,7 @@ class MockClientContextFactory :
     public ::kmsengine::backing::grpc_client::ClientContextFactory {
  public:
   MOCK_METHOD(std::unique_ptr<grpc::ClientContext>, MakeContext, (),
-              (override));
+              (const, override));
 };
 
 }  // namespace testing_util
