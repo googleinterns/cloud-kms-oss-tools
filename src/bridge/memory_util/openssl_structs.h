@@ -48,10 +48,6 @@ namespace bridge {
 
 // Smart pointer wrapper around OpenSSL's ENGINE struct. Just an alias for
 // convenience.
-using OpenSslBignum = std::unique_ptr<BIGNUM, decltype(&BN_free)>;
-
-// Smart pointer wrapper around OpenSSL's ENGINE struct. Just an alias for
-// convenience.
 using OpenSslEngine = std::unique_ptr<ENGINE, decltype(&ENGINE_free)>;
 
 // Smart pointer wrapper around OpenSSL's EVP_PKEY struct. Just an alias for
@@ -63,6 +59,11 @@ using OpenSslEvpPkey = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
 using OpenSslEvpPkeyContext = std::unique_ptr<EVP_PKEY_CTX,
                                               decltype(&EVP_PKEY_CTX_free)>;
 
+// Smart pointer wrapper around OpenSSL's EVP_MD_CTX struct. Just an alias for
+// convenience.
+using OpenSslEvpDigestContext = std::unique_ptr<EVP_MD_CTX,
+                                              decltype(&EVP_MD_CTX_free)>;
+
 // Smart pointer wrapper around OpenSSL's RSA struct. Just an alias for
 // convenience.
 using OpenSslRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
@@ -70,15 +71,6 @@ using OpenSslRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
 // Smart pointer wrapper around OpenSSL's RSA_METHOD struct. Just an alias for
 // convenience.
 using OpenSslRsaMethod = std::unique_ptr<RSA_METHOD, decltype(&RSA_meth_free)>;
-
-// Constructs a `std::unique_ptr` object which owns a fresh BIGNUM instance.
-// May return `nullptr` if no memory is available.
-//
-// The OpenSSL `BN_free` function is automatically called to dispose
-// of the underlying BIGNUM instance when the pointer goes out of scope.
-inline OpenSslBignum MakeBignum() {
-  return OpenSslBignum(BN_new(), &BN_free);
-}
 
 // Constructs a `std::unique_ptr` object which owns a fresh ENGINE instance.
 // May return `nullptr` if no memory is available.
@@ -105,6 +97,15 @@ inline OpenSslEvpPkey MakeEvpPkey() {
 // of the underlying EVP_PKEY_CTX instance when the pointer goes out of scope.
 inline OpenSslEvpPkeyContext MakeEvpPkeyContext(EVP_PKEY *pkey, ENGINE *e) {
   return OpenSslEvpPkeyContext(EVP_PKEY_CTX_new(pkey, e), &EVP_PKEY_CTX_free);
+}
+
+// Constructs a `std::unique_ptr` object which owns a fresh EVP_MD_CTX
+// instance. May return `nullptr` if no memory is available.
+//
+// The OpenSSL `EVP_MD_CTX_free` function is automatically called to dispose
+// of the underlying EVP_MD_CTX instance when the pointer goes out of scope.
+inline OpenSslEvpDigestContext MakeEvpDigestContext() {
+  return OpenSslEvpDigestContext(EVP_MD_CTX_new(), &EVP_MD_CTX_free);
 }
 
 // Constructs a `std::unique_ptr` object which owns a fresh RSA instance.
