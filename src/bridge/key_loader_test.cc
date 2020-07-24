@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+#include <iostream>
+
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <openssl/evp.h>
@@ -72,6 +74,7 @@ constexpr CryptoKeyVersionAlgorithm kUnsupportedAlgorithms[] = {
 };
 
 constexpr char kKeyResourceId[] = "resource_id";
+constexpr char kSignature[] = "mysignature";
 
 TEST(KeyLoaderTest, HandlesBadEngineData) {
   EXPECT_THAT(InitExternalIndicies(), IsOk());
@@ -116,8 +119,12 @@ INSTANTIATE_TEST_SUITE_P(RsaAlgorithmParameters, RsaKeyLoaderTest,
 TEST_P(RsaKeyLoaderTest, LoadPrivateKey) {
   auto client = absl::make_unique<MockClient>();
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
+  EXPECT_CALL(*client, AsymmetricSign)
+      .WillRepeatedly(Return(std::string(kSignature)));
 
   auto rsa_method = rsa::MakeKmsRsaMethod();
+  ASSERT_OPENSSL_SUCCESS(ENGINE_set_RSA(engine(), rsa_method.get()));
+
   auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data, engine()), IsOk());
 
@@ -139,7 +146,124 @@ TEST_P(RsaKeyLoaderTest, LoadPrivateKey) {
               StrEq(kKeyResourceId))
       << "RsaKey should contain the key resource ID loaded in LoadPrivateKey";
 
+  unsigned char digest[] = "sample digest";
+  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
+
+  unsigned int signature_length;
+  ASSERT_OPENSSL_SUCCESS(RSA_sign(NID_sha256, digest, digest_length, nullptr,
+                                  &signature_length, rsa));
+
+  std::string signature(signature_length, '\0');
+  ASSERT_OPENSSL_SUCCESS(
+      RSA_sign(NID_sha256, digest, digest_length,
+               reinterpret_cast<unsigned char *>(&signature[0]),
+               &signature_length, rsa));
+
+  EXPECT_THAT(signature, StrEq(kSignature))
+      << "Client attached to EngineData should have been used in RSA_sign "
+         "operation";
+
   RSA_free(rsa);
+  EVP_PKEY_free(evp_pkey);
+  delete engine_data;
+}
+
+TEST_P(RsaKeyLoaderTest, EvpPkeyTest) {
+  auto client = absl::make_unique<MockClient>();
+  EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
+  EXPECT_CALL(*client, AsymmetricSign)
+      .WillOnce(Return(std::string(kSignature)));
+
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+  ASSERT_OPENSSL_SUCCESS(ENGINE_set_RSA(engine(), rsa_method.get()));
+
+  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data, engine()), IsOk());
+
+  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
+  ASSERT_THAT(evp_pkey, Not(IsNull()));
+
+  ASSERT_OPENSSL_SUCCESS(EVP_PKEY_CTX_new(evp_pkey, engine()));
+}
+
+TEST_P(RsaKeyLoaderTest, EvpPkeyFull) {
+  auto client = absl::make_unique<MockClient>();
+  EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
+  EXPECT_CALL(*client, AsymmetricSign)
+      .WillOnce(Return(std::string(kSignature)));
+
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+  ASSERT_OPENSSL_SUCCESS(ENGINE_set_RSA(engine(), rsa_method.get()));
+
+  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data, engine()), IsOk());
+
+  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
+  ASSERT_THAT(evp_pkey, Not(IsNull()));
+
+  auto sign_context = MakeEvpPkeyContext(evp_pkey, engine());
+  ASSERT_THAT(sign_context, Not(IsNull()));
+
+  ASSERT_OPENSSL_SUCCESS(EVP_PKEY_sign_init(sign_context.get()));
+  ASSERT_OPENSSL_SUCCESS(EVP_PKEY_CTX_set_signature_md(sign_context.get(),
+                                                       EVP_sha256()));
+
+  unsigned char digest[] = "sample digest";
+  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
+  size_t signature_length = 0;
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_PKEY_sign(sign_context.get(), nullptr, &signature_length, digest,
+                    digest_length));
+
+  std::cout << signature_length << std::endl;
+  std::string signature(signature_length, '\0');
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_PKEY_sign(sign_context.get(),
+                    reinterpret_cast<unsigned char *>(&signature[0]),
+                    &signature_length, digest, digest_length));
+
+  std::cout << signature << std::endl;
+
+  sign_context.reset();
+  EVP_PKEY_free(evp_pkey);
+  delete engine_data;
+}
+
+TEST_P(RsaKeyLoaderTest, EvpMdPkeyFull) {
+  auto client = absl::make_unique<MockClient>();
+  EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
+  EXPECT_CALL(*client, AsymmetricSign)
+      .WillOnce(Return(std::string(kSignature)));
+
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+  ASSERT_OPENSSL_SUCCESS(ENGINE_set_RSA(engine(), rsa_method.get()));
+
+  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data, engine()), IsOk());
+
+  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
+  ASSERT_THAT(evp_pkey, Not(IsNull()));
+
+  auto context = EVP_MD_CTX_new();
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSignInit(context, nullptr, EVP_sha256(), nullptr, evp_pkey));
+
+  unsigned char digest[] = "sample digest";
+  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
+  ASSERT_OPENSSL_SUCCESS(EVP_DigestSignUpdate(context, digest, digest_length));
+
+  size_t signature_length;
+  ASSERT_OPENSSL_SUCCESS(EVP_DigestSignFinal(context, nullptr,
+                                             &signature_length));
+
+  std::string signature(signature_length, '\0');
+  auto signature_pointer = reinterpret_cast<unsigned char *>(&signature[0]);
+  ASSERT_OPENSSL_SUCCESS(EVP_DigestSignFinal(context, signature_pointer,
+                                             &signature_length));
+
+  EXPECT_THAT(signature, StrEq(kSignature));
+  EXPECT_EQ(signature_length, std::strlen(kSignature));
+
   EVP_PKEY_free(evp_pkey);
   delete engine_data;
 }
@@ -154,6 +278,8 @@ TEST_P(EcKeyLoaderTest, LoadPrivateKey) {
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
 
   auto rsa_method = rsa::MakeKmsRsaMethod();
+  ASSERT_OPENSSL_SUCCESS(ENGINE_set_RSA(engine(), rsa_method.get()));
+
   auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data, engine()), IsOk());
 

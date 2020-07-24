@@ -58,6 +58,42 @@ using ::kmsengine::backing::RsaKey;
     __lhs, __rhs,                                                   \
     __KMSENGINE_MACRO_CONCAT(__status_or_value, __COUNTER__))
 
+StatusOr<OpenSslBignum> MakeZeroBignum() {
+  auto bignum = MakeBignum();
+  if (bignum == nullptr) {
+    return Status(StatusCode::kResourceExhausted, "no memory available");
+  }
+  BN_zero(bignum.get());
+  return bignum;
+}
+
+StatusOr<OpenSslRsa> MakeRsaWithInitializedBignumFields() {
+  // We initialize these as smart pointers even though we have to eventually
+  // release them to OpenSSL as raw pointers since it simplifies cleanup in
+  // the error cases.
+  KMSENGINE_ASSIGN_OR_RETURN(auto n, MakeZeroBignum());
+  BN_set_word(n.get(), 2048);
+
+  KMSENGINE_ASSIGN_OR_RETURN(auto e, MakeZeroBignum());
+  KMSENGINE_ASSIGN_OR_RETURN(auto d, MakeZeroBignum());
+  KMSENGINE_ASSIGN_OR_RETURN(auto p, MakeZeroBignum());
+  KMSENGINE_ASSIGN_OR_RETURN(auto q, MakeZeroBignum());
+  KMSENGINE_ASSIGN_OR_RETURN(auto dmp1, MakeZeroBignum());
+  KMSENGINE_ASSIGN_OR_RETURN(auto dmq1, MakeZeroBignum());
+  KMSENGINE_ASSIGN_OR_RETURN(auto iqmp, MakeZeroBignum());
+
+  auto rsa = MakeRsa();
+  if (rsa == nullptr) {
+    return Status(StatusCode::kResourceExhausted, "no memory available");
+  }
+
+  RSA_set0_key(rsa.get(), n.release(), e.release(), d.release());
+  RSA_set0_factors(rsa.get(), p.release(), q.release());
+  RSA_set0_crt_params(rsa.get(), dmp1.release(), dmq1.release(),
+                      iqmp.release());
+  return rsa;
+}
+
 // Creates an `OpenSslRsa` initialized with a `KmsRsaKey` and the `RSA_METHOD`
 // attached to `engine_data, or returns an error `Status`.
 //
@@ -65,10 +101,7 @@ using ::kmsengine::backing::RsaKey;
 // `engine_data` and the input `key_resource_id`.
 StatusOr<OpenSslRsa> MakeRsaWithKmsKey(EngineData *engine_data,
                                        std::string key_resource_id) {
-  // We initialize these as smart pointers even though we have to eventually
-  // release them to OpenSSL as raw pointers since it simplifies cleanup in
-  // the error cases.
-  auto rsa = MakeRsa();
+  KMSENGINE_ASSIGN_OR_RETURN(auto rsa, MakeRsaWithInitializedBignumFields());
   auto rsa_key = std::unique_ptr<RsaKey>(new KmsRsaKey(key_resource_id,
                                                        engine_data->client()));
   if (rsa == nullptr || rsa_key == nullptr) {

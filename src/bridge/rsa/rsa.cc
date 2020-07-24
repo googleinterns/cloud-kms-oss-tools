@@ -94,8 +94,12 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto signature, rsa_key->Sign(digest_type, digest));
 
-  signature.copy(reinterpret_cast<char *>(sigret), signature.length());
-  *siglen = signature.length();
+  // Copy results into the return pointers.
+  if (sigret != nullptr) {
+    signature.copy(reinterpret_cast<char *>(sigret), signature.length());
+  }
+  if (siglen != nullptr) *siglen = signature.length();
+
   return true;
 }
 
@@ -122,11 +126,11 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
   auto rsa_method = MakeRsaMethod(kRsaMethodName, kRsaMethodFlags);
   if (!rsa_method) return OpenSslRsaMethod(nullptr, nullptr);
 
-  // TODO(zesp): Investigate `PublicEncrypt` and `PublicDecrypt` are 
+  // TODO(zesp): Investigate `PublicEncrypt` and `PublicDecrypt` are
   // necessary given Sign and Verify.
   //
   // It may be sufficient for `PublicEncrypt` and `PublicDecrypt` to redirect
-  // to `Sign` and `Verify`. Conversely, it may be impossible for them to be 
+  // to `Sign` and `Verify`. Conversely, it may be impossible for them to be
   // used with the engine since the OpenSSL specification for `rsa_pub_enc` and
   // `rsa_pub_dec` does not guarantee that the input will be a valid digest
   // (in fact, the documentation suggests using these functions for signing
