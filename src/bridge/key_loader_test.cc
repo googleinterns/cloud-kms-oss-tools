@@ -74,7 +74,7 @@ constexpr CryptoKeyVersionAlgorithm kUnsupportedAlgorithms[] = {
 };
 
 constexpr char kKeyResourceId[] = "resource_id";
-constexpr char kSignature[] = "mysignature";
+const std::string kSignature = "signature";
 
 TEST(KeyLoaderTest, HandlesBadEngineData) {
   EXPECT_THAT(InitExternalIndicies(), IsOk());
@@ -120,7 +120,7 @@ TEST_P(RsaKeyLoaderTest, LoadPrivateKey) {
   auto client = absl::make_unique<MockClient>();
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
   EXPECT_CALL(*client, AsymmetricSign)
-      .WillRepeatedly(Return(std::string(kSignature)));
+      .WillRepeatedly(Return(kSignature));
 
   auto rsa_method = rsa::MakeKmsRsaMethod();
   ASSERT_OPENSSL_SUCCESS(ENGINE_set_RSA(engine(), rsa_method.get()));
@@ -172,7 +172,7 @@ TEST_P(RsaKeyLoaderTest, EvpPkeyTest) {
   auto client = absl::make_unique<MockClient>();
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
   EXPECT_CALL(*client, AsymmetricSign)
-      .WillOnce(Return(std::string(kSignature)));
+      .WillOnce(Return(kSignature));
 
   auto rsa_method = rsa::MakeKmsRsaMethod();
   ASSERT_OPENSSL_SUCCESS(ENGINE_set_RSA(engine(), rsa_method.get()));
@@ -190,7 +190,7 @@ TEST_P(RsaKeyLoaderTest, EvpPkeyFull) {
   auto client = absl::make_unique<MockClient>();
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
   EXPECT_CALL(*client, AsymmetricSign)
-      .WillOnce(Return(std::string(kSignature)));
+      .WillOnce(Return(kSignature));
 
   auto rsa_method = rsa::MakeKmsRsaMethod();
   ASSERT_OPENSSL_SUCCESS(ENGINE_set_RSA(engine(), rsa_method.get()));
@@ -208,19 +208,22 @@ TEST_P(RsaKeyLoaderTest, EvpPkeyFull) {
   ASSERT_OPENSSL_SUCCESS(EVP_PKEY_CTX_set_signature_md(sign_context.get(),
                                                        EVP_sha256()));
 
-  unsigned char digest[] = "sample digest";
-  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
-  size_t signature_length = 0;
+  std::string digest = "digest";
+  size_t signature_length;
   ASSERT_OPENSSL_SUCCESS(
-      EVP_PKEY_sign(sign_context.get(), nullptr, &signature_length, digest,
-                    digest_length));
+      EVP_PKEY_sign(sign_context.get(), nullptr, &signature_length,
+                    reinterpret_cast<unsigned char *>(&digest[0]),
+                    digest.length()));
 
   std::cout << signature_length << std::endl;
+
   std::string signature(signature_length, '\0');
   ASSERT_OPENSSL_SUCCESS(
       EVP_PKEY_sign(sign_context.get(),
                     reinterpret_cast<unsigned char *>(&signature[0]),
-                    &signature_length, digest, digest_length));
+                    &signature_length,
+                    reinterpret_cast<unsigned char *>(&digest[0]),
+                    digest.length()));
 
   std::cout << signature << std::endl;
 
@@ -233,7 +236,7 @@ TEST_P(RsaKeyLoaderTest, EvpMdPkeyFull) {
   auto client = absl::make_unique<MockClient>();
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
   EXPECT_CALL(*client, AsymmetricSign)
-      .WillOnce(Return(std::string(kSignature)));
+      .WillOnce(Return(kSignature));
 
   auto rsa_method = rsa::MakeKmsRsaMethod();
   ASSERT_OPENSSL_SUCCESS(ENGINE_set_RSA(engine(), rsa_method.get()));
@@ -244,25 +247,34 @@ TEST_P(RsaKeyLoaderTest, EvpMdPkeyFull) {
   auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
   ASSERT_THAT(evp_pkey, Not(IsNull()));
 
+  std::cout << "Size: " << EVP_PKEY_size(evp_pkey) << std::endl;
+
   auto context = EVP_MD_CTX_new();
   ASSERT_OPENSSL_SUCCESS(
       EVP_DigestSignInit(context, nullptr, EVP_sha256(), nullptr, evp_pkey));
 
-  unsigned char digest[] = "sample digest";
-  unsigned int digest_length = std::strlen(reinterpret_cast<char *>(digest));
-  ASSERT_OPENSSL_SUCCESS(EVP_DigestSignUpdate(context, digest, digest_length));
+  std::string digest = "digest";
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSignUpdate(context,
+                           reinterpret_cast<unsigned char *>(&digest[0]),
+                           digest.length()));
 
+  // OpenSSL recommends calling `EVP_DigestSignFinal` twice; once to get the
+  // `signature_length` so the caller knows how much memory to allocate, and
+  // the second time to get the actual signature. This test case reflects this
+  // standard usage of the API.
   size_t signature_length;
-  ASSERT_OPENSSL_SUCCESS(EVP_DigestSignFinal(context, nullptr,
-                                             &signature_length));
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSignFinal(context, nullptr, &signature_length));
 
   std::string signature(signature_length, '\0');
-  auto signature_pointer = reinterpret_cast<unsigned char *>(&signature[0]);
-  ASSERT_OPENSSL_SUCCESS(EVP_DigestSignFinal(context, signature_pointer,
-                                             &signature_length));
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSignFinal(context,
+                          reinterpret_cast<unsigned char *>(&signature[0]),
+                          &signature_length));
 
   EXPECT_THAT(signature, StrEq(kSignature));
-  EXPECT_EQ(signature_length, std::strlen(kSignature));
+  EXPECT_EQ(signature_length, kSignature.length());
 
   EVP_PKEY_free(evp_pkey);
   delete engine_data;
