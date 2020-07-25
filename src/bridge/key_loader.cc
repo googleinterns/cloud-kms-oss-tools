@@ -190,17 +190,21 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
       }
     case CryptoKeyVersionAlgorithm::kEcSignP256Sha256:
     case CryptoKeyVersionAlgorithm::kEcSignP384Sha384:
-      // TODO(zesp): Implement ECDSA. Can reuse `RsaKey` for this since the
-      // backing layer is exactly the same; probably should refactor
-      // `RsaKey` to be called some generic name instead.
-      KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kUnimplemented,
-          "ECDSA not yet implemented"));
-      break;
+      {
+        // TODO(zesp): Implement ECDSA. Can reuse `RsaKey` for this since the
+        // backing layer is exactly the same; probably should refactor
+        // `RsaKey` to be called some generic name instead.
+        KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kUnimplemented,
+            "ECDSA not yet implemented"));
+        break;
+      }
     default:
-      KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
-          "Cloud KMS key had unsupported type " +
-          CryptoKeyVersionAlgorithmToString(public_key.algorithm())));
-      break;
+      {
+        KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
+            "Cloud KMS key had unsupported type " +
+            CryptoKeyVersionAlgorithmToString(public_key.algorithm())));
+        break;
+      }
   }
 
   return evp_pkey.release();
