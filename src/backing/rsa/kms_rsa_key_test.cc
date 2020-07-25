@@ -43,7 +43,7 @@ TEST(KmsRsaKeyTest, SignSuccess) {
       .Times(1)
       .WillOnce(Return(StatusOr<std::string>(expected_signature)));
 
-  KmsRsaKey key(kSampleKeyResourceId, &client);
+  KmsRsaKey key(kSampleKeyResourceId, client);
   auto result = key.Sign(DigestCase::kSha256, "my digest");
   EXPECT_THAT(result, IsOk());
   EXPECT_EQ(result.value(), expected_signature);
@@ -56,7 +56,7 @@ TEST(KmsRsaKeyTest, SignFailure) {
       .Times(1)
       .WillOnce(Return(StatusOr<std::string>(expected_status)));
 
-  KmsRsaKey key(kSampleKeyResourceId, &client);
+  KmsRsaKey key(kSampleKeyResourceId, client);
   auto result = key.Sign(DigestCase::kSha256, "my digest");
   EXPECT_THAT(result, Not(IsOk()));
   EXPECT_EQ(result.status(), expected_status);
@@ -70,7 +70,7 @@ TEST(KmsRsaKeyTest, GetPublicKeySuccess) {
       .Times(1)
       .WillOnce(Return(StatusOr<PublicKey>(expected)));
 
-  KmsRsaKey key(kSampleKeyResourceId, &client);
+  KmsRsaKey key(kSampleKeyResourceId, client);
   auto result = key.GetPublicKey();
   EXPECT_THAT(result, IsOk());
   EXPECT_EQ(result.value(), expected);
@@ -83,7 +83,7 @@ TEST(KmsRsaKeyTest, GetPublicKeyFailure) {
       .Times(1)
       .WillOnce(Return(StatusOr<PublicKey>(expected_status)));
 
-  KmsRsaKey key(kSampleKeyResourceId, &client);
+  KmsRsaKey key(kSampleKeyResourceId, client);
   auto result = key.GetPublicKey();
   EXPECT_THAT(result, Not(IsOk()));
   EXPECT_EQ(result.status(), expected_status);

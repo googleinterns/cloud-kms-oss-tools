@@ -103,6 +103,17 @@ Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
   return Status();
 }
 
+Status AttachRsaKeyToOpenSslRsa(std::unique_ptr<backing::RsaKey> rsa_key,
+                                RSA *rsa) {
+  auto rsa_key_pointer = rsa_key.release();
+  auto status = AttachRsaKeyToOpenSslRsa(rsa_key_pointer, rsa);
+  if (!status.ok()) {
+    delete rsa_key_pointer;
+    return status;
+  }
+  return Status();
+}
+
 StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
   auto ex_data = RSA_get_ex_data(rsa, index);

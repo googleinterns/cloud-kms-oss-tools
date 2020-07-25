@@ -40,6 +40,14 @@ TEST(OpenSslMakeTest, MakeEvpPkeySetsDeleter) {
   EXPECT_EQ(evp_pkey.get_deleter(), &EVP_PKEY_free);
 }
 
+TEST(OpenSslMakeTest, MakeEvpPkeyContextSetsDeleter) {
+  auto evp_pkey = MakeEvpPkey();
+  ASSERT_THAT(evp_pkey, Not(IsNull()));
+
+  auto context = MakeEvpPkeyContext(evp_pkey.get(), nullptr);
+  EXPECT_EQ(context.get_deleter(), &EVP_PKEY_CTX_free);
+}
+
 TEST(OpenSslStructsTest, MakeRsaSetsDeleter) {
   auto rsa = MakeRsa();
   ASSERT_THAT(rsa, Not(IsNull()));

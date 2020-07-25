@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 #include <openssl/engine.h>
 
 #include "absl/memory/memory.h"
@@ -51,6 +51,7 @@ TEST(EngineBindTest, InitializesExpectedEngineStructFields) {
   EXPECT_THAT(ENGINE_get_init_function(engine.get()), Not(IsNull()));
   EXPECT_THAT(ENGINE_get_finish_function(engine.get()), Not(IsNull()));
   EXPECT_THAT(ENGINE_get_destroy_function(engine.get()), Not(IsNull()));
+  EXPECT_THAT(ENGINE_get_load_privkey_function(engine), Not(IsNull()));
   EXPECT_TRUE(ENGINE_get_flags(engine.get()) & ENGINE_FLAGS_NO_REGISTER_ALL)
       << "ENGINE_FLAGS_NO_REGISTER_ALL should be set on EngineBind since "
          "Engine does not support all cryptography operations";

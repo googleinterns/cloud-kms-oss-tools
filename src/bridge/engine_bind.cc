@@ -22,6 +22,7 @@
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/engine_data.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
+#include "src/bridge/key_loader.h"
 #include "src/bridge/rsa/rsa.h"
 #include "src/backing/client/client_factory.h"
 
@@ -135,6 +136,7 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
   if (!ENGINE_set_id(e, kEngineId) ||
       !ENGINE_set_name(e, kEngineName) ||
       !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
+      !ENGINE_set_load_privkey_function(e, LoadPrivateKey) ||
       !ENGINE_set_init_function(e, EngineInit) ||
       !ENGINE_set_finish_function(e, EngineFinish) ||
       !ENGINE_set_destroy_function(e, EngineDestroy)) {

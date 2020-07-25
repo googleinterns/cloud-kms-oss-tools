@@ -32,6 +32,7 @@ cc_library(
     linkopts = ["-lcrypto"],
     deps = [
         ":engine_name",
+        ":key_loader",
         "//src/backing",
         "//src/bridge/error",
         "//src/bridge/ex_data_util",
@@ -44,17 +45,20 @@ cc_test(
     name = "engine_bind_test",
     size = "small",
     srcs = ["engine_bind_test.cc"],
+    linkopts = [
+        "-l:libcrypto.a",
+        "-ldl",
+    ],
     # Statically link in libcrypto in test environment only to avoid symbol
     # issues with BoringSSL which only appear in the test environment.
     linkstatic = True,
-    linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":engine_bind",
         "//src/bridge/memory_util:openssl_structs",
-        "//src/testing_util:mock_rsa_key",
         "//src/testing_util:mock_client",
-        "//src/testing_util:test_matchers",
+        "//src/testing_util:mock_rsa_key",
         "//src/testing_util:openssl_assertions",
+        "//src/testing_util:test_matchers",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
@@ -63,4 +67,42 @@ cc_test(
 cc_library(
     name = "engine_name",
     hdrs = ["engine_name.h"],
+)
+
+cc_library(
+    name = "key_loader",
+    srcs = ["key_loader.cc"],
+    hdrs = ["key_loader.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        "//src/backing",
+        "//src/bridge/error",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/memory_util:openssl_structs",
+    ],
+)
+
+cc_test(
+    name = "key_loader_test",
+    size = "small",
+    srcs = ["key_loader_test.cc"],
+    linkopts = [
+        "-l:libcrypto.a",
+        "-ldl",
+    ],
+    # Statically link in libcrypto in test environment only to avoid symbol
+    # issues with BoringSSL which only appear in the test environment.
+    linkstatic = True,
+    deps = [
+        ":key_loader",
+        "//src/bridge/ex_data_util:engine_data",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/bridge/rsa",
+        "//src/testing_util:mock_client",
+        "//src/testing_util:openssl_assertions",
+        "//src/testing_util:test_matchers",
+        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
