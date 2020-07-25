@@ -24,6 +24,7 @@
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 #include "src/bridge/ex_data_util/engine_data.h"
+#include "src/bridge/memory_util/openssl_structs.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -43,6 +44,8 @@ void FreeExternalIndicies();
 // Attaches an `RsaKey` instance to the OpenSSL `RSA` instance. Returns an
 // error `Status` if an error occurred.
 Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa);
+Status AttachRsaKeyToOpenSslRsa(std::unique_ptr<backing::RsaKey> rsa_key,
+                                RSA *rsa);
 
 // Returns a raw pointer to the `RsaKey` instance attacked to the given
 // OpenSSL `RSA` struct. Raw pointer will never be null (if the underlying

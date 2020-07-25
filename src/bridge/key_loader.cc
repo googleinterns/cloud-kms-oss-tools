@@ -31,6 +31,9 @@ namespace {
 
 using ::kmsengine::backing::KmsRsaKey;
 using ::kmsengine::backing::RsaKey;
+using ::kmsengine::backing::PublicKey;
+using ::kmsengine::backing::Client;
+using ::kmsengine::backing::CryptoKeyVersionAlgorithm;
 
 // Implementation of `KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR` that uses
 // a unique temporary identifier for avoiding collision in the enclosing scope.
@@ -58,89 +61,13 @@ using ::kmsengine::backing::RsaKey;
     __lhs, __rhs,                                                   \
     __KMSENGINE_MACRO_CONCAT(__status_or_value, __COUNTER__))
 
-// StatusOr<OpenSslBignum> MakeZeroBignum() {
-//   auto bignum = MakeBignum();
-//   if (bignum == nullptr) {
-//     return Status(StatusCode::kResourceExhausted, "no memory available");
-//   }
-//   BN_set_word(bignum.get(), 0);
-//   return bignum;
-// }
-
-// StatusOr<OpenSslRsa> MakeRsaWithInitializedBignumFields() {
-//   // We initialize these as smart pointers even though we have to eventually
-//   // release them to OpenSSL as raw pointers since it simplifies cleanup in
-//   // the error cases.
-//   KMSENGINE_ASSIGN_OR_RETURN(auto n, MakeZeroBignum());
-//   BN_set_word(n.get(), 99999999);
-
-//   KMSENGINE_ASSIGN_OR_RETURN(auto e, MakeZeroBignum());
-//   KMSENGINE_ASSIGN_OR_RETURN(auto d, MakeZeroBignum());
-//   KMSENGINE_ASSIGN_OR_RETURN(auto p, MakeZeroBignum());
-//   KMSENGINE_ASSIGN_OR_RETURN(auto q, MakeZeroBignum());
-//   KMSENGINE_ASSIGN_OR_RETURN(auto dmp1, MakeZeroBignum());
-//   KMSENGINE_ASSIGN_OR_RETURN(auto dmq1, MakeZeroBignum());
-//   KMSENGINE_ASSIGN_OR_RETURN(auto iqmp, MakeZeroBignum());
-
-//   auto rsa = MakeRsa();
-//   if (rsa == nullptr) {
-//     return Status(StatusCode::kResourceExhausted, "no memory available");
-//   }
-
-//   RSA_set0_key(rsa.get(), n.release(), e.release(), d.release());
-//   RSA_set0_factors(rsa.get(), p.release(), q.release());
-//   RSA_set0_crt_params(rsa.get(), dmp1.release(), dmq1.release(),
-//                       iqmp.release());
-//   return rsa;
-// }
-
-// Creates an `OpenSslRsa` initialized with a `KmsRsaKey` and the `RSA_METHOD`
-// attached to `engine_data, or returns an error `Status`.
+// Creates an `OpenSslRsa` from the input `PublicKey`.
 //
-// The underlying `KmsRsaKey` is initialized using the `Client` attached to
-// `engine_data` and the input `key_resource_id`.
-StatusOr<OpenSslRsa> MakeRsaWithKmsKey(OpenSslRsa rsa,
-                                       EngineData *engine_data,
-                                       std::string key_resource_id) {
-  auto rsa_key = std::unique_ptr<RsaKey>(new KmsRsaKey(key_resource_id,
-                                                       engine_data->client()));
-  if (rsa == nullptr || rsa_key == nullptr) {
-    return Status(StatusCode::kResourceExhausted, "No memory available");
-  }
-
-  if (!RSA_set_method(rsa.get(), engine_data->rsa_method())) {
-    return Status(StatusCode::kInternal, "RSA_set_method failed");
-  }
-
-  // If successful, pass ownership of `RsaKey` to the `RSA` struct.
-  KMSENGINE_RETURN_IF_ERROR(AttachRsaKeyToOpenSslRsa(rsa_key.get(), rsa.get()));
-  rsa_key.release();
-  return rsa;
-}
-
-// Creates an `OpenSslEvpPkey` with the underlying pkey as the input
-// `OpenSslRsa`, or returns an error `Status`.
+// The `RSA` struct contained within the returned `OpenSslRsa` will have its
+// public key parameters set to the values from the PEM-encoded `public_key`.
 //
-// The resulting `EVP_PKEY` will have `EVP_PKEY_type(pkey) == EVP_PKEY_RSA`.
-StatusOr<OpenSslEvpPkey> MakeRsaEvpPkey(OpenSslRsa rsa) {
-  // We initialize `EVP_PKEY` as a smart pointer even though we have to
-  // eventually release it to OpenSSL as a raw pointer since it simplifies
-  // cleanup in the error cases.
-  auto evp_pkey = MakeEvpPkey();
-  if (evp_pkey == nullptr) {
-    return Status(StatusCode::kResourceExhausted, "No memory available");
-  }
-
-  // Once we assign the `RSA` struct to the `EVP_PKEY`, the `EVP_PKEY` assumes
-  // ownership of `RSA` so we need to release the smart pointer here.
-  if (!EVP_PKEY_assign_RSA(evp_pkey.get(), rsa.get())) {
-    return Status(StatusCode::kInternal, "EVP_PKEY_assign_RSA failed");
-  }
-  rsa.release();
-  return evp_pkey;
-}
-
-StatusOr<OpenSslRsa> MakeRsaFromPublicKey(backing::PublicKey public_key) {
+// Returns an error `Status` if unsuccessful.
+StatusOr<OpenSslRsa> MakeOpenSslRsaFromPublicKey(PublicKey public_key) {
   // Generates a "memory buffer" using `BIO` (OpenSSL's representation of a
   // file or data stream) and loads the public key data into it.
   auto pem_pointer = static_cast<const void *>(public_key.pem().c_str());
@@ -165,6 +92,74 @@ StatusOr<OpenSslRsa> MakeRsaFromPublicKey(backing::PublicKey public_key) {
   return OpenSslRsa(rsa, &RSA_free);
 }
 
+// Helper function to create a `KmsRsaKey` and memory check it. Returns a
+// non-null `RsaKey` unique pointer, or an error `Status`.
+StatusOr<std::unique_ptr<RsaKey>> MakeKmsRsaKey(std::string key_resource_id,
+                                                Client const& client) {
+  auto kms_rsa_key = new KmsRsaKey(key_resource_id, client);
+  if (kms_rsa_key == nullptr) {
+    return Status(StatusCode::kResourceExhausted, "No memory available");
+  }
+  return std::unique_ptr<RsaKey>(kms_rsa_key);
+}
+
+// Creates an `OpenSslEvpPkey` with the underlying pkey as the input
+// `OpenSslRsa`, or returns an error `Status`.
+//
+// The resulting `EVP_PKEY` will have `EVP_PKEY_type(pkey) == EVP_PKEY_RSA`.
+StatusOr<OpenSslEvpPkey> MakeRsaEvpPkey(OpenSslRsa rsa) {
+  // We initialize `EVP_PKEY` as a smart pointer even though we have to
+  // eventually release it to OpenSSL as a raw pointer since it simplifies
+  // cleanup in the error cases.
+  auto evp_pkey = MakeEvpPkey();
+  if (evp_pkey == nullptr) {
+    return Status(StatusCode::kResourceExhausted, "No memory available");
+  }
+
+  // Once we assign the `RSA` struct to the `EVP_PKEY`, the `EVP_PKEY` assumes
+  // ownership of `RSA` so we need to release the smart pointer here.
+  if (!EVP_PKEY_assign_RSA(evp_pkey.get(), rsa.get())) {
+    return Status(StatusCode::kInternal, "EVP_PKEY_assign_RSA failed");
+  }
+  rsa.release();
+  return evp_pkey;
+}
+
+// Creates an `OpenSslEvpPkey` where the underlying `EVP_PKEY` has type
+// `EVP_PKEY_RSA` from the input parameters.
+//
+// Since the `EVP_PKEY` has type `EVP_PKEY_RSA`, it will be backed by a `RSA`
+// struct. The `RSA` struct will:
+//
+//    - Have its internal `RSA_METHOD` implementation point to the Cloud KMS
+//      engine's implementation.
+//
+//    - Be backed by a `KmsRsaKey` that contains the input `key_resource_id`
+//      and a reference to the `Client` from the input `engine_data`, such that
+//      cryptography operations performed on the `RSA` struct will launch
+//      Cloud KMS API requests for the given `key_resource_id`.
+//
+// If unsuccessful, returns an error `Status`.
+StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(PublicKey public_key,
+                                           std::string key_resource_id,
+                                           EngineData *engine_data) {
+  KMSENGINE_ASSIGN_OR_RETURN(
+      auto rsa, MakeOpenSslRsaFromPublicKey(public_key));
+  KMSENGINE_ASSIGN_OR_RETURN(
+      auto rsa_key, MakeKmsRsaKey(key_resource_id, engine_data->client()));
+  KMSENGINE_RETURN_IF_ERROR(
+      AttachRsaKeyToOpenSslRsa(std::move(rsa_key), rsa.get()));
+
+  // Attach the engine `RSA_METHOD` implementation to the `RSA` struct so
+  // cryptography operations performed with the `RSA` struct delegate to the
+  // engine's implementations.
+  if (!RSA_set_method(rsa.get(), engine_data->rsa_method())) {
+    return Status(StatusCode::kInternal, "RSA_set_method failed");
+  }
+
+  return MakeRsaEvpPkey(std::move(rsa));
+}
+
 }  // namespace
 
 EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
@@ -174,8 +169,7 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto public_key, engine_data->client().GetPublicKey(key_id));
 
-
-  using CryptoKeyVersionAlgorithm = backing::CryptoKeyVersionAlgorithm;
+  OpenSslEvpPkey evp_pkey(nullptr, nullptr);
   switch (public_key.algorithm()) {
     case CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256:
     case CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256:
@@ -187,12 +181,8 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
     case CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512:
       {
         KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-            auto rsa, MakeRsaFromPublicKey(public_key));
-        KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-            auto kms_rsa, MakeRsaWithKmsKey(std::move(rsa), engine_data, key_id));
-        KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-            auto kms_evp_pkey, MakeRsaEvpPkey(std::move(kms_rsa)));
-        return kms_evp_pkey.release();
+            evp_pkey, MakeKmsRsaEvpPkey(public_key, key_id, engine_data));
+        break;
       }
     case CryptoKeyVersionAlgorithm::kEcSignP256Sha256:
     case CryptoKeyVersionAlgorithm::kEcSignP384Sha384:
@@ -202,14 +192,18 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
         // `RsaKey` to be called some generic name instead.
         KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kUnimplemented,
             "ECDSA not yet implemented"));
-        return nullptr;
+        break;
       }
     default:
-      KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
-          "Cloud KMS key had unsupported type " +
-          CryptoKeyVersionAlgorithmToString(public_key.algorithm())));
-      return nullptr;
+      {
+        KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
+            "Cloud KMS key had unsupported type " +
+            CryptoKeyVersionAlgorithmToString(public_key.algorithm())));
+        break;
+      }
   }
+
+  return evp_pkey.release();
 }
 
 #undef __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL
