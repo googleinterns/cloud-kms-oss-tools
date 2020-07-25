@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
+#include <memory>
+
 #include <openssl/engine.h>
 
+#include "src/backing/client/client.h"
 #include "src/backing/client/crypto_key_version_algorithm.h"
+#include "src/backing/client/public_key.h"
 #include "src/backing/rsa/kms_rsa_key.h"
 #include "src/backing/rsa/rsa_key.h"
 #include "src/backing/status/status.h"
@@ -29,11 +33,11 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
-using ::kmsengine::backing::KmsRsaKey;
-using ::kmsengine::backing::RsaKey;
-using ::kmsengine::backing::PublicKey;
 using ::kmsengine::backing::Client;
 using ::kmsengine::backing::CryptoKeyVersionAlgorithm;
+using ::kmsengine::backing::KmsRsaKey;
+using ::kmsengine::backing::PublicKey;
+using ::kmsengine::backing::RsaKey;
 
 // Implementation of `KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR` that uses
 // a unique temporary identifier for avoiding collision in the enclosing scope.
@@ -163,7 +167,7 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(PublicKey public_key,
 }  // namespace
 
 EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
-                         UI_METHOD *ui_method, void *callback_data) {
+                         UI_METHOD */*ui_method*/, void */*callback_data*/) {
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto engine_data, GetEngineDataFromOpenSslEngine(openssl_engine));
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(

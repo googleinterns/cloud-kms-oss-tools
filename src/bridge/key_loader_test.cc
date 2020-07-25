@@ -96,9 +96,17 @@ const std::string kSampleSignatures[] = {
       "ed41372b"),
   // Check that signing operations handle signatures containing null bytes.
   absl::HexStringToBytes(
-      "foobar"
+      "bababa"
       "000000000000000000000000000000000000000000000000000000000000000000000000"
-      "barfoo"),
+      "ababab"),
+  // Ends with null bytes.
+  absl::HexStringToBytes(
+      "bababa"
+      "0000000000000000000000000000000000000000000000000000000000000000000000"),
+  // Starts with null bytes and ends with non-null bytes.
+  absl::HexStringToBytes(
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "ababab"),
   // Check all null string.
   absl::HexStringToBytes(
       "0000000000000000000000000000000000000000000000000000000000000000000000"),
