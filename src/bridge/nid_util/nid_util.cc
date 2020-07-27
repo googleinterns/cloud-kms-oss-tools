@@ -14,26 +14,31 @@
  * limitations under the License.
  */
 
-#include "src/backing/rsa/kms_rsa_key.h"
+#include "src/bridge/nid_util/nid_util.h"
 
-#include <string>
+#include <openssl/obj_mac.h>
 
 #include "src/backing/client/digest_case.h"
-#include "src/backing/client/public_key.h"
+#include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 
 namespace kmsengine {
-namespace backing {
+namespace bridge {
 
-StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
-                                      std::string message_digest) const {
-  return client_.AsymmetricSign(key_resource_id(), digest_type,
-                                message_digest);
+using ::kmsengine::backing::DigestCase;
+
+StatusOr<DigestCase> ConvertOpenSslNidToDigestType(int nid) {
+  switch (nid) {
+    case NID_sha256:
+      return DigestCase::kSha256;
+    case NID_sha384:
+      return DigestCase::kSha384;
+    case NID_sha512:
+      return DigestCase::kSha512;
+    default:
+      return Status(StatusCode::kInvalidArgument, "Unsupported digest type");
+  }
 }
 
-StatusOr<PublicKey> KmsRsaKey::GetPublicKey() const {
-  return client_.GetPublicKey(key_resource_id());
-}
-
-}  // namespace backing
+}  // namespace bridge
 }  // namespace kmsengine
