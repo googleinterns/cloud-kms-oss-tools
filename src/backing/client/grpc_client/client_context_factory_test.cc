@@ -54,7 +54,6 @@ TEST_P(ClientContextFactoryTest, MakeContextSetsDeadline) {
   auto factory = CreateClientContextFactory(timeout_duration, fake_clock);
 
   // Some arbitrary amount of time passes after factory is instantiated.
-  SystemClock real_clock;
   SystemClock::time_point time(time_passed_after_factory_create);
   fake_clock->SetTime(time);
 
