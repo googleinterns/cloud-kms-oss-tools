@@ -38,6 +38,7 @@ class ClientContextFactoryTest : public testing::TestWithParam<
   // Purposely empty; no fixtures to instantiate.
 };
 
+// A `Range` of different times for testing purposes.
 const auto kTimeRange = Range(std::chrono::milliseconds(0),
                               std::chrono::milliseconds(1000),
                               std::chrono::milliseconds(50));
