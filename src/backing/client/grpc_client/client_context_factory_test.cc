@@ -15,6 +15,7 @@
  */
 
 #include <chrono>
+#include <tuple>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -30,25 +31,30 @@ namespace {
 using ::kmsengine::backing::client::testing_util::FakeSystemClock;
 using ::kmsengine::backing::client::SystemClock;
 using ::testing::Range;
+using ::testing::Combine;
 
-class ClientContextFactoryTest : public
-    testing::TestWithParam<std::chrono::milliseconds> {
+class ClientContextFactoryTest : public testing::TestWithParam<
+    std::tuple<std::chrono::milliseconds, std::chrono::milliseconds>> {
   // Purposely empty; no fixtures to instantiate.
 };
 
+const auto kTimeRange = Range(std::chrono::milliseconds(0),
+                              std::chrono::milliseconds(1000),
+                              std::chrono::milliseconds(50));
+
 INSTANTIATE_TEST_SUITE_P(DeadlineParameters, ClientContextFactoryTest,
-                         Range(std::chrono::milliseconds(0),
-                               std::chrono::milliseconds(1000),
-                               std::chrono::milliseconds(50)));
+                         Combine(kTimeRange, kTimeRange));
 
 TEST_P(ClientContextFactoryTest, MakeContextSetsDeadline) {
-  auto timeout_duration = GetParam();
+  const auto timeout_duration = std::get<0>(GetParam());
+  const auto time_passed_after_create = std::get<1>(GetParam());
+
   auto fake_clock = std::make_shared<FakeSystemClock>();
   auto factory = CreateClientContextFactory(timeout_duration, fake_clock);
 
   // Some arbitrary amount of time passes after factory is instantiated.
   SystemClock real_clock;
-  SystemClock::time_point time(real_clock.Now());
+  SystemClock::time_point time(time_passed_after_create);
   fake_clock->SetTime(time);
 
   std::unique_ptr<grpc::ClientContext> context = factory->MakeContext();
