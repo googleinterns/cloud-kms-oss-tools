@@ -31,6 +31,24 @@ TEST(PublicKeyTest, Basic) {
   EXPECT_EQ(key.algorithm(), CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256);
 }
 
+TEST(PublicKeyTest, Equality) {
+  EXPECT_EQ(PublicKey("A", CryptoKeyVersionAlgorithm::kEcSignP256Sha256),
+            PublicKey("A", CryptoKeyVersionAlgorithm::kEcSignP256Sha256))
+      << "Should be equal when pem and algorithm match";
+
+  EXPECT_NE(PublicKey("A", CryptoKeyVersionAlgorithm::kEcSignP256Sha256),
+            PublicKey("B", CryptoKeyVersionAlgorithm::kEcSignP256Sha256))
+      << "Should not be equal when pem does not match";
+
+  EXPECT_NE(PublicKey("A", CryptoKeyVersionAlgorithm::kAlgorithmUnspecified),
+            PublicKey("A", CryptoKeyVersionAlgorithm::kEcSignP256Sha256))
+      << "Should not be equal when algorithm does not match";
+
+  EXPECT_NE(PublicKey("A", CryptoKeyVersionAlgorithm::kEcSignP384Sha384),
+            PublicKey("B", CryptoKeyVersionAlgorithm::kEcSignP256Sha256))
+      << "Should not be equal when both pem and algorithm do not match";
+}
+
 }  // namespace
 }  // namespace backing
 }  // namespace kmsengine
