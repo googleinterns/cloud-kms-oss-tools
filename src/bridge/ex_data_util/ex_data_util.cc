@@ -96,6 +96,10 @@ void FreeExternalIndicies() {
 }
 
 Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
+  if (rsa == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "RSA cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
   if (!RSA_set_ex_data(rsa, index, static_cast<void *>(rsa_key))) {
     return Status(StatusCode::kInternal, "RSA_set_ex_data failed");
@@ -104,6 +108,10 @@ Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
 }
 
 StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
+  if (rsa == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "RSA cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
   auto ex_data = RSA_get_ex_data(rsa, index);
   if (ex_data == nullptr) {
@@ -114,6 +122,10 @@ StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
 }
 
 Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {
+  if (engine == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "ENGINE cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEngineIndex());
   if (!ENGINE_set_ex_data(engine, index, static_cast<void *>(data))) {
     return Status(StatusCode::kInternal, "ENGINE_set_ex_data failed");
@@ -122,6 +134,10 @@ Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {
 }
 
 StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine) {
+  if (engine == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "ENGINE cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEngineIndex());
   auto ex_data = ENGINE_get_ex_data(engine, index);
   if (ex_data == nullptr) {
