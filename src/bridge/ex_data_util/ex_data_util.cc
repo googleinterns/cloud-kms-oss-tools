@@ -34,17 +34,17 @@ namespace {
 // Represents an uninitialized OpenSSL external index. Value is -1 since
 // OpenSSL's `CRYPTO_get_ex_new_index` function for requesting external indicies
 // returns -1 on failure.
-constexpr int kUninitializedIndex = -1;
+static constexpr int kUninitializedIndex = -1;
 
 // External index assigned by OpenSSL on a `RSA` struct. If uninitialized, it
 // has value `kUninitializedIndex`. Used in `AttachRsaKeyToOpenSslRsa` and
 // `GetRsaKeyFromOpenSslRsa`.
-int rsa_index = kUninitializedIndex;
+static int rsa_index = kUninitializedIndex;
 
 // External index assigned by OpenSSL on a `ENGINE` struct. If uninitialized, it
 // has value `kUninitializedIndex`. Used in `AttachEngineDataToOpenSslEngine`
 // and `GetEngineDataFromOpenSslEngine`.
-int engine_index = kUninitializedIndex;
+static int engine_index = kUninitializedIndex;
 
 // Requests an external index from OpenSSL for the index type `index_type`.
 // Valid index types are the `CRYPTO_EX_INDEX_*` constants found in OpenSSL's
