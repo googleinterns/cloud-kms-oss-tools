@@ -36,10 +36,12 @@ using ::testing::ValuesIn;
 struct CorrespondingNid {
   int actual;
   DigestCase expected;
-} const kNidMapping[]{
-    {EVP_MD_type(EVP_sha256()), DigestCase::kSha256},
-    {EVP_MD_type(EVP_sha384()), DigestCase::kSha384},
-    {EVP_MD_type(EVP_sha512()), DigestCase::kSha512},
+};
+
+constexpr CorrespondingNid kNidMapping[] = {
+  {EVP_MD_type(EVP_sha256()), DigestCase::kSha256},
+  {EVP_MD_type(EVP_sha384()), DigestCase::kSha384},
+  {EVP_MD_type(EVP_sha512()), DigestCase::kSha512},
 };
 
 class ValidNidTest : public testing::TestWithParam<CorrespondingNid> {
