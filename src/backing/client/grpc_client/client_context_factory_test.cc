@@ -48,14 +48,14 @@ INSTANTIATE_TEST_SUITE_P(DeadlineParameters, ClientContextFactoryTest,
 
 TEST_P(ClientContextFactoryTest, MakeContextSetsDeadline) {
   const auto timeout_duration = std::get<0>(GetParam());
-  const auto time_passed_after_create = std::get<1>(GetParam());
+  const auto time_passed_after_factory_create = std::get<1>(GetParam());
 
   auto fake_clock = std::make_shared<FakeSystemClock>();
   auto factory = CreateClientContextFactory(timeout_duration, fake_clock);
 
   // Some arbitrary amount of time passes after factory is instantiated.
   SystemClock real_clock;
-  SystemClock::time_point time(time_passed_after_create);
+  SystemClock::time_point time(time_passed_after_factory_create);
   fake_clock->SetTime(time);
 
   std::unique_ptr<grpc::ClientContext> context = factory->MakeContext();
