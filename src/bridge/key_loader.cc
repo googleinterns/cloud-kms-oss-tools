@@ -16,7 +16,10 @@
 
 #include <memory>
 
-#include <openssl/engine.h>
+#include <openssl/pem.h>
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/rsa.h>
 
 #include "src/backing/client/client.h"
 #include "src/backing/client/crypto_key_version_algorithm.h"
