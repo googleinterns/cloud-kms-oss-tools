@@ -168,11 +168,18 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(PublicKey public_key,
 
 EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
                          UI_METHOD */*ui_method*/, void */*callback_data*/) {
+  std::cout << "LoadPrivateKey" << std::endl;
+
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto engine_data, GetEngineDataFromOpenSslEngine(openssl_engine));
+  std::cout << "data" << std::endl;
+  std::cout << key_id << std::endl;
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto public_key, engine_data->client().GetPublicKey(key_id));
+  std::cout << "done" << std::endl;
 
+  std::cout << "pem:       " << public_key.pem() << std::endl;
+  std::cout << "algorithm: " << public_key.algorithm() << std::endl;
   OpenSslEvpPkey evp_pkey(nullptr, nullptr);
   switch (public_key.algorithm()) {
     case CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256:

@@ -115,6 +115,7 @@ int EngineFinish(ENGINE *e) {
 //
 // EngineFinish will have executed before EngineDestroy is called.
 int EngineDestroy(ENGINE *e) {
+  EngineFinish(e);
   FreeExternalIndicies();
   return UnloadErrorStringsFromOpenSSL().ok();
 }
@@ -137,9 +138,18 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
       !ENGINE_set_name(e, kEngineName) ||
       !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
       !ENGINE_set_load_privkey_function(e, LoadPrivateKey) ||
-      !ENGINE_set_init_function(e, EngineInit) ||
-      !ENGINE_set_finish_function(e, EngineFinish) ||
+      !EngineInit(e) ||
       !ENGINE_set_destroy_function(e, EngineDestroy)) {
+    return false;
+  }
+
+  auto engine_data_or = GetEngineDataFromOpenSslEngine(e);
+  if (!engine_data_or.ok()) {
+    KMSENGINE_SIGNAL_ERROR(engine_data_or.status());
+    return false;
+  }
+  auto data = engine_data_or.value();
+  if (!ENGINE_set_RSA(e, data->rsa_method())) {
     return false;
   }
 
