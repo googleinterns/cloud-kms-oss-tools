@@ -32,10 +32,12 @@ using ProtoDigestCase = google::cloud::kms::v1::Digest::DigestCase;
 struct CorrespondingDigestCase {
   DigestCase actual;
   ProtoDigestCase proto;
-} const kDigestMapping[]{
-    {DigestCase::kSha256, ProtoDigestCase::kSha256},
-    {DigestCase::kSha384, ProtoDigestCase::kSha384},
-    {DigestCase::kSha512, ProtoDigestCase::kSha512},
+};
+
+constexpr CorrespondingDigestCase kDigestMapping[] = {
+  {DigestCase::kSha256, ProtoDigestCase::kSha256},
+  {DigestCase::kSha384, ProtoDigestCase::kSha384},
+  {DigestCase::kSha512, ProtoDigestCase::kSha512},
 };
 
 class DigestCaseTest : public testing::TestWithParam<CorrespondingDigestCase> {
