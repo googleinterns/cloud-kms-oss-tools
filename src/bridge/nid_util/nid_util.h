@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-#include "src/backing/rsa/kms_rsa_key.h"
-
-#include <string>
+#ifndef KMSENGINE_BRIDGE_NID_UTIL_NID_UTIL_H_
+#define KMSENGINE_BRIDGE_NID_UTIL_NID_UTIL_H_
 
 #include "src/backing/client/digest_case.h"
-#include "src/backing/client/public_key.h"
 #include "src/backing/status/status_or.h"
 
 namespace kmsengine {
-namespace backing {
+namespace bridge {
 
-StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
-                                      std::string message_digest) const {
-  return client_.AsymmetricSign(key_resource_id(), digest_type,
-                                message_digest);
-}
+// Converts a OpenSSL NID to a `DigestType`. Returns a Status if the input
+// `nid` does not match a defined `DigestType`.
+//
+// Valid NIDs to this function are `NID_sha256`, `NID_sha384`, and `NID_sha512`.
+// These correspond to the underlying NID of the default `EVP_PKEY` objects
+// `EVP_sha256`, `EVP_sha384`, and `EVP_sha512`. (The NID of a given `EVP_PKEY`
+// can be retrieved via the OpenSSL `EVP_MD_type` function.)
+StatusOr<backing::DigestCase> ConvertOpenSslNidToDigestType(int nid);
 
-StatusOr<PublicKey> KmsRsaKey::GetPublicKey() const {
-  return client_.GetPublicKey(key_resource_id());
-}
-
-}  // namespace backing
+}  // namespace bridge
 }  // namespace kmsengine
+
+#endif  // KMSENGINE_BRIDGE_NID_UTIL_NID_UTIL_H_
