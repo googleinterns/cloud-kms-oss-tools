@@ -55,6 +55,17 @@ TEST(ExDataUtilTest, HandlesNullRsaKey) {
   FreeExternalIndicies();
 }
 
+TEST(ExDataUtilTest, ReturnsErrorOnNullRsa) {
+  ASSERT_THAT(InitExternalIndicies(), IsOk());
+
+  MockRsaKey rsa_key;
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, nullptr), Not(IsOk()));
+  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, nullptr), Not(IsOk()));
+  EXPECT_THAT(GetRsaKeyFromOpenSslRsa(nullptr), Not(IsOk()));
+
+  FreeExternalIndicies();
+}
+
 TEST(ExDataUtilTest, ReturnsErrorWhenRsaExternalIndiciesNotInitialized) {
   // Explicitly not calling `InitExternalIndices` here.
   auto rsa = MakeRsa();
@@ -87,6 +98,18 @@ TEST(ExDataUtilTest, HandlesNullEngineData) {
   auto engine = MakeEngine();
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());
   EXPECT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), Not(IsOk()));
+
+  FreeExternalIndicies();
+}
+
+TEST(ExDataUtilTest, ReturnsErrorOnNullEngine) {
+  ASSERT_THAT(InitExternalIndicies(), IsOk());
+
+  EngineData engine_data(nullptr, {nullptr, nullptr});
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, nullptr),
+              Not(IsOk()));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, nullptr), Not(IsOk()));
+  EXPECT_THAT(GetEngineDataFromOpenSslEngine(nullptr), Not(IsOk()));
 
   FreeExternalIndicies();
 }
