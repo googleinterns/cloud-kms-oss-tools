@@ -37,6 +37,17 @@ cc_library(
 )
 
 cc_library(
+    name = "mock_client",
+    hdrs = ["mock_client.h"],
+    deps = [
+        "//src/backing/client",
+        "//src/backing/client:digest_case",
+        "//src/backing/client:public_key",
+        "//src/backing/status:status_or",
+    ],
+)
+
+cc_library(
     name = "test_matchers",
     srcs = ["test_matchers.cc"],
     hdrs = ["test_matchers.h"],
