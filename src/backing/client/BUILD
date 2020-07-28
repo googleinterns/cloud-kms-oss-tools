@@ -50,8 +50,8 @@ cc_library(
     hdrs = ["client_factory.h"],
     deps = [
         ":client",
-        "//src/backing/status",
         "//src/backing/client/grpc_client",
+        "//src/backing/status",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/memory",
     ],

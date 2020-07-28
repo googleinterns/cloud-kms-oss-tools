@@ -14,7 +14,8 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library", "cc_test")
+load("//:bazel/transitions.bzl", "transition_rule", "cc_binary")
 
 package(default_visibility = ["//src:__subpackages__"])
 
@@ -30,6 +31,9 @@ cc_binary(
         "//src/backing/client:sources",
         "//src/backing/rsa:sources",
         "//src/backing/status:sources",
+    ],
+    global_copts = [
+        "-fvisibility=hidden",
     ],
     linkshared = 1,
     linkstatic = 1,
