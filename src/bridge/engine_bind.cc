@@ -116,7 +116,7 @@ int EngineFinish(ENGINE *e) {
 // EngineFinish will have executed before EngineDestroy is called.
 int EngineDestroy(ENGINE *e) {
   EngineFinish(e);
-  // FreeExternalIndicies();
+  FreeExternalIndicies();
   return UnloadErrorStringsFromOpenSSL().ok();
 }
 
