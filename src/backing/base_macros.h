@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#ifndef KMSENGINE_BACKING_BASE_H_
+#define KMSENGINE_BACKING_BASE_H_
+
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef BUILDING_DLL
     #ifdef __GNUC__
@@ -38,3 +41,5 @@
     #define BRIDGE_LOCAL
   #endif
 #endif
+
+#endif  // KMSENGINE_BACKING_BASE_H_

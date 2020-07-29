@@ -19,6 +19,7 @@
 
 #include <string>
 
+#include "src/backing/base_macros.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
 #include "src/backing/status/status_or.h"
@@ -39,15 +40,15 @@ namespace backing {
 // associated `RsaKey` methods. This is because some conversions require
 // knowledge of symbols from the OpenSSL library (which is not available to the
 // backing layer).
-class RsaKey {
+class BRIDGE_EXPORT RsaKey {
  public:
-  virtual ~RsaKey() = default;
+  BRIDGE_EXPORT virtual ~RsaKey() = default;
 
   // Signs `message_digest` using the underlying RSA private key. Returns the
   // resulting signature as a `std::string`, or an error `Status`.
   //
   // Should be used in the engine's implementation of `RSA_sign`.
-  virtual StatusOr<std::string> Sign(DigestCase type,
+  BRIDGE_EXPORT virtual StatusOr<std::string> Sign(DigestCase type,
                                      std::string message_digest) = 0;
 
   // Returns the PEM-encoded public key of the underlying RSA private key, or
@@ -59,7 +60,7 @@ class RsaKey {
   // actual public key verification needs to happen in the bridge layer instead
   // since verification needs to be implemented with OpenSSL functions that are
   // only available to the bridge layer.
-  virtual StatusOr<PublicKey> GetPublicKey() = 0;
+  BRIDGE_EXPORT virtual StatusOr<PublicKey> GetPublicKey() = 0;
 };
 
 }  // namespace backing

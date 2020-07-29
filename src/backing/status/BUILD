@@ -41,6 +41,7 @@ cc_library(
     hdrs = ["status_or.h"],
     deps = [
         ":status",
+        "//src/backing:base",
     ],
 )
 
@@ -59,6 +60,9 @@ cc_library(
     name = "status",
     srcs = ["status.cc"],
     hdrs = ["status.h"],
+    deps = [
+        "//src/backing:base",
+    ],
 )
 
 cc_test(

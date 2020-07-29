@@ -19,6 +19,8 @@
 
 #include <type_traits>
 
+#include "src/backing/base_macros.h"
+
 namespace kmsengine {
 namespace backing {
 
@@ -33,7 +35,7 @@ namespace backing {
 // cases in `google::cloud::kms::v1::Digest::DigestCase`; this allows for
 // simple conversions between `DigestCase` and its protobuf counterpart by
 // using `static_cast`.
-enum class DigestCase : int {
+enum class BRIDGE_EXPORT DigestCase : int {
   kSha256 = 1,
   kSha384 = 2,
   kSha512 = 3,

@@ -36,6 +36,8 @@
 #include <iostream>
 #include <tuple>
 
+#include "src/backing/base_macros.h"
+
 namespace kmsengine {
 
 /**
@@ -44,7 +46,7 @@ namespace kmsengine {
  * The semantics of these values are documented in:
  *     https://grpc.io/grpc/cpp/classgrpc_1_1_status.html
  */
-enum class StatusCode {
+enum class BRIDGE_EXPORT StatusCode {
   /// Not an error; returned on success.
   kOk = 0,
   kCancelled = 1,
@@ -69,8 +71,8 @@ inline int StatusCodeToInt(StatusCode code) {
   return static_cast<std::underlying_type<StatusCode>::type>(code);
 }
 
-std::string StatusCodeToString(StatusCode code);
-std::ostream& operator<<(std::ostream& os, StatusCode code);
+BRIDGE_EXPORT std::string StatusCodeToString(StatusCode code);
+BRIDGE_EXPORT std::ostream& operator<<(std::ostream& os, StatusCode code);
 
 /**
  * Reports error code and details from a remote request.
@@ -78,7 +80,7 @@ std::ostream& operator<<(std::ostream& os, StatusCode code);
  * This class is modeled after `grpc::Status`, it contains the status code and
  * error message (if applicable) from a JSON request.
  */
-class Status {
+class BRIDGE_EXPORT Status {
  public:
   Status() = default;
 

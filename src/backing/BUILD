@@ -15,7 +15,7 @@
 #
 
 load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library", "cc_test")
-load("//:bazel/transitions.bzl", "transition_rule", "cc_binary")
+load("//:bazel/transitions.bzl", "cc_binary", "transition_rule")
 
 package(default_visibility = ["//src:__subpackages__"])
 
@@ -38,6 +38,7 @@ cc_binary(
     linkshared = 1,
     linkstatic = 1,
     deps = [
+        ":base",
         "//src/backing/client",
         "//src/backing/client:client_factory",
         "//src/backing/client:crypto_key_version_algorithm",
@@ -54,9 +55,15 @@ cc_binary(
     ],
 )
 
+cc_library(
+    name = "base",
+    hdrs = ["base_macros.h"],
+)
+
 filegroup(
     name = "headers",
     srcs = [
+        "base_macros.h",
         "//src/backing/client:bridge_headers",
         "//src/backing/rsa:bridge_headers",
         "//src/backing/status:bridge_headers",

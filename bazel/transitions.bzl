@@ -65,7 +65,11 @@ def _transition_rule_impl(ctx):
     return [
         DefaultInfo(
             executable = outfile,
-            data_runfiles = actual_binary[DefaultInfo].data_runfiles,
+            runfiles = actual_binary[DefaultInfo].default_runfiles,
+        ),
+        CcInfo(
+            compilation_context = actual_binary[CcInfo].compilation_context,
+            linking_context = actual_binary[CcInfo].linking_context,
         ),
     ]
 

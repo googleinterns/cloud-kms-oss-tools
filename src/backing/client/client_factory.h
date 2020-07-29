@@ -20,20 +20,21 @@
 #include <chrono>
 #include <memory>
 
+#include "src/backing/base_macros.h"
 #include "src/backing/client/client.h"
 
 namespace kmsengine {
 namespace backing {
 
 // Makes the default client with the given timeout.
-std::unique_ptr<Client> MakeDefaultClientWithTimeout(
+BRIDGE_EXPORT std::unique_ptr<Client> MakeDefaultClientWithTimeout(
     std::chrono::milliseconds timeout);
 
 // Makes the default client, except without a timeout.
 //
 // Separate function is defined as opposed to using `absl::optional` since
 // the bridge layer is unable to have Abseil as a dependency.
-std::unique_ptr<Client> MakeDefaultClientWithoutTimeout();
+BRIDGE_EXPORT std::unique_ptr<Client> MakeDefaultClientWithoutTimeout();
 
 }  // namespace backing
 }  // namespace kmsengine

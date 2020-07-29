@@ -50,6 +50,7 @@ cc_library(
     hdrs = ["client_factory.h"],
     deps = [
         ":client",
+        "//src/backing:base",
         "//src/backing/client/grpc_client",
         "//src/backing/status",
         "@com_github_grpc_grpc//:grpc++",
@@ -73,6 +74,7 @@ cc_library(
     deps = [
         ":digest_case",
         ":public_key",
+        "//src/backing:base",
         "//src/backing/status",
         "//src/backing/status:status_or",
     ],
@@ -81,6 +83,9 @@ cc_library(
 cc_library(
     name = "digest_case",
     hdrs = ["digest_case.h"],
+    deps = [
+        "//src/backing:base",
+    ],
 )
 
 cc_test(
@@ -99,6 +104,7 @@ cc_library(
     hdrs = ["public_key.h"],
     deps = [
         ":crypto_key_version_algorithm",
+        "//src/backing:base",
     ],
 )
 
@@ -117,6 +123,7 @@ cc_library(
     srcs = ["crypto_key_version_algorithm.cc"],
     hdrs = ["crypto_key_version_algorithm.h"],
     deps = [
+        "//src/backing:base",
         "@com_google_absl//absl/strings:str_format",
     ],
 )
