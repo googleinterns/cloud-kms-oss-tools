@@ -167,8 +167,8 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(PublicKey public_key,
 
   std::cout << "Rsa pointer: " << rsa.get() << std::endl;
 
-  // KMSENGINE_RETURN_IF_ERROR(
-  //     AttachRsaKeyToOpenSslRsa(std::move(rsa_key), rsa.get()));
+  auto status_or = GetRsaKeyFromOpenSslRsa(rsa);
+  std::cout << status_or.status() << std::endl;
 
   // Attach the engine `RSA_METHOD` implementation to the `RSA` struct so
   // cryptography operations performed with the `RSA` struct delegate to the
