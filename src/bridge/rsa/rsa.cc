@@ -33,12 +33,13 @@ namespace {
 
 // Implementation of `KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR` that uses
 // a unique temporary identifier for avoiding collision in the enclosing scope.
-#define __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(__lhs, __rhs, __name) \
-  auto __name = (__rhs);                                                   \
-  if (!__name.ok()) {                                                      \
-    KMSENGINE_SIGNAL_ERROR(__name.status());                               \
-    return false;                                                          \
-  }                                                                        \
+#define __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(__lhs, __rhs, __return, \
+                                                     __name)                 \
+  auto __name = (__rhs);                                                     \
+  if (!__name.ok()) {                                                        \
+    KMSENGINE_SIGNAL_ERROR(__name.status());                                 \
+    return __return;                                                         \
+  }                                                                          \
   __lhs = std::move(__name.value());
 
 // Signals an engine error to OpenSSL using the given StatusOr<T> and returns
@@ -52,9 +53,9 @@ namespace {
 // Note: KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR expands into multiple
 // statements; it cannot be used in a single statement (for example, within an
 // `if` statement).
-#define KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(__lhs, __rhs) \
-  __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(                     \
-    __lhs, __rhs,                                                   \
+#define KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(__lhs, __rhs, __return) \
+  __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(                               \
+    __lhs, __rhs, __return,                                                   \
     __KMSENGINE_MACRO_CONCAT(__status_or_value, __COUNTER__))
 
 // Cleans up any internal structures associated with the input `rsa` struct
@@ -64,7 +65,7 @@ namespace {
 // Called when OpenSSL's `RSA_free` is called on `rsa`.
 int Finish(RSA *rsa) {
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa));
+      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
   delete rsa_key;
 
   auto status = AttachRsaKeyToOpenSslRsa(nullptr, rsa);
@@ -85,14 +86,14 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
   // letting the `RsaKey::Sign` method handling the conversions) since the
   // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa));
+      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto digest_type, ConvertOpenSslNidToDigestType(type));
+      auto digest_type, ConvertOpenSslNidToDigestType(type), false);
   std::string digest(reinterpret_cast<const char *>(m), m_length);
 
   // Delegate handling of the signing operation to the backing layer.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto signature, rsa_key->Sign(digest_type, digest));
+      auto signature, rsa_key->Sign(digest_type, digest), false);
 
   // Copy results into the return pointers.
   if (sigret != nullptr) {
