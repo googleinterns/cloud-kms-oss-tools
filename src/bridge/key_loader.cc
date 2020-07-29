@@ -162,7 +162,7 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(PublicKey public_key,
     return status.status();
   }
 
-  std::cout << rsa.get() << std::endl;
+  std::cout << "Rsa pointer: " << rsa.get() << std::endl;
 
   // KMSENGINE_RETURN_IF_ERROR(
   //     AttachRsaKeyToOpenSslRsa(std::move(rsa_key), rsa.get()));
