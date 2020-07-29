@@ -50,6 +50,30 @@ TEST_P(DigestCaseTest, UnderlyingValueMatchesProtoValues) {
   EXPECT_EQ(DigestCaseToInt(mapping.actual), mapping.proto);
 }
 
+TEST(DigestCaseTest, ToStringIsOneToOne) {
+  const std::vector<DigestCase> kDigestCases = {
+    DigestCase::kSha256,
+    DigestCase::kSha384,
+    DigestCase::kSha512,
+  };
+
+  std::set<std::string> used_strings;
+  for (auto algorithm : kDigestCases) {
+    auto actual = DigestCaseToString(algorithm);
+    used_strings.insert(actual);
+  }
+
+  EXPECT_EQ(used_strings.size(), kDigestCases.size())
+      << "Number of unique strings should equal number of unique "
+         "DigestCase enums";
+}
+
+TEST(DigestCaseTest, HandlesInvalidEnums) {
+  EXPECT_EQ("UNEXPECTED_DIGEST_CASE=42",
+            DigestCaseToString(
+                static_cast<DigestCase>(42)));
+}
+
 }  // namespace
 }  // namespace backing
 }  // namespace kmsengine

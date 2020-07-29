@@ -81,14 +81,19 @@ int Finish(RSA *rsa) {
 // Returns 1 on success; otherwise, returns 0.
 int Sign(int type, const unsigned char *m, unsigned int m_length,
          unsigned char *sigret, unsigned int *siglen, const RSA *rsa) {
+
+
   // Convert arguments to engine-native structures for convenience. These
   // conversions need to take place within the bridge layer (as opposed to
   // letting the `RsaKey::Sign` method handling the conversions) since the
   // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto digest_type, ConvertOpenSslNidToDigestType(type), false);
+
+  std::cout << digest_type << std::endl;
+
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
   std::string digest(reinterpret_cast<const char *>(m), m_length);
 
   // Delegate handling of the signing operation to the backing layer.
