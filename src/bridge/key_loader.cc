@@ -152,14 +152,17 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(PublicKey public_key,
                                            EngineData *engine_data) {
   KMSENGINE_ASSIGN_OR_RETURN(
       auto rsa, MakeOpenSslRsaFromPublicKey(public_key));
-  KMSENGINE_ASSIGN_OR_RETURN(
-      auto rsa_key, MakeKmsRsaKey(key_resource_id, engine_data->client()));
 
-  KMSENGINE_RETURN_IF_ERROR(AttachRsaKeyToOpenSslRsa(rsa_key.release(), rsa.get()));
-  auto status = GetRsaKeyFromOpenSslRsa(rsa.get());
-  if (!status.ok()) {
+  auto kms_rsa_key = new KmsRsaKey(key_resource_id, engine_data->client());
+  if (kms_rsa_key == nullptr) {
+    return Status(StatusCode::kResourceExhausted, "No memory available");
+  }
+
+  auto attach = AttachRsaKeyToOpenSslRsa(kms_rsa_key, rsa.get());
+  if (!attach.ok()) {
     std::cout << "bad!" << std::endl;
-    return status.status();
+    delete kms_rsa_key;
+    return attach;
   }
 
   std::cout << "Rsa pointer: " << rsa.get() << std::endl;
