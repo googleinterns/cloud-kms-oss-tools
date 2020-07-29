@@ -96,6 +96,7 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
   std::cout << digest << std::endl;
 
   std::cout << RSA_meth_get0_name(RSA_get_method(rsa)) << std::endl;
+  std::cout << rsa << std::endl;
 
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
