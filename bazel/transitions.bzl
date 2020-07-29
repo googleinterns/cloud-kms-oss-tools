@@ -69,13 +69,13 @@ def _transition_rule_impl(ctx):
         ),
     ]
 
-# The purpose of this rule is to take a "set_features" attribute,
-# invoke a transition that sets `//command_line_option:copt` to the
-# specified strings in `global_copts`.
+# `transition_rule` consumes a `global_copts` attribute and invokes a
+# transition that sets `//command_line_option:copt` to the specified list of
+# strings in `global_copts`.
 #
-# You could add a transition_rule directly in your BUILD file. But for
-# convenience we also define a cc_binary macro below so the BUILD can look
-# as close to normal as possible.
+# While `transition_rule` could directly be included in a BUILD file, we
+# define a `cc_binary` macro for convenience so the BUILD file can look as close
+# to normal as possible.
 transition_rule = rule(
     implementation = _transition_rule_impl,
     attrs = {
@@ -99,13 +99,14 @@ transition_rule = rule(
     executable = True,
 )
 
-# Convenience macro: this instantiates a transition_rule with the given
-# desired features, instantiates a cc_binary as a dependency of that rule,
-# and fills out the cc_binary with all other parameters passed to this macro.
+# Convenience macro: this instantiates a `transition_rule` with the given
+# desired `global_copts`, instantiates a `cc_binary` as a dependency of that
+# rule, and fills out that `cc_binary` rule with all other parameters passed to
+# this macro.
 #
 # The result is a wrapper over cc_binary that "magically" gives it a new
-# feature-setting attribute. The only difference for a BUILD user is they need
-# to load() this at the top of the BUILD file.
+# `global_copts` attribute. BUILD users who wish to use this version of
+# `cc_binary` need to `load(...)` this version at the top of their BUILD file.
 def cc_binary(name, global_copts = None, **kwargs):
     cc_binary_name = name + "_native_binary"
     transition_rule(
