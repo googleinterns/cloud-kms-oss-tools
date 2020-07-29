@@ -14,29 +14,44 @@
 # limitations under the License.
 #
 
+"""
+This file defines a version of the Starlark-native `cc_binary` rule that
+supports an additional, optional `global_copts` attribute.
+
+`global_copts` is a list of strings representing compiler options to pass to
+the C++ compilation command. `global_copts` behaves similarly to the built-in
+`copts` attribute: each string in this attribute is added in the given order to
+`COPTS` before compiling the binary target. However, unlike `copts`, options
+passed in `global_copts` are propogated to the target's dependencies as well.
+"""
+
+# Implementation of `_copt_transition`.
 def _copt_transition_impl(settings, attr):
+    # `settings` provides read-only access to existing flags on the build.
+    # However, this transition won't read any flags (since the `inputs`
+    # attribute of `_copt_transition` is empty), so we can ignore it here.
     _ignore = settings
 
-    # settings provides read access to existing flags. But
-    # this transition doesn't need to read any flags.
+    # This adds all of the options specified in the owning rule's `global_copts`
+    # attribute as a compilation flag.
     return {"//command_line_option:copt": attr.global_copts}
 
-# This defines a Starlark transition and which flags it reads and
-# writes. In this case we don't need to read any flags - we
-# universally set --/custom_settings:mycopts according to whatever
-# is set in the owning rule's "set_features" attribute.
+# `_copt_transition` defines a Starlark transition that universally sets
+# `//command_line_option:copt` to the list of options that are specified in the
+# owning rule's `global_copts` attribute.
+#
+# `inputs` is purposely empty as this transition does not need to read any
+# existing flags (it's only adding new ones).
 _copt_transition = transition(
     implementation = _copt_transition_impl,
     inputs = [],
     outputs = ["//command_line_option:copt"],
 )
 
-# The implementation of transition_rule: all this does is copy the
-# cc_binary's output to its own output and propagate its runfiles
-# and executable to use for "$ bazel run".
-#
-# This makes transition_rule as close to a pure wrapper of cc_binary
-# as possible.
+# Implementation of `transition_rule`. This copies the `cc_binary`'s output to
+# `transition_rule`'s own output, then propogates its runfiles and executable
+# back to Bazel. This makes `transition_rule` as close to a pure wrapper of
+# `cc_binary` as possible.
 def _transition_rule_impl(ctx):
     actual_binary = ctx.attr.actual_binary[0]
     outfile = ctx.actions.declare_file(ctx.label.name)
@@ -55,9 +70,8 @@ def _transition_rule_impl(ctx):
     ]
 
 # The purpose of this rule is to take a "set_features" attribute,
-# invoke a transition that sets --//custom_settings:mycopts to the
-# desired feature, then depend on a cc_binary whose deps will now
-# be able to select() on that feature.
+# invoke a transition that sets `//command_line_option:copt` to the
+# specified strings in `global_copts`.
 #
 # You could add a transition_rule directly in your BUILD file. But for
 # convenience we also define a cc_binary macro below so the BUILD can look
@@ -69,16 +83,14 @@ transition_rule = rule(
         "global_copts": attr.string_list(default = []),
         # This is the cc_binary whose deps will select() on that feature.
         # Note specificaly how it's configured with _copt_transition, which
-        # ensures that setting propagates down the graph.
+        # ensures that our `global_copts` propogate down the build graph.
         "actual_binary": attr.label(cfg = _copt_transition),
         # This is a stock Bazel requirement for any rule that uses Starlark
-        # transitions. It's okay to copy the below verbatim for all such rules.
-        #
-        # The purpose of this requirement is to give the ability to restrict
-        # which packages can invoke these rules, since Starlark transitions
-        # make much larger graphs possible that can have memory and performance
-        # consequences for your build. The whitelist defaults to "everything".
-        # But you can redefine it more strictly if you feel that's prudent.
+        # transitions. The purpose of this requirement is to give the ability to
+        # restrict which packages can invoke these rules, since Starlark
+        # transitions make much larger graphs possible that can have memory and
+        # performance consequences for the build. The whitelist currently
+        # defaults to "everything".
         "_whitelist_function_transition": attr.label(
             default = "@bazel_tools//tools/whitelists/function_transition_whitelist",
         ),
