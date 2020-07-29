@@ -92,9 +92,11 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
 
   std::cout << digest_type << std::endl;
 
+  std::string digest(reinterpret_cast<const char *>(m), m_length);
+  std::cout << digest << std::endl;
+
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
-  std::string digest(reinterpret_cast<const char *>(m), m_length);
 
   // Delegate handling of the signing operation to the backing layer.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
