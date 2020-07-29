@@ -71,8 +71,8 @@ TEST(EngineBindTest, InitializesExternalDataSystem) {
 
   auto client = absl::make_unique<MockClient>();
   auto rsa_method = rsa::MakeKmsRsaMethod();
-  EngineData data(std::move(client), std::move(rsa_method));
-  ASSERT_THAT(AttachEngineDataToOpenSslEngine(&data, engine.get()), IsOk())
+  auto data = new EngineData(std::move(client), std::move(rsa_method));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(data, engine.get()), IsOk())
       << "ex_data_util ENGINE operations should have been initialized after "
          "EngineBind";
 }
@@ -93,8 +93,8 @@ TEST(EngineDestroyTest, CleansUpExternalDataSystem) {
   auto fake_engine = MakeEngine();
   auto client = absl::make_unique<MockClient>();
   auto rsa_method = rsa::MakeKmsRsaMethod();
-  EngineData data(std::move(client), std::move(rsa_method));
-  ASSERT_THAT(AttachEngineDataToOpenSslEngine(&data, fake_engine.get()),
+  auto data = new EngineData(std::move(client), std::move(rsa_method));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(data, fake_engine.get()),
               Not(IsOk()))
       << "ex_data_util ENGINE operations should have been cleaned up after "
          "EngineDestroy";

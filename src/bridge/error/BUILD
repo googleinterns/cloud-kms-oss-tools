@@ -33,13 +33,6 @@ cc_test(
     name = "error_test",
     size = "small",
     srcs = ["error_test.cc"],
-    linkopts = [
-        "-l:libcrypto.a",
-        "-ldl",
-    ],
-    # Statically link in libcrypto in test environment only to avoid symbol
-    # issues with BoringSSL which only appear in the test environment.
-    linkstatic = True,
     deps = [
         ":error",
         "//src/testing_util:test_matchers",

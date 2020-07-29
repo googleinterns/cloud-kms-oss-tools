@@ -45,13 +45,6 @@ cc_test(
     name = "engine_bind_test",
     size = "small",
     srcs = ["engine_bind_test.cc"],
-    linkopts = [
-        "-l:libcrypto.a",
-        "-ldl",
-    ],
-    # Statically link in libcrypto in test environment only to avoid symbol
-    # issues with BoringSSL which only appear in the test environment.
-    linkstatic = True,
     deps = [
         ":engine_bind",
         "//src/bridge/memory_util:openssl_structs",
@@ -86,13 +79,6 @@ cc_test(
     name = "key_loader_test",
     size = "small",
     srcs = ["key_loader_test.cc"],
-    linkopts = [
-        "-l:libcrypto.a",
-        "-ldl",
-    ],
-    # Statically link in libcrypto in test environment only to avoid symbol
-    # issues with BoringSSL which only appear in the test environment.
-    linkstatic = True,
     deps = [
         ":key_loader",
         "//src/bridge/ex_data_util:engine_data",
