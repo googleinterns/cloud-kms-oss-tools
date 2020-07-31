@@ -74,10 +74,10 @@ using ::kmsengine::backing::RsaKey;
 // public key parameters set to the values from the PEM-encoded `public_key`.
 //
 // Returns an error `Status` if unsuccessful.
-StatusOr<OpenSslRsa> MakeOpenSslRsaFromPublicKey(PublicKey public_key, ENGINE *openssl_engine) {
+StatusOr<OpenSslRsa> MakeOpenSslRsaFromPublicKey(PublicKey public_key) {
   // Generates a "memory buffer" using `BIO` (OpenSSL's representation of a
   // file or data stream) and loads the public key data into it.
-  auto pem_pointer = static_cast<const void *>(public_key.pem().c_str());
+  auto pem_pointer = static_cast<const void *>(public_key.pem().data());
   BIO *pem_stream = BIO_new_mem_buf(pem_pointer, public_key.pem().length());
   if (pem_stream == nullptr) {
     return Status(StatusCode::kInternal, "BIO_new_mem_buf failed");
@@ -132,6 +132,19 @@ StatusOr<OpenSslEvpPkey> MakeRsaEvpPkey(OpenSslRsa rsa) {
   return evp_pkey;
 }
 
+Status AttachRsaMethodToOpenSslRsa(const RSA_METHOD *method, RSA *rsa) {
+  // Attach the engine `RSA_METHOD` implementation to the `RSA` struct so
+  // cryptography operations performed with the `RSA` struct delegate to the
+  // engine's implementations.
+  if (!RSA_set_method(rsa, method)) {
+    return Status(StatusCode::kInternal, "RSA_set_method failed");
+  }
+
+  // `RSA_set_flags` has no return value and always succeeds.
+  RSA_set_flags(rsa, RSA_meth_get_flags(method));
+  return Status();
+}
+
 // Creates an `OpenSslEvpPkey` where the underlying `EVP_PKEY` has type
 // `EVP_PKEY_RSA` from the input parameters.
 //
@@ -149,30 +162,16 @@ StatusOr<OpenSslEvpPkey> MakeRsaEvpPkey(OpenSslRsa rsa) {
 // If unsuccessful, returns an error `Status`.
 StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(PublicKey public_key,
                                            std::string key_resource_id,
-                                           EngineData *engine_data,
-                                           ENGINE *openssl_engine) {
+                                           EngineData *engine_data) {
   KMSENGINE_ASSIGN_OR_RETURN(
-      auto rsa, MakeOpenSslRsaFromPublicKey(public_key, openssl_engine));
+      auto rsa, MakeOpenSslRsaFromPublicKey(public_key));
+  KMSENGINE_RETURN_IF_ERROR(
+      AttachRsaMethodToOpenSslRsa(engine_data->rsa_method(), rsa.get()));
 
-  // Attach the engine `RSA_METHOD` implementation to the `RSA` struct so
-  // cryptography operations performed with the `RSA` struct delegate to the
-  // engine's implementations.
-  if (!RSA_set_method(rsa.get(), engine_data->rsa_method())) {
-    return Status(StatusCode::kInternal, "RSA_set_method failed");
-  }
-
-  RSA_set_flags(rsa.get(), RSA_meth_get_flags(engine_data->rsa_method()));
-
-  auto kms_rsa_key = new KmsRsaKey(key_resource_id, engine_data->client());
-  if (kms_rsa_key == nullptr) {
-    return Status(StatusCode::kResourceExhausted, "No memory available");
-  }
-
-  auto attach = AttachRsaKeyToOpenSslRsa(kms_rsa_key, rsa.get());
-  if (!attach.ok()) {
-    delete kms_rsa_key;
-    return attach;
-  }
+  KMSENGINE_ASSIGN_OR_RETURN(
+      auto kms_rsa_key, MakeKmsRsaKey(key_resource_id, engine_data->client()));
+  KMSENGINE_RETURN_IF_ERROR(
+      AttachRsaKeyToOpenSslRsa(std::move(kms_rsa_key), rsa.get()));
 
   return MakeRsaEvpPkey(std::move(rsa));
 }
@@ -198,7 +197,7 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
     case CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512:
       {
         KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-            evp_pkey, MakeKmsRsaEvpPkey(public_key, key_id, engine_data, openssl_engine));
+            evp_pkey, MakeKmsRsaEvpPkey(public_key, key_id, engine_data));
         break;
       }
     case CryptoKeyVersionAlgorithm::kEcSignP256Sha256:
