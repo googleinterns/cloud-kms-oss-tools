@@ -307,14 +307,14 @@ class KMSENGINE_EXPORT StatusOr final {
   //@}
 
  private:
-  void CheckHasValue() const& {
+  KMSENGINE_LOCAL void CheckHasValue() const& {
     if (!ok()) {
       std::abort();
     }
   }
 
   // When possible, do not copy the status.
-  void CheckHasValue() && {
+  KMSENGINE_LOCAL void CheckHasValue() && {
     if (!ok()) {
       std::abort();
     }
