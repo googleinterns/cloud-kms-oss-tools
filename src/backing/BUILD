@@ -15,7 +15,7 @@
 #
 
 load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library", "cc_test")
-load("//:bazel/transitions.bzl", "cc_binary", "transition_rule")
+load("//:bazel/cc_binary_with_global_copts.bzl", "cc_binary", "transition_rule")
 
 package(default_visibility = ["//src:__subpackages__"])
 
@@ -32,9 +32,25 @@ cc_binary(
         "//src/backing/rsa:sources",
         "//src/backing/status:sources",
     ],
-    global_copts = [
-        "-fvisibility=hidden",
-    ],
+    # `global_copts` is an attribute defined by the `cc_binary` macro from
+    # `cc_binary_with_global_copts.bzl`. These "global compiler options" are
+    # used to compile the entire `libkms.so` shared object with
+    # "-fvisibility=hidden", including dependencies.
+    #
+    # This custom version of `cc_binary` is used in lieu of the native Starlark
+    # `cc_binary` rule since the native `cc_binary` rule's `copts` attribute
+    # does not propogate compiler flags to the dependencies of the rule.
+    #
+    # By compiling all dependencies of the rule with "-fvisibility=hidden",
+    # we ensure that only the symbols explicitly allowlisted with the
+    # `KMSENGINE_EXPORT` macro are visible to the bridge layer. This needs
+    # to be done to avoid symbol conflicts between BoringSSL (used in the
+    # gRPC library in the backing layer) and OpenSSL (which the bridge layer
+    # links against).
+    #
+    # Minimizing the number of visible symbols has additional benefits; see
+    # https://gcc.gnu.org/wiki/Visibility for more information.
+    global_copts = ["-fvisibility=hidden"],
     linkshared = 1,
     linkstatic = 1,
     deps = [
