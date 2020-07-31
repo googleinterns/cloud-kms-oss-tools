@@ -33,10 +33,6 @@ cc_test(
     name = "ex_data_util_test",
     size = "small",
     srcs = ["ex_data_util_test.cc"],
-    # Statically link in libcrypto in test environment only to avoid symbol
-    # issues with BoringSSL which only appear in the test environment.
-    linkstatic = True,
-    linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":ex_data_util",
         "//src/bridge/memory_util:openssl_structs",
