@@ -41,7 +41,7 @@ constexpr char kRsaMethodName[] = "Google Cloud KMS RSA Method";
 //    normally stored within an OpenSSL RSA struct does not exist. Our
 //    engine operates on Cloud KMS keys, so this flag is set.
 //
-constexpr int kRsaMethodFlags = RSA_FLAG_EXT_PKEY;
+constexpr int kRsaMethodFlags = RSA_FLAG_EXT_PKEY | RSA_METHOD_FLAG_NO_CHECK;
 
 // Allocates memory for and initializes an OpenSSL RSA_METHOD struct with
 // pointers to the Cloud KMS engine RSA implementations.

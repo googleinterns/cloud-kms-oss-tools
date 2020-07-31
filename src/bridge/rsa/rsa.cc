@@ -64,6 +64,7 @@ namespace {
 //
 // Called when OpenSSL's `RSA_free` is called on `rsa`.
 int Finish(RSA *rsa) {
+  std::cout << "RSA " << __func__ << " called" << std::endl;
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
   delete rsa_key;
@@ -81,8 +82,6 @@ int Finish(RSA *rsa) {
 // Returns 1 on success; otherwise, returns 0.
 int Sign(int type, const unsigned char *m, unsigned int m_length,
          unsigned char *sigret, unsigned int *siglen, const RSA *rsa) {
-
-
   // Convert arguments to engine-native structures for convenience. These
   // conversions need to take place within the bridge layer (as opposed to
   // letting the `RsaKey::Sign` method handling the conversions) since the
@@ -90,16 +89,7 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto digest_type, ConvertOpenSslNidToDigestType(type), false);
 
-  std::cout << digest_type << std::endl;
-
   std::string digest(reinterpret_cast<const char *>(m), m_length);
-  std::cout << digest << std::endl;
-
-  std::cout << RSA_meth_get0_name(RSA_get_method(rsa)) << std::endl;
-  std::cout << "Rsa pointer in SIGN: " << rsa << std::endl;
-
-  auto status_or = GetRsaKeyFromOpenSslRsa(rsa);
-  std::cout << status_or.status() << std::endl;
 
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
@@ -125,8 +115,30 @@ int Sign(int type, const unsigned char *m, unsigned int m_length,
 // Returns 1 if the signature is successfully verified; otherwise, returns 0.
 int Verify(int type, const unsigned char *m, unsigned int m_length,
            const unsigned char *sigbuf, unsigned int siglen, const RSA *rsa) {
+  std::cout << __func__ << std::endl;
   KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kUnimplemented, __func__));
   return false;  // Unimplemented.
+}
+
+int PrivateEncrypt(int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding) {
+  std::cout << __func__ << std::endl;
+  KMSENGINE_SIGNAL_ERROR(
+      Status(StatusCode::kUnimplemented, "Unsupported operation"));
+
+  unsigned int signature_length;
+  if (!Sign(NID_sha256, from, flen, to, &signature_length, rsa)) {
+    return -1;
+  }
+  return signature_length;
+}
+
+int PrivateDecrypt(int flen, const unsigned char *from,
+      unsigned char *to, RSA *rsa, int padding) {
+  std::cout << __func__ << std::endl;
+  KMSENGINE_SIGNAL_ERROR(
+      Status(StatusCode::kUnimplemented, "Unsupported operation"));
+  return -1;
 }
 
 #undef __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL
@@ -150,12 +162,13 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
   // (in fact, the documentation suggests using these functions for signing
   // strings of arbitrary length without hashing). These kinds of arbitrary
   // plaintext operations are unsupported by Cloud KMS.
-  if (!RSA_meth_set_pub_enc(rsa_method.get(), nullptr) ||
-      !RSA_meth_set_priv_dec(rsa_method.get(), nullptr) ||
-      // `PrivateEncrypt` and `PublicDecrypt` are currently out-of-scope of
-      // the engine's capabilities.
-      !RSA_meth_set_priv_enc(rsa_method.get(), nullptr) ||
-      !RSA_meth_set_pub_dec(rsa_method.get(), nullptr) ||
+  auto openssl_rsa_method = RSA_PKCS1_OpenSSL();
+  if (!RSA_meth_set_pub_enc(rsa_method.get(),
+                            RSA_meth_get_pub_enc(openssl_rsa_method)) ||
+      !RSA_meth_set_pub_dec(rsa_method.get(),
+                            RSA_meth_get_pub_dec(openssl_rsa_method)) ||
+      !RSA_meth_set_priv_dec(rsa_method.get(), PrivateDecrypt) ||
+      !RSA_meth_set_priv_enc(rsa_method.get(), PrivateEncrypt) ||
       !RSA_meth_set_sign(rsa_method.get(), Sign) ||
       !RSA_meth_set_verify(rsa_method.get(), Verify) ||
       // `mod_exp` and `bn_mod_exp` are called by the default OpenSSL RSA

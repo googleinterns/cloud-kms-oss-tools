@@ -67,10 +67,6 @@ def _transition_rule_impl(ctx):
             executable = outfile,
             runfiles = actual_binary[DefaultInfo].default_runfiles,
         ),
-        CcInfo(
-            compilation_context = actual_binary[CcInfo].compilation_context,
-            linking_context = actual_binary[CcInfo].linking_context,
-        ),
     ]
 
 # `transition_rule` consumes a `global_copts` attribute and invokes a
