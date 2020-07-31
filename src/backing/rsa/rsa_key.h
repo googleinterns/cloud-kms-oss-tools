@@ -40,7 +40,7 @@ namespace backing {
 // associated `RsaKey` methods. This is because some conversions require
 // knowledge of symbols from the OpenSSL library (which is not available to the
 // backing layer).
-class BRIDGE_EXPORT RsaKey {
+class KMSENGINE_EXPORT RsaKey {
  public:
   virtual ~RsaKey() = default;
 

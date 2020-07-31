@@ -100,7 +100,7 @@ namespace kmsengine {
  * @tparam T the type of the value.
  */
 template <typename T>
-class BRIDGE_EXPORT StatusOr final {
+class KMSENGINE_EXPORT StatusOr final {
  public:
   /**
    * Initializes with an error status (UNKNOWN).

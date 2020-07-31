@@ -31,7 +31,7 @@ namespace backing {
 // protobuf definitions since the bridge layer needs to refer to this resource
 // directly and the bridge layer is not able to include external dependencies
 // (such as the generated protobuf definitions).
-class BRIDGE_EXPORT PublicKey {
+class KMSENGINE_EXPORT PublicKey {
  public:
   explicit PublicKey(std::string pem, CryptoKeyVersionAlgorithm algorithm)
       : pem_(pem), algorithm_(algorithm) {}

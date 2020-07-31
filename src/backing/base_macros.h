@@ -20,25 +20,25 @@
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef BUILDING_DLL
     #ifdef __GNUC__
-      #define BRIDGE_EXPORT __attribute__ ((dllexport))
+      #define KMSENGINE_EXPORT __attribute__ ((dllexport))
     #else
-      #define BRIDGE_EXPORT __declspec(dllexport)
+      #define KMSENGINE_EXPORT __declspec(dllexport)
     #endif
   #else
     #ifdef __GNUC__
-      #define BRIDGE_EXPORT __attribute__ ((dllimport))
+      #define KMSENGINE_EXPORT __attribute__ ((dllimport))
     #else
-      #define BRIDGE_EXPORT __declspec(dllimport)
+      #define KMSENGINE_EXPORT __declspec(dllimport)
     #endif
   #endif
-  #define BRIDGE_LOCAL
+  #define KMSENGINE_LOCAL
 #else
   #if __GNUC__ >= 4
-    #define BRIDGE_EXPORT __attribute__ ((visibility ("default")))
-    #define BRIDGE_LOCAL  __attribute__ ((visibility ("hidden")))
+    #define KMSENGINE_EXPORT __attribute__ ((visibility ("default")))
+    #define KMSENGINE_LOCAL  __attribute__ ((visibility ("hidden")))
   #else
-    #define BRIDGE_EXPORT
-    #define BRIDGE_LOCAL
+    #define KMSENGINE_EXPORT
+    #define KMSENGINE_LOCAL
   #endif
 #endif
 

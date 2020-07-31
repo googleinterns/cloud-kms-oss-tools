@@ -30,10 +30,10 @@ namespace kmsengine {
 namespace backing {
 
 // Implementation of RsaKey with Cloud KMS operations.
-class BRIDGE_EXPORT KmsRsaKey : public RsaKey {
+class KMSENGINE_EXPORT KmsRsaKey : public RsaKey {
  public:
   KmsRsaKey(std::string key_resource_id, Client const& client)
-    : key_resource_id_(key_resource_id), client_(client) {}
+      : key_resource_id_(key_resource_id), client_(client) {}
   ~KmsRsaKey() = default;
 
   // `KmsRsaKey` is copyable and moveable.
@@ -44,9 +44,9 @@ class BRIDGE_EXPORT KmsRsaKey : public RsaKey {
   inline std::string const& key_resource_id() const { return key_resource_id_; }
 
   // RsaKey methods.
-  BRIDGE_EXPORT StatusOr<std::string> Sign(DigestCase digest_type,
-                             std::string message_digest) override;
-  BRIDGE_EXPORT StatusOr<PublicKey> GetPublicKey() override;
+  KMSENGINE_EXPORT StatusOr<std::string> Sign(
+      DigestCase digest_type, std::string message_digest) override;
+  KMSENGINE_EXPORT StatusOr<PublicKey> GetPublicKey() override;
 
  private:
   std::string key_resource_id_;
