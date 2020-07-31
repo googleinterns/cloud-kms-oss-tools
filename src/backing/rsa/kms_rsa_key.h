@@ -32,8 +32,8 @@ namespace backing {
 // Implementation of RsaKey with Cloud KMS operations.
 class KMSENGINE_EXPORT KmsRsaKey : public RsaKey {
  public:
-  KmsRsaKey(std::string key_resource_id, Client const& client)
-      : key_resource_id_(key_resource_id), client_(client) {}
+  KmsRsaKey(std::string key_resource_id, Client *client)
+      : key_resource_id_(key_resource_id), client_(*client) {}
   ~KmsRsaKey() = default;
 
   // `KmsRsaKey` is copyable and moveable.
