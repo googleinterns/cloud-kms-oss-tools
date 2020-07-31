@@ -82,7 +82,6 @@ cc_library(
 
 cc_library(
     name = "digest_case",
-    srcs = ["digest_case.cc"],
     hdrs = ["digest_case.h"],
     deps = [
         "//src/backing:export_macros",

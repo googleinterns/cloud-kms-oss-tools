@@ -47,11 +47,6 @@ constexpr int DigestCaseToInt(DigestCase digest) {
   return static_cast<std::underlying_type<DigestCase>::type>(digest);
 }
 
-// Converts a `DigestCase` to a human-readable string.
-KMSENGINE_EXPORT std::string DigestCaseToString(DigestCase digest_case);
-KMSENGINE_EXPORT std::ostream& operator<<(std::ostream& os,
-                                          DigestCase digest_case);
-
 }  // namespace backing
 }  // namespace kmsengine
 
