@@ -36,7 +36,7 @@
 #include <type_traits>
 #include <utility>
 
-#include "src/backing/base_macros.h"
+#include "src/backing/export_macros.h"
 #include "src/backing/status/status.h"
 
 namespace kmsengine {

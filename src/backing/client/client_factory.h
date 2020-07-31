@@ -20,7 +20,7 @@
 #include <chrono>
 #include <memory>
 
-#include "src/backing/base_macros.h"
+#include "src/backing/export_macros.h"
 #include "src/backing/client/client.h"
 
 namespace kmsengine {

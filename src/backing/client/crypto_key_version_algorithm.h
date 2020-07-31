@@ -20,7 +20,7 @@
 #include <string>
 #include <type_traits>
 
-#include "src/backing/base_macros.h"
+#include "src/backing/export_macros.h"
 
 namespace kmsengine {
 namespace backing {
