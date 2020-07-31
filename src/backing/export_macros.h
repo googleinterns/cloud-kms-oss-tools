@@ -47,10 +47,13 @@
 // the following conditions:
 //
 //    1) The function is expected to be called from the bridge layer.
+//
 //    2) The function's implementation is declared in a source file (not a
 //       header file). Any functions declared in a header file that is #included
 //       by the bridge layer will be visible to the bridge layer as the
 //       implementation of the function is directly in the header file.
+//       Pure virtual functions or functions declared to have "default"
+//       implementation do not need to be marked with KMSENGINE_EXPORT.
 //
 //    Example:
 //
