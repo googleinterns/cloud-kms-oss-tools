@@ -19,6 +19,7 @@
 
 #include <string>
 
+#include "src/backing/base_macros.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
 #include "src/backing/status/status_or.h"
@@ -39,7 +40,7 @@ namespace backing {
 // associated `RsaKey` methods. This is because some conversions require
 // knowledge of symbols from the OpenSSL library (which is not available to the
 // backing layer).
-class RsaKey {
+class KMSENGINE_EXPORT RsaKey {
  public:
   virtual ~RsaKey() = default;
 

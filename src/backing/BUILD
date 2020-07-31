@@ -14,13 +14,14 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_import", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library", "cc_test")
+load("//:bazel/transitions.bzl", "cc_binary", "transition_rule")
 
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_import(
     name = "backing",
-    hdrs = [":headers"],
+    hdrs = [":bridge_headers"],
     shared_library = ":libkms.so",
 )
 
@@ -31,14 +32,19 @@ cc_binary(
         "//src/backing/rsa:sources",
         "//src/backing/status:sources",
     ],
+    global_copts = [
+        "-fvisibility=hidden",
+    ],
     linkshared = 1,
     linkstatic = 1,
     deps = [
+        ":export_macros",
         "//src/backing/client",
         "//src/backing/client:client_factory",
         "//src/backing/client:crypto_key_version_algorithm",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
+        "//src/backing/client/grpc_client",
         "//src/backing/client/grpc_client:client_context_factory",
         "//src/backing/client/grpc_client:key_management_service_stub",
         "//src/backing/client/grpc_client:proto_util",
@@ -49,9 +55,15 @@ cc_binary(
     ],
 )
 
+cc_library(
+    name = "export_macros",
+    hdrs = ["export_macros.h"],
+)
+
 filegroup(
-    name = "headers",
+    name = "bridge_headers",
     srcs = [
+        "export_macros.h",
         "//src/backing/client:bridge_headers",
         "//src/backing/rsa:bridge_headers",
         "//src/backing/status:bridge_headers",

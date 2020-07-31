@@ -20,6 +20,8 @@
 #include <string>
 #include <type_traits>
 
+#include "src/backing/base_macros.h"
+
 namespace kmsengine {
 namespace backing {
 
@@ -35,7 +37,7 @@ namespace backing {
 // cases in `google::cloud::kms::v1::CryptoKeyVersionAlgorithm`; this allows for
 // simple conversions between `CryptoKeyVersionAlgorithm` and its protobuf
 // counterpart by using `static_cast`.
-enum class CryptoKeyVersionAlgorithm : int {
+enum class KMSENGINE_EXPORT CryptoKeyVersionAlgorithm : int {
   // Not specified.
   kAlgorithmUnspecified = 0,
   // Creates symmetric encryption keys.
@@ -80,8 +82,10 @@ constexpr int CryptoKeyVersionAlgorithmToInt(CryptoKeyVersionAlgorithm algo) {
 }
 
 // Converts a `CryptoKeyVersionAlgorithm` to a human-readable string.
-std::string CryptoKeyVersionAlgorithmToString(CryptoKeyVersionAlgorithm algo);
-std::ostream& operator<<(std::ostream& os, CryptoKeyVersionAlgorithm code);
+KMSENGINE_EXPORT std::string CryptoKeyVersionAlgorithmToString(
+    CryptoKeyVersionAlgorithm algo);
+KMSENGINE_EXPORT std::ostream& operator<<(std::ostream& os,
+                                          CryptoKeyVersionAlgorithm code);
 
 }  // namespace backing
 }  // namespace kmsengine

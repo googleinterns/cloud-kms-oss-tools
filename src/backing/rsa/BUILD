@@ -45,6 +45,7 @@ cc_library(
     hdrs = ["kms_rsa_key.h"],
     deps = [
         ":rsa_key",
+        "//src/backing:export_macros",
         "//src/backing/client",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
@@ -68,6 +69,7 @@ cc_library(
     name = "rsa_key",
     hdrs = ["rsa_key.h"],
     deps = [
+        "//src/backing:export_macros",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
         "//src/backing/status:status_or",
