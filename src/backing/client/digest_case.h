@@ -34,7 +34,7 @@ namespace backing {
 // cases in `google::cloud::kms::v1::Digest::DigestCase`; this allows for
 // simple conversions between `DigestCase` and its protobuf counterpart by
 // using `static_cast`.
-enum class KMSENGINE_EXPORT DigestCase : int {
+enum class DigestCase : int {
   kSha256 = 1,
   kSha384 = 2,
   kSha512 = 3,
