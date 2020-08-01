@@ -55,7 +55,7 @@ const std::string kSampleDigests[] = {
   // Example SHA-256 digest of "hello world" for testing.
   absl::HexStringToBytes(
       "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"),
-  // Check that signing operations handle signatures containing null bytes.
+  // Check that signing operations handle digests containing null bytes.
   absl::HexStringToBytes(
       "ababab0000000000000000000000000000000000000000000000000000bababa"),
   // Ends with null bytes.
