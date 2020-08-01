@@ -43,11 +43,11 @@ namespace backing {
 std::string DigestCaseToString(DigestCase digest_case) {
   switch (digest_case) {
     case DigestCase::kSha256:
-      return "SHA_256";
+      return "SHA256";
     case DigestCase::kSha384:
-      return "SHA_384";
+      return "SHA384";
     case DigestCase::kSha512:
-      return "SHA_512";
+      return "SHA512";
     default:
       return absl::StrFormat("UNEXPECTED_DIGEST_CASE=%i",
                              static_cast<int>(digest_case));

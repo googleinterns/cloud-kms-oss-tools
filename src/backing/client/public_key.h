@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "src/backing/base_macros.h"
+#include "src/backing/export_macros.h"
 #include "src/backing/client/crypto_key_version_algorithm.h"
 
 namespace kmsengine {

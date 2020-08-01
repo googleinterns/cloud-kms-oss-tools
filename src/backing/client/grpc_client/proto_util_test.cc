@@ -82,24 +82,26 @@ TEST_P(MakeDigestTest, MakeDigest) {
 struct CorrespondingStatusCode {
   grpc::StatusCode proto;
   StatusCode code;
-} kStatusCodeMapping[]{
-    {grpc::StatusCode::OK, StatusCode::kOk},
-    {grpc::StatusCode::CANCELLED, StatusCode::kCancelled},
-    {grpc::StatusCode::UNKNOWN, StatusCode::kUnknown},
-    {grpc::StatusCode::INVALID_ARGUMENT, StatusCode::kInvalidArgument},
-    {grpc::StatusCode::DEADLINE_EXCEEDED, StatusCode::kDeadlineExceeded},
-    {grpc::StatusCode::NOT_FOUND, StatusCode::kNotFound},
-    {grpc::StatusCode::ALREADY_EXISTS, StatusCode::kAlreadyExists},
-    {grpc::StatusCode::PERMISSION_DENIED, StatusCode::kPermissionDenied},
-    {grpc::StatusCode::UNAUTHENTICATED, StatusCode::kUnauthenticated},
-    {grpc::StatusCode::RESOURCE_EXHAUSTED, StatusCode::kResourceExhausted},
-    {grpc::StatusCode::FAILED_PRECONDITION, StatusCode::kFailedPrecondition},
-    {grpc::StatusCode::ABORTED, StatusCode::kAborted},
-    {grpc::StatusCode::OUT_OF_RANGE, StatusCode::kOutOfRange},
-    {grpc::StatusCode::UNIMPLEMENTED, StatusCode::kUnimplemented},
-    {grpc::StatusCode::INTERNAL, StatusCode::kInternal},
-    {grpc::StatusCode::UNAVAILABLE, StatusCode::kUnavailable},
-    {grpc::StatusCode::DATA_LOSS, StatusCode::kDataLoss},
+};
+
+constexpr CorrespondingStatusCode kStatusCodeMapping[] = {
+  {grpc::StatusCode::OK, StatusCode::kOk},
+  {grpc::StatusCode::CANCELLED, StatusCode::kCancelled},
+  {grpc::StatusCode::UNKNOWN, StatusCode::kUnknown},
+  {grpc::StatusCode::INVALID_ARGUMENT, StatusCode::kInvalidArgument},
+  {grpc::StatusCode::DEADLINE_EXCEEDED, StatusCode::kDeadlineExceeded},
+  {grpc::StatusCode::NOT_FOUND, StatusCode::kNotFound},
+  {grpc::StatusCode::ALREADY_EXISTS, StatusCode::kAlreadyExists},
+  {grpc::StatusCode::PERMISSION_DENIED, StatusCode::kPermissionDenied},
+  {grpc::StatusCode::UNAUTHENTICATED, StatusCode::kUnauthenticated},
+  {grpc::StatusCode::RESOURCE_EXHAUSTED, StatusCode::kResourceExhausted},
+  {grpc::StatusCode::FAILED_PRECONDITION, StatusCode::kFailedPrecondition},
+  {grpc::StatusCode::ABORTED, StatusCode::kAborted},
+  {grpc::StatusCode::OUT_OF_RANGE, StatusCode::kOutOfRange},
+  {grpc::StatusCode::UNIMPLEMENTED, StatusCode::kUnimplemented},
+  {grpc::StatusCode::INTERNAL, StatusCode::kInternal},
+  {grpc::StatusCode::UNAVAILABLE, StatusCode::kUnavailable},
+  {grpc::StatusCode::DATA_LOSS, StatusCode::kDataLoss},
 };
 
 class FromGrpcStatusToStatusTest : public
@@ -125,10 +127,12 @@ using ProtoDigestCase = google::cloud::kms::v1::Digest::DigestCase;
 struct CorrespondingDigestCase {
   DigestCase expected;
   ProtoDigestCase proto;
-} const kDigestMapping[]{
-    {DigestCase::kSha256, ProtoDigestCase::kSha256},
-    {DigestCase::kSha384, ProtoDigestCase::kSha384},
-    {DigestCase::kSha512, ProtoDigestCase::kSha512},
+};
+
+constexpr CorrespondingDigestCase kDigestMapping[] = {
+  {DigestCase::kSha256, ProtoDigestCase::kSha256},
+  {DigestCase::kSha384, ProtoDigestCase::kSha384},
+  {DigestCase::kSha512, ProtoDigestCase::kSha512},
 };
 
 class FromProtoToDigestCaseTest : public
@@ -151,41 +155,43 @@ using ProtoCryptoKeyVersion = google::cloud::kms::v1::CryptoKeyVersion;
 struct CorrespondingCryptoKeyVersionAlgorithm {
   CryptoKeyVersionAlgorithm expected;
   google::cloud::kms::v1::CryptoKeyVersion_CryptoKeyVersionAlgorithm proto;
-} kCryptoKeyVersionAlgorithmMapping[]{
-    {CryptoKeyVersionAlgorithm::kAlgorithmUnspecified,
-        ProtoCryptoKeyVersion::CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED},
-    {CryptoKeyVersionAlgorithm::kGoogleSymmetricEncryption,
-        ProtoCryptoKeyVersion::GOOGLE_SYMMETRIC_ENCRYPTION},
-    {CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256,
-        ProtoCryptoKeyVersion::RSA_SIGN_PSS_2048_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256,
-        ProtoCryptoKeyVersion::RSA_SIGN_PSS_3072_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha256,
-        ProtoCryptoKeyVersion::RSA_SIGN_PSS_4096_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha512,
-        ProtoCryptoKeyVersion::RSA_SIGN_PSS_4096_SHA512},
-    {CryptoKeyVersionAlgorithm::kRsaSignPkcs2048Sha256,
-        ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_2048_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPkcs3072Sha256,
-        ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_3072_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha256,
-        ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512,
-        ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA512},
-    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep2048Sha256,
-        ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_2048_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep3072Sha256,
-        ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_3072_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha256,
-        ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA256},
-    {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha512,
-        ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA512},
-    {CryptoKeyVersionAlgorithm::kEcSignP256Sha256,
-        ProtoCryptoKeyVersion::EC_SIGN_P256_SHA256},
-    {CryptoKeyVersionAlgorithm::kEcSignP384Sha384,
-        ProtoCryptoKeyVersion::EC_SIGN_P384_SHA384},
-    {CryptoKeyVersionAlgorithm::kExternalSymmetricEncryption,
-        ProtoCryptoKeyVersion::EXTERNAL_SYMMETRIC_ENCRYPTION},
+};
+
+constexpr CorrespondingCryptoKeyVersionAlgorithm kCryptoAlgorithmMapping[] = {
+  {CryptoKeyVersionAlgorithm::kAlgorithmUnspecified,
+      ProtoCryptoKeyVersion::CRYPTO_KEY_VERSION_ALGORITHM_UNSPECIFIED},
+  {CryptoKeyVersionAlgorithm::kGoogleSymmetricEncryption,
+      ProtoCryptoKeyVersion::GOOGLE_SYMMETRIC_ENCRYPTION},
+  {CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256,
+      ProtoCryptoKeyVersion::RSA_SIGN_PSS_2048_SHA256},
+  {CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256,
+      ProtoCryptoKeyVersion::RSA_SIGN_PSS_3072_SHA256},
+  {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha256,
+      ProtoCryptoKeyVersion::RSA_SIGN_PSS_4096_SHA256},
+  {CryptoKeyVersionAlgorithm::kRsaSignPss4096Sha512,
+      ProtoCryptoKeyVersion::RSA_SIGN_PSS_4096_SHA512},
+  {CryptoKeyVersionAlgorithm::kRsaSignPkcs2048Sha256,
+      ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_2048_SHA256},
+  {CryptoKeyVersionAlgorithm::kRsaSignPkcs3072Sha256,
+      ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_3072_SHA256},
+  {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha256,
+      ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA256},
+  {CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512,
+      ProtoCryptoKeyVersion::RSA_SIGN_PKCS1_4096_SHA512},
+  {CryptoKeyVersionAlgorithm::kRsaDecryptOaep2048Sha256,
+      ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_2048_SHA256},
+  {CryptoKeyVersionAlgorithm::kRsaDecryptOaep3072Sha256,
+      ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_3072_SHA256},
+  {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha256,
+      ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA256},
+  {CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha512,
+      ProtoCryptoKeyVersion::RSA_DECRYPT_OAEP_4096_SHA512},
+  {CryptoKeyVersionAlgorithm::kEcSignP256Sha256,
+      ProtoCryptoKeyVersion::EC_SIGN_P256_SHA256},
+  {CryptoKeyVersionAlgorithm::kEcSignP384Sha384,
+      ProtoCryptoKeyVersion::EC_SIGN_P384_SHA384},
+  {CryptoKeyVersionAlgorithm::kExternalSymmetricEncryption,
+      ProtoCryptoKeyVersion::EXTERNAL_SYMMETRIC_ENCRYPTION},
 };
 
 class FromProtoToCryptoKeyVersionAlgorithmTest : public
@@ -195,7 +201,7 @@ class FromProtoToCryptoKeyVersionAlgorithmTest : public
 
 INSTANTIATE_TEST_SUITE_P(CryptoKeyVersionAlgorithmParameters,
                          FromProtoToCryptoKeyVersionAlgorithmTest,
-                         ValuesIn(kCryptoKeyVersionAlgorithmMapping));
+                         ValuesIn(kCryptoAlgorithmMapping));
 
 TEST_P(FromProtoToCryptoKeyVersionAlgorithmTest, ConversionsWork) {
   auto mapping = GetParam();
