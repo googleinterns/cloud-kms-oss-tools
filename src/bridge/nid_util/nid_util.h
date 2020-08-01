@@ -26,13 +26,10 @@ namespace bridge {
 // Converts a OpenSSL NID to a `DigestType`. Returns a Status if the input
 // `nid` does not match a defined `DigestType`.
 //
-// Valid NIDs to this function are:
-//
-//    - The underlying `EVP_MD_type` of `EVP_sha256`
-//    - The underlying `EVP_MD_type` of `EVP_sha384`
-//    - The underlying `EVP_MD_type` of `EVP_sha512`
-//
-// All other NIDs will result in an error status return value.
+// Valid NIDs to this function are `NID_sha256`, `NID_sha384`, and `NID_sha512`.
+// These correspond to the underlying NID of the default `EVP_PKEY` objects
+// `EVP_sha256`, `EVP_sha384`, and `EVP_sha512`. (The NID of a given `EVP_PKEY`
+// can be retrieved via the OpenSSL `EVP_MD_type` function.)
 StatusOr<backing::DigestCase> ConvertOpenSslNidToDigestType(int nid);
 
 }  // namespace bridge

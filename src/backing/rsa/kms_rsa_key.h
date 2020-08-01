@@ -45,8 +45,8 @@ class KMSENGINE_EXPORT KmsRsaKey : public RsaKey {
 
   // RsaKey methods.
   KMSENGINE_EXPORT StatusOr<std::string> Sign(
-      DigestCase digest_type, std::string message_digest) override;
-  KMSENGINE_EXPORT StatusOr<PublicKey> GetPublicKey() override;
+      DigestCase digest_type, std::string message_digest) const override;
+  KMSENGINE_EXPORT StatusOr<PublicKey> GetPublicKey() const override;
 
  private:
   std::string key_resource_id_;

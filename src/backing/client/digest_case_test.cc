@@ -32,10 +32,12 @@ using ProtoDigestCase = google::cloud::kms::v1::Digest::DigestCase;
 struct CorrespondingDigestCase {
   DigestCase actual;
   ProtoDigestCase proto;
-} const kDigestMapping[]{
-    {DigestCase::kSha256, ProtoDigestCase::kSha256},
-    {DigestCase::kSha384, ProtoDigestCase::kSha384},
-    {DigestCase::kSha512, ProtoDigestCase::kSha512},
+};
+
+constexpr CorrespondingDigestCase kDigestMapping[] = {
+  {DigestCase::kSha256, ProtoDigestCase::kSha256},
+  {DigestCase::kSha384, ProtoDigestCase::kSha384},
+  {DigestCase::kSha512, ProtoDigestCase::kSha512},
 };
 
 class DigestCaseTest : public testing::TestWithParam<CorrespondingDigestCase> {
@@ -48,6 +50,29 @@ INSTANTIATE_TEST_SUITE_P(DigestCaseParameters, DigestCaseTest,
 TEST_P(DigestCaseTest, UnderlyingValueMatchesProtoValues) {
   auto mapping = GetParam();
   EXPECT_EQ(DigestCaseToInt(mapping.actual), mapping.proto);
+}
+
+TEST(DigestCaseTest, ToStringIsOneToOne) {
+  const std::vector<DigestCase> kDigestCases = {
+    DigestCase::kSha256,
+    DigestCase::kSha384,
+    DigestCase::kSha512,
+  };
+
+  std::set<std::string> used_strings;
+  for (auto algorithm : kDigestCases) {
+    auto actual = DigestCaseToString(algorithm);
+    used_strings.insert(actual);
+  }
+
+  EXPECT_EQ(used_strings.size(), kDigestCases.size())
+      << "Number of unique strings should equal number of unique DigestCase "
+         "enums";
+}
+
+TEST(DigestCaseTest, ToStringHandlesInvalidEnums) {
+  EXPECT_EQ("UNEXPECTED_DIGEST_CASE=42",
+            DigestCaseToString(static_cast<DigestCase>(42)));
 }
 
 }  // namespace
