@@ -42,32 +42,6 @@ using ::kmsengine::backing::KmsRsaKey;
 using ::kmsengine::backing::PublicKey;
 using ::kmsengine::backing::RsaKey;
 
-// Implementation of `KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR` that uses
-// a unique temporary identifier for avoiding collision in the enclosing scope.
-#define __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(__lhs, __rhs, __name) \
-  auto __name = (__rhs);                                                   \
-  if (!__name.ok()) {                                                      \
-    KMSENGINE_SIGNAL_ERROR(__name.status());                               \
-    return nullptr;                                                          \
-  }                                                                        \
-  __lhs = std::move(__name.value());
-
-// Signals an engine error to OpenSSL using the given StatusOr<T> and returns
-// nullptr if it is an error status; otherwise, assigns the underlying
-// StatusOr<T> value to the left-hand-side expression. Should be used only in
-// engine-defined OpenSSL callbacks (for example, `RSA_METHOD` callbacks), since
-// the returned "nullptr" value is intended for OpenSSL.
-//
-// The right-hand-side expression is guaranteed to be evaluated exactly once.
-//
-// Note: KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR expands into multiple
-// statements; it cannot be used in a single statement (for example, within an
-// `if` statement).
-#define KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(__lhs, __rhs) \
-  __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(                     \
-    __lhs, __rhs,                                                   \
-    __KMSENGINE_MACRO_CONCAT(__status_or_value, __COUNTER__))
-
 // Creates an `OpenSslRsa` from the input `PublicKey`.
 //
 // The `RSA` struct contained within the returned `OpenSslRsa` will have its
@@ -181,9 +155,10 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(PublicKey public_key,
 EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
                          UI_METHOD */*ui_method*/, void */*callback_data*/) {
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto engine_data, GetEngineDataFromOpenSslEngine(openssl_engine));
+      auto engine_data, GetEngineDataFromOpenSslEngine(openssl_engine),
+      nullptr);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto public_key, engine_data->client().GetPublicKey(key_id));
+      auto public_key, engine_data->client().GetPublicKey(key_id), nullptr);
 
   OpenSslEvpPkey evp_pkey(nullptr, nullptr);
   switch (public_key.algorithm()) {
@@ -197,7 +172,8 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
     case CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512:
       {
         KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-            evp_pkey, MakeKmsRsaEvpPkey(public_key, key_id, engine_data));
+            evp_pkey, MakeKmsRsaEvpPkey(public_key, key_id, engine_data),
+            nullptr);
         break;
       }
     case CryptoKeyVersionAlgorithm::kEcSignP256Sha256:
@@ -221,9 +197,6 @@ EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
 
   return evp_pkey.release();
 }
-
-#undef __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL
-#undef KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR
 
 }  // namespace bridge
 }  // namespace kmsengine

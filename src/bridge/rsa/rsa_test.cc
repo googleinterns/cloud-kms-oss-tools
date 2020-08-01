@@ -36,6 +36,7 @@ namespace {
 
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockRsaKey;
+using ::testing::IsNull;
 using ::testing::NotNull;
 using ::testing::Return;
 using ::testing::StrEq;
@@ -44,6 +45,8 @@ using ::testing::StrEq;
 // `EngineBind` function) needed for the RSA callbacks to work.
 class RsaMethodTest : public ::testing::Test {
  protected:
+  RsaMethodTest() : rsa_method_(MakeKmsRsaMethod()) {}
+
   void SetUp() override {
     ASSERT_THAT(InitExternalIndicies(), IsOk());
     ASSERT_THAT(rsa_method, NotNull());
@@ -57,19 +60,43 @@ class RsaMethodTest : public ::testing::Test {
   // implementation already attached.
   OpenSslRsa MakeRsaWithKmsMethod() {
     auto rsa = MakeRsa();
-    if (rsa) RSA_set_method(rsa.get(), rsa_method.get());
+    if (rsa) RSA_set_method(rsa.get(), rsa_method());
     return rsa;
   }
 
-  OpenSslRsaMethod rsa_method {MakeKmsRsaMethod()};
+  RSA_METHOD *rsa_method() { return rsa_method_.get(); }
+
+ private:
+  OpenSslRsaMethod rsa_method_;
 };
+
+TEST_F(RsaMethodTest, RsaMethodCallbacksAreInitialized) {
+  // The OpenSSL specification does not explicitly permit these RSA operations
+  // to be null, so we check to make sure that they're defined.
+  EXPECT_THAT(RSA_meth_get_pub_enc(rsa_method()), NotNull());
+  EXPECT_THAT(RSA_meth_get_pub_dec(rsa_method()), NotNull());
+  EXPECT_THAT(RSA_meth_get_verify(rsa_method()), NotNull());
+  EXPECT_THAT(RSA_meth_get_priv_dec(rsa_method()), NotNull());
+  EXPECT_THAT(RSA_meth_get_priv_enc(rsa_method()), NotNull());
+  EXPECT_THAT(RSA_meth_get_sign(rsa_method()), NotNull());
+  EXPECT_THAT(RSA_meth_get_init(rsa_method()), NotNull());
+  EXPECT_THAT(RSA_meth_get_finish(rsa_method()), NotNull());
+
+  // `mod_exp`, `bn_mod_exp`, and `keygen` may be null according to the OpenSSL
+  // specification. They should be set to null in the current version of the
+  // engine since they are unimplemented, though they may be defined if the
+  // engine's functionality needs to be extended in any way.
+  EXPECT_THAT(RSA_meth_get_mod_exp(rsa_method()), IsNull());
+  EXPECT_THAT(RSA_meth_get_bn_mod_exp(rsa_method()), IsNull());
+  EXPECT_THAT(RSA_meth_get_keygen(rsa_method()), IsNull());
+}
 
 TEST_F(RsaMethodTest, FinishCleansUpRsaKey) {
   // Using `RSA_new` instead of `MakeRsa` here so we can explicitly call
   // `RSA_free` at the end to test that the mock got cleaned up.
   auto rsa = RSA_new();
   ASSERT_THAT(rsa, NotNull());
-  RSA_set_method(rsa, rsa_method.get());
+  RSA_set_method(rsa, rsa_method());
 
   // If mocks aren't deleted before the end of a test, an error is raised.
   // Thus, if `RSA_free` doesn't delete the underlying `RsaKey`, then this test

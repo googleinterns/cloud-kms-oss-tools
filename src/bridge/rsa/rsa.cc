@@ -31,131 +31,153 @@ namespace bridge {
 namespace rsa {
 namespace {
 
-// Implementation of `KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR` that uses
-// a unique temporary identifier for avoiding collision in the enclosing scope.
-#define __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(__lhs, __rhs, __return, \
-                                                     __name)                 \
-  auto __name = (__rhs);                                                     \
-  if (!__name.ok()) {                                                        \
-    KMSENGINE_SIGNAL_ERROR(__name.status());                                 \
-    return __return;                                                         \
-  }                                                                          \
-  __lhs = std::move(__name.value());
+// Wrapper around error-checking and `reinterpret_cast` to make a std::string
+// representing a digest passed from OpenSSL as an unsigned char pointer and
+// length.
+StatusOr<std::string> MakeDigestString(const unsigned char *m,
+                                       const unsigned int m_length) {
+  if (m == nullptr) {
+    return Status(StatusCode::kInvalidArgument,
+                  "Message digest pointer cannot be null");
+  }
+  if (m_length == 0) {
+    return Status(StatusCode::kInvalidArgument,
+                  "Message digest length cannot be zero");
+  }
 
-// Signals an engine error to OpenSSL using the given StatusOr<T> and returns
-// false if it is an error status; otherwise, assigns the underlying
-// StatusOr<T> value to the left-hand-side expression. Should be used only in
-// engine-defined OpenSSL callbacks (for example, `RSA_METHOD` callbacks), since
-// the returned "false" value is intended for OpenSSL.
+  std::string digest(reinterpret_cast<const char *>(m), m_length);
+  return digest;
+}
+
+// Called when OpenSSL's `RSA_new_method` is called to initialize a new
+// `RSA` struct using the Cloud KMS engine.
 //
-// The right-hand-side expression is guaranteed to be evaluated exactly once.
+// This is a no-op, as the key loader function is responsible for initializing
+// RSA structs to have meaningful engine-specific data. While some engine
+// implementations set the `init` callback to a null pointer, the OpenSSL
+// specification does not explicitly permit this function to be null in an
+// engine's `RSA_METHOD` implementation, so we define it as a no-op here.
 //
-// Note: KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR expands into multiple
-// statements; it cannot be used in a single statement (for example, within an
-// `if` statement).
-#define KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(__lhs, __rhs, __return) \
-  __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(                               \
-    __lhs, __rhs, __return,                                                   \
-    __KMSENGINE_MACRO_CONCAT(__status_or_value, __COUNTER__))
+// Returns 1 on success; otherwise, returns 0.
+int Init(RSA *rsa) {
+  return true;
+}
 
 // Cleans up any internal structures associated with the input `rsa` struct
 // (except for the RSA struct itself, which will be cleaned up by the OpenSSL
 // library).
 //
-// Called when OpenSSL's `RSA_free` is called on `rsa`.
+// Called when OpenSSL's `RSA_free` is called on `rsa`. (See the OpenSSL man
+// page for RSA_free(3) for more information.)
+//
+// Returns 1 on success; otherwise, returns 0.
 int Finish(RSA *rsa) {
-  std::cout << "RSA " << __func__ << " called" << std::endl;
+  // `rsa_key` is guaranteed to be non-null here (if the underlying external
+  // data struct was null, an error status would be returned).
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
   delete rsa_key;
 
   auto status = AttachRsaKeyToOpenSslRsa(nullptr, rsa);
-  if (!status.ok()) KMSENGINE_SIGNAL_ERROR(status);
+  if (!status.ok()) {
+    KMSENGINE_SIGNAL_ERROR(status);
+  }
   return status.ok();
 }
 
-// Signs the message digest `m` of length `m_length` using the RSA private key
-// represented by the OpenSSL RSA struct `rsa`. Then, stores the resulting
-// signature in `sigret` and the signature size in `siglen`. `sigret`
-// points to `RSA_size(rsa)` bytes of memory.
+// Signs the message digest `digest_bytes` of length `digest_length` using the
+// RSA private key represented by the OpenSSL RSA struct `rsa`. Then, stores the
+// resulting signature in `signature_return` and the signature size in
+// `signature_length`. The caller is responsible for ensuring that
+// `signature_return` points to `RSA_size(rsa)` bytes of memory. (See the
+// OpenSSL man page for RSA_sign(3) for more information.)
 //
 // Returns 1 on success; otherwise, returns 0.
-int Sign(int type, const unsigned char *m, unsigned int m_length,
-         unsigned char *sigret, unsigned int *siglen, const RSA *rsa) {
+//
+// The function signature comes from the prototype for `RSA_meth_set_sign` from
+// the OpenSSL API.
+int Sign(int type, const unsigned char *digest_bytes,
+         unsigned int digest_length, unsigned char *signature_return,
+         unsigned int *signature_length, const RSA *rsa) {
   // Convert arguments to engine-native structures for convenience. These
   // conversions need to take place within the bridge layer (as opposed to
   // letting the `RsaKey::Sign` method handling the conversions) since the
   // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto digest_type, ConvertOpenSslNidToDigestType(type), false);
-
-  std::string digest(reinterpret_cast<const char *>(m), m_length);
-
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      auto digest_type, ConvertOpenSslNidToDigestType(type), false);
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      auto digest_string, MakeDigestString(digest_bytes, digest_length), false);
 
   // Delegate handling of the signing operation to the backing layer.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto signature, rsa_key->Sign(digest_type, digest), false);
+      auto signature, rsa_key->Sign(digest_type, digest_string), false);
 
   // Copy results into the return pointers.
-  if (sigret != nullptr) {
-    signature.copy(reinterpret_cast<char *>(sigret), signature.length());
+  if (signature_return != nullptr) {
+    signature.copy(reinterpret_cast<char *>(signature_return),
+                   signature.length());
   }
-  if (siglen != nullptr) *siglen = signature.length();
+  if (signature_length != nullptr) {
+    *signature_length = signature.length();
+  }
 
   return true;
 }
 
-// Verifies that the signature `sigbuf` of size `siglen` matches a given
-// message digest `m` of size `m_len`. `type` denotes the message digest
-// algorithm that was used to generate the signature. `rsa` is the signer's
-// public key represented with the OpenSSL RSA struct.
+// Signs the `from_length` bytes in `from` using the RSA key `rsa` and stores
+// the signature in `to`. The caller is responsible for ensuring that `to`
+// points to `RSA_size(rsa)` bytes of memory. (See the OpenSSL man page for
+// RSA_private_encrypt(3) for more information.)
 //
-// Returns 1 if the signature is successfully verified; otherwise, returns 0.
-int Verify(int type, const unsigned char *m, unsigned int m_length,
-           const unsigned char *sigbuf, unsigned int siglen, const RSA *rsa) {
-  std::cout << __func__ << std::endl;
-  KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kUnimplemented, __func__));
-  return false;  // Unimplemented.
-}
-
-int PrivateEncrypt(int flen, const unsigned char *from,
-      unsigned char *to, RSA *rsa, int padding) {
-  std::cout << __func__ << std::endl;
+// According to the OpenSSL specification, `from` is usually a message
+// digest, but it doesn't have to be.
+//
+// Returns the length of `to` on success; otherwise, returns -1.
+//
+// The function signature comes from the prototype for `RSA_meth_set_priv_enc`
+// from the OpenSSL API.
+int PrivateEncrypt(int from_length, const unsigned char *from,
+                   unsigned char *to, RSA *rsa, int padding) {
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
 
   unsigned int signature_length;
-  if (!Sign(NID_sha256, from, flen, to, &signature_length, rsa)) {
+  if (!Sign(NID_sha256, from, from_length, to, &signature_length, rsa)) {
     return -1;
   }
   return signature_length;
 }
 
-int PrivateDecrypt(int flen, const unsigned char *from,
-      unsigned char *to, RSA *rsa, int padding) {
-  std::cout << __func__ << std::endl;
+// Recovers the message digest from the `from_length` bytes long signature in
+// `from` using the RSA key `rsa`. The caller is responsible for ensuring that
+// `to` points to a memory section large enough to hold the message digest
+// (which is smaller than `RSA_size(rsa) - 11`). `padding` is the padding mode
+// that was used to sign the data. (See the OpenSSL man page for
+// RSA_private_decrypt(3) for more information.)
+//
+// Returns the length of `to` on success; otherwise, returns -1.
+//
+// The function signature comes from the prototype for `RSA_meth_set_priv_dec`
+// from the OpenSSL API.
+int PrivateDecrypt(int from_length, const unsigned char *from,
+                   unsigned char *to, RSA *rsa, int padding) {
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
   return -1;
 }
 
-#undef __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL
-#undef KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR
-
 }  // namespace
 
 OpenSslRsaMethod MakeKmsRsaMethod() {
-  // RSA_FLAG_EXT_PKEY identifies that the RSA key is stored in external
-  // hardware.
   auto rsa_method = MakeRsaMethod(kRsaMethodName, kRsaMethodFlags);
   if (!rsa_method) return OpenSslRsaMethod(nullptr, nullptr);
 
-  // TODO(zesp): Investigate `PublicEncrypt` and `PublicDecrypt` are
+  // TODO(zesp): Investigate `PrivateEncrypt` and `PrivateDecrypt` are
   // necessary given Sign and Verify.
   //
-  // It may be sufficient for `PublicEncrypt` and `PublicDecrypt` to redirect
+  // It may be sufficient for `PrivateEncrypt` and `PrivateDecrypt` to redirect
   // to `Sign` and `Verify`. Conversely, it may be impossible for them to be
   // used with the engine since the OpenSSL specification for `rsa_pub_enc` and
   // `rsa_pub_dec` does not guarantee that the input will be a valid digest
@@ -163,27 +185,33 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
   // strings of arbitrary length without hashing). These kinds of arbitrary
   // plaintext operations are unsupported by Cloud KMS.
   auto openssl_rsa_method = RSA_PKCS1_OpenSSL();
-  if (!RSA_meth_set_pub_enc(rsa_method.get(),
+  if (// Public key operations can just reuse the OpenSSL defaults. This works
+      // because the engine key loader initializes `RSA` structs with all of
+      // the necessary public key material.
+      !RSA_meth_set_pub_enc(rsa_method.get(),
                             RSA_meth_get_pub_enc(openssl_rsa_method)) ||
       !RSA_meth_set_pub_dec(rsa_method.get(),
                             RSA_meth_get_pub_dec(openssl_rsa_method)) ||
+      !RSA_meth_set_verify(rsa_method.get(),
+                           RSA_meth_get_verify(openssl_rsa_method)) ||
+      // Private key operations need to be implemented by our engine.
       !RSA_meth_set_priv_dec(rsa_method.get(), PrivateDecrypt) ||
       !RSA_meth_set_priv_enc(rsa_method.get(), PrivateEncrypt) ||
       !RSA_meth_set_sign(rsa_method.get(), Sign) ||
-      !RSA_meth_set_verify(rsa_method.get(), Verify) ||
+      // Memory initialization and cleanup functions.
+      !RSA_meth_set_init(rsa_method.get(), Init) ||
+      !RSA_meth_set_finish(rsa_method.get(), Finish) ||
       // `mod_exp` and `bn_mod_exp` are called by the default OpenSSL RSA
-      // method. They are NULL since we're overriding the default RSA
-      // methods anyways.
+      // method. They are null since we're overriding the default RSA
+      // methods anyways. The OpenSSL man page for RSA_set_method(3) explicitly
+      // permits these callbacks to be set to null in an engine implementation.
       !RSA_meth_set_mod_exp(rsa_method.get(), nullptr) ||
       !RSA_meth_set_bn_mod_exp(rsa_method.get(), nullptr) ||
       // `keygen` is NULL since key management functions are out of scope of
-      // the Cloud KMS engine.
-      !RSA_meth_set_keygen(rsa_method.get(), nullptr) ||
-      // `init` is called in response to the OpenSSL application calling
-      // `RSA_new`. Initialization work is delegated to the EVP_PKEY loader, so
-      // it is NULL.
-      !RSA_meth_set_init(rsa_method.get(), nullptr) ||
-      !RSA_meth_set_finish(rsa_method.get(), Finish)) {
+      // the Cloud KMS engine. The OpenSSL man page for RSA_set_method(3)
+      // explicitly permits this callback to be set to null in an engine
+      // implementation.
+      !RSA_meth_set_keygen(rsa_method.get(), nullptr)) {
     return OpenSslRsaMethod(nullptr, nullptr);
   }
 

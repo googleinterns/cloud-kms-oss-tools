@@ -74,7 +74,7 @@ StatusCode MapStatusCode(grpc::StatusCode const& code) {
 }  // namespace
 
 google::cloud::kms::v1::Digest MakeDigest(DigestCase type,
-                                          absl::string_view digest_bytes) {
+                                          std::string digest_bytes) {
   google::cloud::kms::v1::Digest proto_digest;
   switch (type) {
     case DigestCase::kSha256:

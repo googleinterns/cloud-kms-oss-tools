@@ -67,6 +67,39 @@ const std::string kSampleKeyNames[] = {
   "",
 };
 
+const std::string kSampleSignatures[] = {
+  // Random 2048-bit / 256-byte string.
+  absl::HexStringToBytes(
+      "650c9f2e6701e3fe73d3054904a9a4bbdb96733f1c4c743ef573ad6ac14c5a3bf8a4731f"
+      "6e6276faea5247303677fb8dbdf24ff78e53c25052cdca87eecfee85476bcb8a05cb9a1e"
+      "fef7cb87dd68223e117ce800ac46177172544757a487be32f5ab8fe0879fa8add78be465"
+      "ea8f8d5acf977e9f1ae36d4d47816ea6ed41372b650c9f2e6701e3fe73d3054904a9a4bb"
+      "db96733f1c4c743ef573ad6ac14c5a3bf8a4731f6e6276faea5247303677fb8dbdf24ff7"
+      "8e53c25052cdca87eecfee85476bcb8a05cb9a1efef7cb87dd68223e117ce800ac461771"
+      "72544757a487be32f5ab8fe0879fa8add78be465ea8f8d5acf977e9f1ae36d4d47816ea6"
+      "ed41372b"),
+  // Check that signing operations handle signatures containing null bytes.
+  absl::HexStringToBytes(
+      "bababa"
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "ababab"),
+  // Ends with null bytes.
+  absl::HexStringToBytes(
+      "bababa"
+      "0000000000000000000000000000000000000000000000000000000000000000000000"),
+  // Starts with null bytes and ends with non-null bytes.
+  absl::HexStringToBytes(
+      "000000000000000000000000000000000000000000000000000000000000000000000000"
+      "ababab"),
+  // Check all null string.
+  absl::HexStringToBytes(
+      "0000000000000000000000000000000000000000000000000000000000000000000000"),
+  // Check some arbitrary short string.
+  "my unique signature",
+  // Check empty string.
+  "",
+};
+
 class AsymmetricSignTest : public
     testing::TestWithParam<std::tuple<std::string, DigestCase, std::string>> {
   // Purposely empty; no fixtures to instantiate.
@@ -75,16 +108,18 @@ class AsymmetricSignTest : public
 INSTANTIATE_TEST_SUITE_P(AsymmetricSignParameters, AsymmetricSignTest,
                          Combine(ValuesIn(kSampleKeyNames),
                                  ValuesIn(kDigestCases),
-                                 ValuesIn(kSampleDigests)));
+                                 ValuesIn(kSampleDigests),
+                                 ValuesIn(kSampleSignatures)));
 
 TEST_P(AsymmetricSignTest, AsymmetricSignReturnsSignatureInResponse) {
-  const std::string expected_signature = "my signature";
   const std::string key = std::get<0>(GetParam());
   const DigestCase digest_case = std::get<1>(GetParam());
   const std::string digest_bytes = std::get<2>(GetParam());
+  const std::string expected_signature = std::get<3>(GetParam());
 
   google::cloud::kms::v1::AsymmetricSignResponse mock_response;
-  mock_response.set_signature(expected_signature);
+  mock_response.set_signature(expected_signature.data(),
+                              expected_signature.length());
 
   auto stub = absl::make_unique<MockKeyManagementServiceStub>();
   EXPECT_CALL(*stub, AsymmetricSign)
@@ -150,7 +185,7 @@ INSTANTIATE_TEST_SUITE_P(GetPublicKeyParameters, GetPublicKeyTest,
                          ValuesIn(kSampleKeyNames));
 
 TEST_P(GetPublicKeyTest, GetPublicKeyReturnsResponse) {
-  const std::string key = GetParam();
+  const std::string key_resource_id = GetParam();
 
   google::cloud::kms::v1::PublicKey mock_response;
   mock_response.set_pem("my public key");
@@ -166,7 +201,7 @@ TEST_P(GetPublicKeyTest, GetPublicKeyReturnsResponse) {
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
-  auto actual = client.GetPublicKey(key);
+  auto actual = client.GetPublicKey(key_resource_id);
   EXPECT_THAT(actual, IsOk());
   EXPECT_THAT(actual.value().pem(), StrEq("my public key"));
   EXPECT_EQ(actual.value().algorithm(),

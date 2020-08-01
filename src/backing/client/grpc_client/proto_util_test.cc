@@ -20,6 +20,7 @@
 #include <gmock/gmock.h>
 
 #include "absl/strings/str_cat.h"
+#include "absl/strings/escaping.h"
 #include "google/cloud/kms/v1/resources.pb.h"
 #include "google/cloud/kms/v1/service.pb.h"
 #include "src/backing/client/digest_case.h"
@@ -52,8 +53,23 @@ std::string GetDigestBytes(google::cloud::kms::v1::Digest digest) {
 // Sample digests for testing purposes.
 const std::string kSampleDigests[] = {
   // Example SHA-256 digest of "hello world" for testing.
-  "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9",
+  absl::HexStringToBytes(
+      "b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9"),
+  // Check that signing operations handle signatures containing null bytes.
+  absl::HexStringToBytes(
+      "ababab0000000000000000000000000000000000000000000000000000bababa"),
+  // Ends with null bytes.
+  absl::HexStringToBytes(
+      "bababa0000000000000000000000000000000000000000000000000000000000"),
+  // Starts with null bytes and ends with non-null bytes.
+  absl::HexStringToBytes(
+      "0000000000000000000000000000000000000000000000000000000000ababab"),
+  // Check all null string.
+  absl::HexStringToBytes(
+      "0000000000000000000000000000000000000000000000000000000000000000"),
+  // Check arbitrary string.
   "an arbitrary digest",
+  // Check empty string.
   "",
 };
 
