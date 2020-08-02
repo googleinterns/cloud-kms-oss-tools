@@ -43,7 +43,10 @@ constexpr char kEcdsaPublicKey[] =
   "yEh6Szz2in47Tv5n52m9dLYyPCbqZkOB5nTSqtscpkQD/HpykCggvx09iQ==\n"
   "-----END PUBLIC KEY-----\n";
 
-// Fixture for testing `EcKeyLoader`.
+// Fixture for testing `MakeKmsEcEvpPkey`. The fixture initializes (and cleans
+// up) the `ex_data_util` system, which is necessary since `MakeKmsEcEvpPkey`
+// invokes `ex_data_util` functions. (This initialization is normally done by
+// the engine when it is initialized in `EngineBind`.)
 class EcKeyLoaderTest : public ::testing::Test {
   void SetUp() override {
     ASSERT_THAT(InitExternalIndicies(), IsOk());
@@ -62,6 +65,7 @@ TEST_F(EcKeyLoaderTest, MakeKmsRsaEvpPkey) {
   auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
   ASSERT_THAT(crypto_key_handle, NotNull());
 
+  // `EC_KEY_OpenSSL` returns the default OpenSSL `EC_KEY_METHOD`.
   auto ec_key_method = EC_KEY_OpenSSL();
   ASSERT_THAT(ec_key_method, NotNull());
 
@@ -94,7 +98,7 @@ TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullCryptoKeyHandle) {
       kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
   auto ec_key_method = EC_KEY_OpenSSL();
 
-  ASSERT_THAT(MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),
+  EXPECT_THAT(MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),
                                nullptr,
                                ec_key_method),
               Not(IsOk()));
@@ -105,7 +109,7 @@ TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullRsaMethod) {
       kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
   auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
 
-  ASSERT_THAT(MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),
+  EXPECT_THAT(MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),
                                std::move(crypto_key_handle),
                                nullptr),
               Not(IsOk()));

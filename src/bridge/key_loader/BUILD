@@ -95,7 +95,6 @@ cc_test(
     deps = [
         ":rsa_key_loader",
         "//src/bridge/memory_util:openssl_bio",
-        "//src/bridge/rsa",
         "//src/testing_util:mock_crypto_key_handle",
         "//src/testing_util:test_matchers",
         "@com_google_absl//absl/memory",
