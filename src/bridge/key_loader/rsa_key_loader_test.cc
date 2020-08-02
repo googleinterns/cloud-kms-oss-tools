@@ -36,7 +36,8 @@ using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockCryptoKeyHandle;
 
 // A random 2048-bit / 256-byte RSA public key, encoded in PEM format.
-constexpr char kRsaPublicKey[] = "-----BEGIN PUBLIC KEY-----\n"
+constexpr char kRsaPublicKey[] =
+  "-----BEGIN PUBLIC KEY-----\n"
   "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy8Dbv8prpJ/0kKhlGeJY\n"
   "ozo2t60EG8L0561g13R29LvMR5hyvGZlGJpmn65+A4xHXInJYiPuKzrKUnApeLZ+\n"
   "vw1HocOAZtWK0z3r26uA8kQYOKX9Qt/DbCdvsF9wF8gRK0ptx9M6R13NvBxvVQAp\n"

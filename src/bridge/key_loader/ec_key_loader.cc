@@ -55,17 +55,6 @@ StatusOr<OpenSslEcKey> MakeEcKeyFromPublicKeyPemBio(OpenSslBio public_key_bio) {
   return OpenSslEcKey(ec_key, &EC_KEY_free);
 }
 
-// Attaches the given `EC_KEY_METHOD` implementation to the `EC_KEY` struct so
-// cryptography operations performed with the `EC_KEY` struct delegate to the
-// `EC_KEY_METHOD`'s implementations. Returns an error `Status` if unsuccessful.
-Status AttachEcKeyMethodToOpenSslEcKey(const EC_KEY_METHOD *method,
-                                       EC_KEY *ec_key) {
-  if (!EC_KEY_set_method(ec_key, method)) {
-    return Status(StatusCode::kInternal, "EC_KEY_set_method failed");
-  }
-  return Status();
-}
-
 // Creates an `OpenSslEvpPkey` with the underlying pkey as the input
 // `OpenSslEcKey`, or returns an error `Status`.
 //
@@ -104,24 +93,24 @@ StatusOr<OpenSslEvpPkey> MakeKmsEcEvpPkey(
   KMSENGINE_ASSIGN_OR_RETURN(
       auto ec_key, MakeEcKeyFromPublicKeyPemBio(std::move(public_key_bio)));
 
-  // Important: `AttachEcKeyMethodToOpenSslEcKey` must be called on the `ec_key`
+  // Important: `EC_KEY_set_method` must be called on the `ec_key`
   // before any other initialization work is done to the `ec_key`. This is
-  // because `AttachEcKeyMethodToOpenSslEcKey` calls `EC_KEY_set_method`, which
-  // will call the engine's `EC_KEY_METHOD` `finish` function on `ec_key` before
-  // setting `EC_KEY_METHOD`.
+  // because `EC_KEY_set_method` calls the engine's `EC_KEY_METHOD` `finish`
+  // function on `ec_key` before setting `EC_KEY_METHOD`.
   //
-  // If `AttachEcKeyMethodToOpenSslEcKey` is called after initialization work
-  // is performed on the `ec_key`, then the initialization work done before the
-  // call may be clobbered by `EC_KEY_set_method`'s call to `finish`. This can
-  // (and has) lead to difficult-to-track down debugging issues since the
-  // initialization work done after the call to `EC_KEY_set_method` will still
-  // remain in the `ec_key` struct, the the initialization work done before the
-  // call will have been removed.
+  // If `EC_KEY_set_method` is called after initialization work is performed on
+  // the `ec_key`, then the initialization work done before the call may be
+  // clobbered by `EC_KEY_set_method`'s call to `finish`. This can (and has)
+  // lead to difficult-to-track down debugging issues since the initialization
+  // work done after the call to `EC_KEY_set_method` will still remain in the
+  // `ec_key` struct, but the initialization work done before the call will have
+  // been removed.
   //
   // See https://github.com/googleinterns/cloud-kms-oss-tools/issues/83 for
   // more information.
-  KMSENGINE_RETURN_IF_ERROR(
-      AttachEcKeyMethodToOpenSslEcKey(ec_key_method, ec_key.get()));
+  if (!EC_KEY_set_method(ec_key.get(), ec_key_method)) {
+    return Status(StatusCode::kInternal, "EC_KEY_set_method failed");
+  }
 
   KMSENGINE_RETURN_IF_ERROR(
       AttachCryptoKeyHandleToOpenSslEcKey(std::move(crypto_key_handle),

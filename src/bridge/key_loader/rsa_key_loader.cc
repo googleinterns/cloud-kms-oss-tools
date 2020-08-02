@@ -122,7 +122,7 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(
   // call may be clobbered by `RSA_set_method`'s call to `finish`. This can
   // (and has) lead to difficult-to-track down debugging issues since the
   // initialization work done after the call to `RSA_set_method` will still
-  // remain in the `rsa` struct, the the initialization work done before the
+  // remain in the `rsa` struct, but the initialization work done before the
   // call will have been removed.
   //
   // See https://github.com/googleinterns/cloud-kms-oss-tools/issues/83 for
