@@ -124,6 +124,9 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(
   // initialization work done after the call to `RSA_set_method` will still
   // remain in the `rsa` struct, the the initialization work done before the
   // call will have been removed.
+  //
+  // See https://github.com/googleinterns/cloud-kms-oss-tools/issues/83 for
+  // more information.
   KMSENGINE_RETURN_IF_ERROR(
       AttachRsaMethodToOpenSslRsa(rsa_method, rsa.get()));
 

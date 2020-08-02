@@ -117,6 +117,9 @@ StatusOr<OpenSslEvpPkey> MakeKmsEcEvpPkey(
   // initialization work done after the call to `EC_KEY_set_method` will still
   // remain in the `ec_key` struct, the the initialization work done before the
   // call will have been removed.
+  //
+  // See https://github.com/googleinterns/cloud-kms-oss-tools/issues/83 for
+  // more information.
   KMSENGINE_RETURN_IF_ERROR(
       AttachEcKeyMethodToOpenSslEcKey(ec_key_method, ec_key.get()));
 
