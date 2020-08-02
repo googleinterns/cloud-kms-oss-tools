@@ -36,11 +36,14 @@ cc_test(
 
 cc_library(
     name = "openssl_bio",
+    srcs = ["openssl_bio.cc"],
     hdrs = ["openssl_bio.h"],
     linkopts = ["-lcrypto"],
     deps = [
         ":openssl_structs",
         "//src/backing",
+        "//src/testing_util:openssl_assertions",
+        "//src/testing_util:test_matchers",
     ],
 )
 

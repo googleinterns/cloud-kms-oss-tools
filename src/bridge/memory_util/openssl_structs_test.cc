@@ -51,15 +51,6 @@ TEST(OpenSslMakeTest, MakeEvpPkeySetsDeleter) {
   EXPECT_EQ(evp_pkey.get_deleter(), &EVP_PKEY_free);
 }
 
-TEST(OpenSslMakeTest, MakeEvpPkeyContextSetsDeleter) {
-  auto evp_pkey = MakeEvpPkey();
-  ASSERT_THAT(evp_pkey, NotNull());
-
-  auto context = MakeEvpPkeyContext(evp_pkey.get(), nullptr);
-  ASSERT_THAT(context, NotNull());
-  EXPECT_EQ(context.get_deleter(), &EVP_PKEY_CTX_free);
-}
-
 TEST(OpenSslMakeTest, MakeEvpDigestContextSetsDeleter) {
   auto context = MakeEvpDigestContext();
   ASSERT_THAT(context, NotNull());

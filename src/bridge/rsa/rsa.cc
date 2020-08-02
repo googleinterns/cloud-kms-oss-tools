@@ -127,6 +127,22 @@ int Sign(int type, const unsigned char *digest_bytes,
   return true;
 }
 
+// Verifies that the signature `sigbuf` of size `siglen` matches the given
+// message digest `m` of size `m_len`. `type` denotes the message digest
+// algorithm that was used to generate the signature. `rsa` is the signer's
+// public key.
+//
+// Returns 1 on success; otherwise, returns 0.
+//
+// The function signature comes from the prototype for `RSA_meth_set_verify`
+// from the OpenSSL API.
+int Verify(int type, const unsigned char *m, unsigned int m_len,
+           const unsigned char *sigbuf, unsigned int siglen, const RSA *rsa) {
+  KMSENGINE_SIGNAL_ERROR(
+      Status(StatusCode::kUnimplemented, "Unsupported operation"));
+  return false;
+}
+
 // Signs the `from_length` bytes in `from` using the RSA key `rsa` and stores
 // the signature in `to`. The caller is responsible for ensuring that `to`
 // points to `RSA_size(rsa)` bytes of memory. (See the OpenSSL man page for
@@ -193,8 +209,9 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
                             RSA_meth_get_pub_enc(openssl_rsa_method)) ||
       !RSA_meth_set_pub_dec(rsa_method.get(),
                             RSA_meth_get_pub_dec(openssl_rsa_method)) ||
-      !RSA_meth_set_verify(rsa_method.get(),
-                           RSA_meth_get_verify(openssl_rsa_method)) ||
+      // There is no OpenSSL default for `verify`, so we need to implement it
+      // ourselves.
+      !RSA_meth_set_verify(rsa_method.get(), Verify) ||
       // Private key operations need to be implemented by our engine.
       !RSA_meth_set_priv_dec(rsa_method.get(), PrivateDecrypt) ||
       !RSA_meth_set_priv_enc(rsa_method.get(), PrivateEncrypt) ||

@@ -22,7 +22,7 @@
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/engine_data.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
-#include "src/bridge/key_loader.h"
+#include "src/bridge/key_loader/key_loader.h"
 #include "src/bridge/rsa/rsa.h"
 #include "src/backing/client/client_factory.h"
 
@@ -46,7 +46,7 @@ StatusOr<EngineData *> MakeDefaultEngineData() {
   auto rsa_method = rsa::MakeKmsRsaMethod();
 
   // TODO(zesp): Add EcKeyMethod.
-  auto ec_key_method = {nullptr, nullptr};
+  OpenSslEcKeyMethod ec_key_method = {nullptr, nullptr};
 
   auto engine_data = new EngineData(std::move(client), std::move(rsa_method),
                                     std::move(ec_key_method));

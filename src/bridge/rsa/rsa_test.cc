@@ -49,7 +49,7 @@ class RsaMethodTest : public ::testing::Test {
 
   void SetUp() override {
     ASSERT_THAT(InitExternalIndicies(), IsOk());
-    ASSERT_THAT(rsa_method, NotNull());
+    ASSERT_THAT(rsa_method_, NotNull());
   }
 
   void TearDown() override {

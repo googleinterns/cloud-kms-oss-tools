@@ -67,11 +67,6 @@ using OpenSslEngine = std::unique_ptr<ENGINE, decltype(&ENGINE_free)>;
 // convenience.
 using OpenSslEvpPkey = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
 
-// Smart pointer wrapper around OpenSSL's EVP_PKEY_CTX struct. Just an alias for
-// convenience.
-using OpenSslEvpPkeyContext = std::unique_ptr<EVP_PKEY_CTX,
-                                              decltype(&EVP_PKEY_CTX_free)>;
-
 // Smart pointer wrapper around OpenSSL's EVP_MD_CTX struct. Just an alias for
 // convenience.
 using OpenSslEvpDigestContext = std::unique_ptr<EVP_MD_CTX,
@@ -99,8 +94,17 @@ inline OpenSslEcKey MakeEcKey() {
 //
 // The OpenSSL `EC_KEY_METHOD_free` function is automatically called to dispose
 // of the underlying EC_KEY_METHOD instance when the pointer goes out of scope.
+inline OpenSslEcKeyMethod MakeEcKeyMethod(const EC_KEY_METHOD *method) {
+  return OpenSslEcKeyMethod(EC_KEY_METHOD_new(method), &EC_KEY_METHOD_free);
+}
+
+// Constructs a `std::unique_ptr` object which owns a fresh EC_KEY_METHOD
+// instance. May return `nullptr` if no memory is available.
+//
+// The OpenSSL `EC_KEY_METHOD_free` function is automatically called to dispose
+// of the underlying EC_KEY_METHOD instance when the pointer goes out of scope.
 inline OpenSslEcKeyMethod MakeEcKeyMethod() {
-  return OpenSslEcKeyMethod(EC_KEY_METHOD_new(nullptr), &EC_KEY_METHOD_free);
+  return MakeEcKeyMethod(nullptr);
 }
 
 // Constructs a `std::unique_ptr` object which owns a fresh ENGINE instance.
@@ -119,15 +123,6 @@ inline OpenSslEngine MakeEngine() {
 // of the underlying EVP_PKEY instance when the pointer goes out of scope.
 inline OpenSslEvpPkey MakeEvpPkey() {
   return OpenSslEvpPkey(EVP_PKEY_new(), &EVP_PKEY_free);
-}
-
-// Constructs a `std::unique_ptr` object which owns a fresh EVP_PKEY_CTX
-// instance. May return `nullptr` if no memory is available.
-//
-// The OpenSSL `EVP_PKEY_CTX_free` function is automatically called to dispose
-// of the underlying EVP_PKEY_CTX instance when the pointer goes out of scope.
-inline OpenSslEvpPkeyContext MakeEvpPkeyContext(EVP_PKEY *pkey, ENGINE *e) {
-  return OpenSslEvpPkeyContext(EVP_PKEY_CTX_new(pkey, e), &EVP_PKEY_CTX_free);
 }
 
 // Constructs a `std::unique_ptr` object which owns a fresh EVP_MD_CTX

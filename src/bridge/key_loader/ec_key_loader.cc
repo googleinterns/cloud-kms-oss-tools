@@ -94,6 +94,13 @@ StatusOr<OpenSslEvpPkey> MakeKmsEcEvpPkey(
     OpenSslBio public_key_bio,
     std::unique_ptr<::kmsengine::backing::CryptoKeyHandle> crypto_key_handle,
     const EC_KEY_METHOD *ec_key_method) {
+  if (public_key_bio == nullptr ||
+      crypto_key_handle == nullptr ||
+      ec_key_method == nullptr) {
+    return Status(StatusCode::kInvalidArgument,
+                  "All arguments to MakeKmsEcEvpPkey must be non-null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(
       auto ec_key, MakeEcKeyFromPublicKeyPemBio(std::move(public_key_bio)));
   KMSENGINE_RETURN_IF_ERROR(

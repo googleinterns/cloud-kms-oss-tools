@@ -27,7 +27,7 @@ namespace bridge {
 //
 // Returns the `BIO` as a unique pointer that calls `BIO_free` when the pointer
 // goes out of scope.
-StatusOr<OpenSslBio> MakeOpenSslBioFromString(std::string bytes);
+StatusOr<OpenSslBio> MakeOpenSslBioFromString(const void *data, int length);
 
 }  // namespace bridge
 }  // namespace kmsengine

@@ -17,9 +17,11 @@
 #ifndef KMSENGINE_BACKING_CRYPTO_KEY_HANDLE_CRYPTO_KEY_HANDLE_H_
 #define KMSENGINE_BACKING_CRYPTO_KEY_HANDLE_CRYPTO_KEY_HANDLE_H_
 
+#include <memory>
 #include <string>
 
 #include "src/backing/export_macros.h"
+#include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
 #include "src/backing/status/status_or.h"
@@ -49,10 +51,6 @@ namespace backing {
 class KMSENGINE_EXPORT CryptoKeyHandle {
  public:
   virtual ~CryptoKeyHandle() = default;
-
-  // `CryptoKeyHandle` is copyable and moveable.
-  CryptoKeyHandle(const CryptoKeyHandle& other) = default;
-  CryptoKeyHandle& operator=(const CryptoKeyHandle& other) = default;
 
   // Returns the Cloud KMS resource name for this `CryptoKeyHandle`.
   virtual std::string key_resource_id() const = 0;

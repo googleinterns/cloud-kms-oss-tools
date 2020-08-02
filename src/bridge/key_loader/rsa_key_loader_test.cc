@@ -19,7 +19,9 @@
 #include <openssl/evp.h>
 
 #include "absl/memory/memory.h"
+#include "src/bridge/rsa/rsa.h"
 #include "src/bridge/memory_util/openssl_bio.h"
+#include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/key_loader/rsa_key_loader.h"
 #include "src/testing_util/mock_crypto_key_handle.h"
 #include "src/testing_util/test_matchers.h"
@@ -29,12 +31,13 @@ namespace bridge {
 namespace key_loader {
 namespace {
 
+using ::testing::Not;
+using ::testing::NotNull;
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockCryptoKeyHandle;
 
 // A random 2048-bit / 256-byte RSA public key, encoded in PEM format.
-constexpr char kRsaPublicKey[] =
-  "-----BEGIN PUBLIC KEY-----\n"
+constexpr char kRsaPublicKey[] = "-----BEGIN PUBLIC KEY-----\n"
   "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy8Dbv8prpJ/0kKhlGeJY\n"
   "ozo2t60EG8L0561g13R29LvMR5hyvGZlGJpmn65+A4xHXInJYiPuKzrKUnApeLZ+\n"
   "vw1HocOAZtWK0z3r26uA8kQYOKX9Qt/DbCdvsF9wF8gRK0ptx9M6R13NvBxvVQAp\n"
@@ -44,18 +47,72 @@ constexpr char kRsaPublicKey[] =
   "wQIDAQAB\n"
   "-----END PUBLIC KEY-----\n";
 
-TEST(RsaKeyLoaderTest, MakeKmsRsaEvpPkey) {
-  auto public_key_pem_bio = MakeOpenSslBioFromString(kRsaPublicKey);
+// Fixture for testing `RsaKeyLoader`.
+class RsaKeyLoaderTest : public ::testing::Test {
+  void SetUp() override {
+    ASSERT_THAT(InitExternalIndicies(), IsOk());
+  }
+
+  void TearDown() override {
+    FreeExternalIndicies();
+  }
+};
+
+TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkey) {
+  auto public_key_pem_bio_or = MakeOpenSslBioFromString(
+      kRsaPublicKey, sizeof(kRsaPublicKey));
+  ASSERT_THAT(public_key_pem_bio_or, IsOk());
+
+  auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
+  ASSERT_THAT(crypto_key_handle, NotNull());
+
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+  ASSERT_THAT(rsa_method, NotNull());
+
+  auto evp_pkey_or = MakeKmsRsaEvpPkey(std::move(public_key_pem_bio_or.value()),
+                                       std::move(crypto_key_handle),
+                                       rsa_method.get());
+  ASSERT_THAT(evp_pkey_or, IsOk());
+
+  auto evp_pkey = std::move(evp_pkey_or.value());
+  EXPECT_EQ(EVP_PKEY_id(evp_pkey.get()), EVP_PKEY_RSA);
+}
+
+TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullBio) {
   auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
   auto rsa_method = rsa::MakeKmsRsaMethod();
 
-  auto evp_pkey_status_or = MakeKmsRsaEvpPkey(std::move(public_key_pem_bio),
-                                              std::move(crypto_key_handle),
-                                              rsa_method.get());
-  ASSERT_THAT(evp_pkey_status_or, IsOk());
-  auto evp_pkey = evp_pkey_status_or.value();
+  EXPECT_THAT(MakeKmsRsaEvpPkey({nullptr, BIO_free},
+                                std::move(crypto_key_handle),
+                                rsa_method.get()),
+              Not(IsOk()));
 
-  EXPECT_EQ(EVP_PKEY_type(evp_pkey.get()), EVP_PKEY_RSA);
+  EXPECT_THAT(MakeKmsRsaEvpPkey({nullptr, nullptr},
+                                std::move(crypto_key_handle),
+                                rsa_method.get()),
+              Not(IsOk()));
+}
+
+TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullCryptoKeyHandle) {
+  auto public_key_pem_bio_or = MakeOpenSslBioFromString(
+      kRsaPublicKey, sizeof(kRsaPublicKey));
+  auto rsa_method = rsa::MakeKmsRsaMethod();
+
+  ASSERT_THAT(MakeKmsRsaEvpPkey(std::move(public_key_pem_bio_or.value()),
+                                nullptr,
+                                rsa_method.get()),
+              Not(IsOk()));
+}
+
+TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullRsaMethod) {
+  auto public_key_pem_bio_or = MakeOpenSslBioFromString(
+      kRsaPublicKey, sizeof(kRsaPublicKey));
+  auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
+
+  ASSERT_THAT(MakeKmsRsaEvpPkey(std::move(public_key_pem_bio_or.value()),
+                                std::move(crypto_key_handle),
+                                nullptr),
+              Not(IsOk()));
 }
 
 }  // namespace

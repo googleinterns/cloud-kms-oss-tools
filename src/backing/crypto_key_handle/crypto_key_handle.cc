@@ -29,11 +29,16 @@ namespace backing {
 namespace {
 
 // Implementation of `CryptoKeyHandle`.
-class KmsCryptoKeyHandle : public CryptoKeyHandle {
+class KmsCryptoKeyHandle : public ::kmsengine::backing::CryptoKeyHandle {
  public:
   KmsCryptoKeyHandle(std::string key_resource_id, Client const& client)
-      : key_resource_id_(key_resource_id), client_(client) {}
+      : key_resource_id_(key_resource_id),
+        client_(client) {}
   ~KmsCryptoKeyHandle() = default;
+
+  // `KmsCryptoKeyHandle` is copyable and moveable.
+  KmsCryptoKeyHandle(const KmsCryptoKeyHandle& other) = default;
+  KmsCryptoKeyHandle& operator=(const KmsCryptoKeyHandle& other) = default;
 
   // Methods from `CryptoKeyHandle`.
   std::string key_resource_id() const override {
@@ -51,14 +56,15 @@ class KmsCryptoKeyHandle : public CryptoKeyHandle {
 
  private:
   const std::string key_resource_id_;
-  const Client const& client_;
+  Client const& client_;
 };
 
 }  // namespace
 
 StatusOr<std::unique_ptr<CryptoKeyHandle>> MakeCryptoKeyHandle(
     std::string key_resource_id, Client const& client) {
-  auto handle = absl::make_unique<KmsCryptoKeyHandle>(key_resource_id, client);
+  std::unique_ptr<CryptoKeyHandle> handle =
+      absl::make_unique<KmsCryptoKeyHandle>(key_resource_id, client);
   if (handle == nullptr) {
     return Status(StatusCode::kResourceExhausted,
                   absl::StrFormat("Unable to allocate memory for "

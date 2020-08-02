@@ -21,6 +21,7 @@
 #include <gtest/gtest.h>
 
 #include "absl/memory/memory.h"
+#include "absl/strings/escaping.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/grpc_client/grpc_client.h"
 #include "src/backing/client/grpc_client/proto_util.h"
@@ -101,7 +102,8 @@ const std::string kSampleSignatures[] = {
 };
 
 class AsymmetricSignTest : public
-    testing::TestWithParam<std::tuple<std::string, DigestCase, std::string>> {
+    testing::TestWithParam<std::tuple<std::string, DigestCase, std::string,
+                                      std::string>> {
   // Purposely empty; no fixtures to instantiate.
 };
 

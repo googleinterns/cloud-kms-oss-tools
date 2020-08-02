@@ -102,12 +102,14 @@ inline StatusOr<int> GetEngineIndex() {
 
 Status InitExternalIndicies() {
   KMSENGINE_ASSIGN_OR_RETURN(rsa_index, GetIndex(CRYPTO_EX_INDEX_RSA));
+  KMSENGINE_ASSIGN_OR_RETURN(ec_key_index, GetIndex(CRYPTO_EX_INDEX_EC_KEY));
   KMSENGINE_ASSIGN_OR_RETURN(engine_index, GetIndex(CRYPTO_EX_INDEX_ENGINE));
   return Status();
 }
 
 void FreeExternalIndicies() {
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_RSA, rsa_index);
+  CRYPTO_free_ex_index(CRYPTO_EX_INDEX_EC_KEY, ec_key_index);
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_ENGINE, engine_index);
   rsa_index = kUninitializedIndex;
   engine_index = kUninitializedIndex;
@@ -125,7 +127,7 @@ Status AttachCryptoKeyHandleToOpenSslRsa(CryptoKeyHandle *crypto_key_handle,
 Status AttachCryptoKeyHandleToOpenSslRsa(
     std::unique_ptr<CryptoKeyHandle> crypto_key_handle, RSA *rsa) {
   KMSENGINE_RETURN_IF_ERROR(
-      AttachCryptoKeyHandleToOpenSslRsa(crypto_key_handle.get(), ec_key));
+      AttachCryptoKeyHandleToOpenSslRsa(crypto_key_handle.get(), rsa));
   crypto_key_handle.release();
   return Status();
 }
@@ -151,8 +153,7 @@ Status AttachCryptoKeyHandleToOpenSslEcKey(CryptoKeyHandle *crypto_key_handle,
 }
 
 Status AttachCryptoKeyHandleToOpenSslEcKey(
-    std::unique_ptr<CryptoKeyHandle> crypto_key_handle,
-    EC_KEY *ec_key) {
+    std::unique_ptr<CryptoKeyHandle> crypto_key_handle, EC_KEY *ec_key) {
   KMSENGINE_RETURN_IF_ERROR(
       AttachCryptoKeyHandleToOpenSslEcKey(crypto_key_handle.get(), ec_key));
   crypto_key_handle.release();

@@ -29,6 +29,7 @@ cc_library(
         "//src/backing",
         "//src/bridge/error",
         "//src/bridge/ex_data_util",
+        "//src/bridge/memory_util:openssl_bio",
         "//src/bridge/memory_util:openssl_structs",
     ],
 )
@@ -67,6 +68,9 @@ cc_test(
     srcs = ["ec_key_loader_test.cc"],
     deps = [
         ":ec_key_loader",
+        "//src/bridge/memory_util:openssl_bio",
+        "//src/testing_util:mock_crypto_key_handle",
+        "//src/testing_util:test_matchers",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
@@ -90,6 +94,10 @@ cc_test(
     srcs = ["rsa_key_loader_test.cc"],
     deps = [
         ":rsa_key_loader",
+        "//src/bridge/memory_util:openssl_bio",
+        "//src/bridge/rsa",
+        "//src/testing_util:mock_crypto_key_handle",
+        "//src/testing_util:test_matchers",
         "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],

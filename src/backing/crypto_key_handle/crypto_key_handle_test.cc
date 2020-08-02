@@ -37,7 +37,10 @@ constexpr auto kSampleKeyResourceId = "resource_id";
 
 TEST(CryptoKeyHandleTest, KeyResourceIdRoundtrip) {
   MockClient client;
-  auto crypto_key_handle = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
   EXPECT_THAT(crypto_key_handle->key_resource_id(),
               StrEq(kSampleKeyResourceId));
 }
@@ -49,7 +52,10 @@ TEST(CryptoKeyHandleTest, SignSuccess) {
       .Times(1)
       .WillOnce(Return(StatusOr<std::string>(expected_signature)));
 
-  auto crypto_key_handle = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
   auto result = crypto_key_handle->Sign(DigestCase::kSha256, "my digest");
   EXPECT_THAT(result, IsOk());
   EXPECT_EQ(result.value(), expected_signature);
@@ -62,7 +68,10 @@ TEST(CryptoKeyHandleTest, SignFailure) {
       .Times(1)
       .WillOnce(Return(StatusOr<std::string>(expected_status)));
 
-  auto crypto_key_handle = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
   auto result = crypto_key_handle->Sign(DigestCase::kSha256, "my digest");
   EXPECT_THAT(result, Not(IsOk()));
   EXPECT_EQ(result.status(), expected_status);
@@ -76,7 +85,10 @@ TEST(CryptoKeyHandleTest, GetPublicKeySuccess) {
       .Times(1)
       .WillOnce(Return(StatusOr<PublicKey>(expected)));
 
-  auto crypto_key_handle = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
   auto result = crypto_key_handle->GetPublicKey();
   EXPECT_THAT(result, IsOk());
   EXPECT_EQ(result.value(), expected);
@@ -89,7 +101,10 @@ TEST(CryptoKeyHandleTest, GetPublicKeyFailure) {
       .Times(1)
       .WillOnce(Return(StatusOr<PublicKey>(expected_status)));
 
-  auto crypto_key_handle = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
   auto result = crypto_key_handle->GetPublicKey();
   EXPECT_THAT(result, Not(IsOk()));
   EXPECT_EQ(result.status(), expected_status);

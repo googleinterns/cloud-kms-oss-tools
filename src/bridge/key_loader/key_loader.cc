@@ -34,23 +34,23 @@ namespace bridge {
 EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
                          UI_METHOD */*ui_method*/, void */*callback_data*/) {
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto engine_data, GetEngineDataFromOpenSslEngine(engine),
-      nullptr);
+      auto engine_data, GetEngineDataFromOpenSslEngine(engine), nullptr);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto crypto_key_handle, backing::MakeCryptoKeyHandle(
-          key_id, engine_data->client()),
-      nullptr);
+      auto crypto_key_handle,
+      backing::MakeCryptoKeyHandle(key_id, engine_data->client()), nullptr);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto public_key, crypto_key_handle->GetPublicKey(key_id),
-      nullptr);
+      auto public_key, crypto_key_handle->GetPublicKey(), nullptr);
 
   // OpenSSL provides parsing functions to generate `RSA` and `EC_KEY` structs
   // from PEM-encoded key material. These parsing functions consume the data
   // as an OpenSSL `BIO` stream, so we need to load the PublicKey's pem into a
   // `BIO` before attempting to parse the public key material.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto public_key_pem_bio, MakeOpenSslBioFromString(public_key.pem()),
+      auto public_key_pem_bio, MakeOpenSslBioFromString(
+          static_cast<const char *>(public_key.pem().data()),
+          public_key.pem().length()),
       nullptr);
+  std::cout << "5" << std::endl;
 
   OpenSslEvpPkey evp_pkey {nullptr, nullptr};
   using ::kmsengine::backing::CryptoKeyVersionAlgorithm;
@@ -63,10 +63,6 @@ EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
     case CryptoKeyVersionAlgorithm::kRsaSignPkcs3072Sha256:
     case CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha256:
     case CryptoKeyVersionAlgorithm::kRsaSignPkcs4096Sha512:
-    case CryptoKeyVersionAlgorithm::kRsaDecryptOaep2048Sha256:
-    case CryptoKeyVersionAlgorithm::kRsaDecryptOaep3072Sha256:
-    case CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha256:
-    case CryptoKeyVersionAlgorithm::kRsaDecryptOaep4096Sha512:
       {
         KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
             evp_pkey,
@@ -91,8 +87,8 @@ EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
       {
         KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
             "Cloud KMS key had type " +
-            CryptoKeyVersionAlgorithmToString(public_key.algorithm()))) +
-            ", which is unsupported by the Cloud KMS engine";
+            CryptoKeyVersionAlgorithmToString(public_key.algorithm()) +
+            ", which is unsupported by the Cloud KMS engine"));
         break;
       }
   }

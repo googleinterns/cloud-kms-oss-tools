@@ -101,6 +101,13 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(
     OpenSslBio public_key_bio,
     std::unique_ptr<::kmsengine::backing::CryptoKeyHandle> crypto_key_handle,
     const RSA_METHOD *rsa_method) {
+  if (public_key_bio == nullptr ||
+      crypto_key_handle == nullptr ||
+      rsa_method == nullptr) {
+    return Status(StatusCode::kInvalidArgument,
+                  "All arguments to MakeKmsRsaEvpPkey must be non-null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(
       auto rsa, MakeRsaFromPublicKeyPemBio(std::move(public_key_bio)));
   KMSENGINE_RETURN_IF_ERROR(

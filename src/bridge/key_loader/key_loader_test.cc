@@ -179,7 +179,8 @@ class RsaKeyLoaderTest : public KeyLoaderTest {
   RsaKeyLoaderTest()
       : public_key_(PublicKey(kRsaPublicKey, std::get<0>(GetParam()))),
         engine_data_(absl::make_unique<MockClient>(),
-                     rsa::MakeKmsRsaMethod()) {}
+                     rsa::MakeKmsRsaMethod(),
+                     {nullptr, nullptr}) {}
 
   // Initializes a `EngineData` struct and attaches it to `engine()` prior to
   // the `RsaKeyLoaderTest`. The `EngineData` struct is initialized with a
@@ -352,32 +353,32 @@ TEST_P(RsaKeyLoaderTest, GeneratedKeyWorksWithEvpDigestSignFunctions) {
 
 TEST_P(RsaKeyLoaderTest, GeneratedKeyWorksWithEvpDigestFunction) {
   EXPECT_CALL(mock_client(), GetPublicKey);
-  // EXPECT_CALL(mock_client(), AsymmetricSign);
+  EXPECT_CALL(mock_client(), AsymmetricSign);
 
   auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
   ASSERT_THAT(evp_pkey, Not(IsNull()));
 
-  // auto digest_context = MakeEvpDigestContext();
-  // ASSERT_OPENSSL_SUCCESS(
-  //     EVP_DigestSignInit(digest_context.get(), nullptr, EVP_sha256(), nullptr,
-  //                        evp_pkey));
+  auto digest_context = MakeEvpDigestContext();
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSignInit(digest_context.get(), nullptr, EVP_sha256(), nullptr,
+                         evp_pkey));
 
-  // std::string digest = "digest";
-  // size_t signature_length;
-  // std::string signature(EVP_PKEY_size(evp_pkey), '\0');
-  // ASSERT_OPENSSL_SUCCESS(
-  //     EVP_DigestSign(digest_context.get(),
-  //                    reinterpret_cast<unsigned char *>(&signature[0]),
-  //                    &signature_length,
-  //                    reinterpret_cast<unsigned char *>(&digest[0]),
-  //                    digest.length()));
+  std::string digest = "digest";
+  size_t signature_length;
+  std::string signature(EVP_PKEY_size(evp_pkey), '\0');
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSign(digest_context.get(),
+                     reinterpret_cast<unsigned char *>(&signature[0]),
+                     &signature_length,
+                     reinterpret_cast<unsigned char *>(&digest[0]),
+                     digest.length()));
 
-  // // We reconstruct the string here because `signature.length()` is not
-  // // guaranteed to equal `signature_length`, and so this prevents us from
-  // // accidentally comparing against uninitialized bytes.
-  // std::string actual(signature, /*substring_start_index=*/0, signature_length);
-  // EXPECT_THAT(actual, StrEq(expected_signature()));
-  // EXPECT_EQ(signature_length, expected_signature().length());
+  // We reconstruct the string here because `signature.length()` is not
+  // guaranteed to equal `signature_length`, and so this prevents us from
+  // accidentally comparing against uninitialized bytes.
+  std::string actual(signature, /*substring_start_index=*/0, signature_length);
+  EXPECT_THAT(actual, StrEq(expected_signature()));
+  EXPECT_EQ(signature_length, expected_signature().length());
 
   EVP_PKEY_free(evp_pkey);
 }
@@ -400,12 +401,13 @@ INSTANTIATE_TEST_SUITE_P(
     EcAlgorithmParameters, EcKeyLoaderTest,
     Combine(ValuesIn(kEcSignAlgorithms), ValuesIn(kSampleSignatures)));
 
-TEST_P(EcKeyLoaderTest, LoadPrivateKey) {
+TEST_P(EcKeyLoaderTest, DISABLED_LoadPrivateKey) {
   auto client = absl::make_unique<MockClient>();
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
 
   auto engine_data = absl::make_unique<EngineData>(std::move(client),
-                                                   rsa::MakeKmsRsaMethod());
+                                                   rsa::MakeKmsRsaMethod(),
+                                                   MakeEcKeyMethod(EC_KEY_OpenSSL()));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data.get(), engine()),
               IsOk());
 
@@ -430,13 +432,14 @@ TEST_P(UnsupportedKeyLoaderTest, LoadPrivateKey) {
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(PublicKey("", algorithm)));
 
   auto engine_data = absl::make_unique<EngineData>(std::move(client),
-                                                   rsa::MakeKmsRsaMethod());
+                                                   rsa::MakeKmsRsaMethod(),
+                                                   MakeEcKeyMethod(EC_KEY_OpenSSL()));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data.get(), engine()),
               IsOk());
 
   EXPECT_OPENSSL_FAILURE(
       LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr),
-      "Cloud KMS key had unsupported type");
+      "Cloud KMS key had type");
 }
 
 }  // namespace

@@ -32,6 +32,7 @@ namespace testing_util {
 
 class MockCryptoKeyHandle : public ::kmsengine::backing::CryptoKeyHandle {
  public:
+  MOCK_METHOD(std::string, key_resource_id, (), (const, override));
   MOCK_METHOD(StatusOr<std::string>, Sign,
               (::kmsengine::backing::DigestCase type,
                std::string message_digest),

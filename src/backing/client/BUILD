@@ -82,8 +82,8 @@ cc_library(
 
 cc_library(
     name = "digest_case",
-    hdrs = ["digest_case.h"],
     srcs = ["digest_case.cc"],
+    hdrs = ["digest_case.h"],
     deps = [
         "//src/backing:export_macros",
         "@com_google_absl//absl/strings:str_format",

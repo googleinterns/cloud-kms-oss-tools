@@ -29,7 +29,7 @@ cc_binary(
     name = "libkms.so",
     srcs = [
         "//src/backing/client:sources",
-        "//src/backing/rsa:sources",
+        "//src/backing/crypto_key_handle:sources",
         "//src/backing/status:sources",
     ],
     # `global_copts` is an attribute defined by the `cc_binary` macro from
