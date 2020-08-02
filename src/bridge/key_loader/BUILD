@@ -67,6 +67,7 @@ cc_test(
     srcs = ["ec_key_loader_test.cc"],
     deps = [
         ":ec_key_loader",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -89,6 +90,7 @@ cc_test(
     srcs = ["rsa_key_loader_test.cc"],
     deps = [
         ":rsa_key_loader",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )

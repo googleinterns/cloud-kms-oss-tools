@@ -52,7 +52,7 @@ EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
       auto public_key_pem_bio, MakeOpenSslBioFromString(public_key.pem()),
       nullptr);
 
-  OpenSslEvpPkey evp_pkey(nullptr, nullptr);
+  OpenSslEvpPkey evp_pkey {nullptr, nullptr};
   using ::kmsengine::backing::CryptoKeyVersionAlgorithm;
   switch (public_key.algorithm()) {
     case CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256:

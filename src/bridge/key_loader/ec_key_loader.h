@@ -30,10 +30,10 @@ namespace bridge {
 namespace key_loader {
 
 // Creates an `OpenSslEvpPkey` where the underlying `EVP_PKEY` has type
-// `EVP_PKEY_EC_KEY` from the input parameters.
+// `EVP_PKEY_EC` from the input parameters.
 //
-// Since the `EVP_PKEY` has type `EVP_PKEY_EC_KEY`, it will be backed by a
-// `EC_KEY` struct. The `EC_KEY` struct will:
+// Since the `EVP_PKEY` has type `EVP_PKEY_EC`, it will be backed by a `EC_KEY`
+// struct. The `EC_KEY` struct will:
 //
 //    - Have its public key parameters populated by the PEM-encoded public key
 //      data stored in `public_key_bio`.
