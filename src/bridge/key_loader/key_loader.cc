@@ -25,32 +25,14 @@
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/key_loader/ec_key_loader.h"
 #include "src/bridge/key_loader/rsa_key_loader.h"
+#include "src/bridge/memory_util/openssl_bio.h"
 #include "src/bridge/memory_util/openssl_structs.h"
 
 namespace kmsengine {
 namespace bridge {
-namespace {
-
-// Instantiates a `BIO` (OpenSSL's abstraction for a stream of data) and loads
-// the given string `bytes` into the stream.
-//
-// Returns the `BIO` as a unique pointer that calls `BIO_free` when the pointer
-// goes out of scope.
-StatusOr<OpenSslBio> MakeOpenSslBioFromString(std::string const& bytes) {
-  auto pem_pointer = static_cast<const void *>(bytes.data());
-  BIO *pem_stream = BIO_new_mem_buf(pem_pointer, bytes.length());
-  if (pem_stream == nullptr) {
-    return Status(StatusCode::kInternal, "BIO_new_mem_buf failed");
-  }
-  return OpenSslBio(pem_stream, &BIO_free);
-}
-
-}  // namespace
 
 EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
                          UI_METHOD */*ui_method*/, void */*callback_data*/) {
-  using ::kmsengine::backing::CryptoKeyVersionAlgorithm;
-
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto engine_data, GetEngineDataFromOpenSslEngine(engine),
       nullptr);
@@ -71,6 +53,7 @@ EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
       nullptr);
 
   OpenSslEvpPkey evp_pkey(nullptr, nullptr);
+  using ::kmsengine::backing::CryptoKeyVersionAlgorithm;
   switch (public_key.algorithm()) {
     case CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256:
     case CryptoKeyVersionAlgorithm::kRsaSignPss3072Sha256:

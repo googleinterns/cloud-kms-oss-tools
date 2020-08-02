@@ -64,7 +64,7 @@ cc_binary(
         "//src/backing/client/grpc_client:client_context_factory",
         "//src/backing/client/grpc_client:key_management_service_stub",
         "//src/backing/client/grpc_client:proto_util",
-        "//src/backing/crypto_key_version",
+        "//src/backing/crypto_key_handle",
         "//src/backing/status",
         "//src/backing/status:status_or",
     ],
@@ -80,7 +80,7 @@ filegroup(
     srcs = [
         "export_macros.h",
         "//src/backing/client:bridge_headers",
-        "//src/backing/crypto_key_version:bridge_headers",
+        "//src/backing/crypto_key_handle:bridge_headers",
         "//src/backing/status:bridge_headers",
     ],
 )

@@ -14,17 +14,20 @@
  * limitations under the License.
  */
 
-#include <gmock/gmock.h>
-#include <gtest/gtest.h>
+#include <string>
 
-#include "src/bridge/key_loader/ec_key_loader.h"
+#include "src/backing/status/status_or.h"
+#include "src/bridge/memory_util/openssl_structs.h"
 
 namespace kmsengine {
 namespace bridge {
-namespace key_loader {
-namespace {
 
-}  // namespace
-}  // namespace key_loader
+// Instantiates a `BIO` (OpenSSL's abstraction for a stream of data) and loads
+// the given string `bytes` into the stream.
+//
+// Returns the `BIO` as a unique pointer that calls `BIO_free` when the pointer
+// goes out of scope.
+StatusOr<OpenSslBio> MakeOpenSslBioFromString(std::string bytes);
+
 }  // namespace bridge
 }  // namespace kmsengine

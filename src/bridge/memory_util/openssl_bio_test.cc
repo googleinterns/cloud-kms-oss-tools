@@ -17,14 +17,16 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "src/bridge/key_loader/ec_key_loader.h"
+#include "src/bridge/memory_util/openssl_bio.h"
 
 namespace kmsengine {
 namespace bridge {
-namespace key_loader {
 namespace {
 
+TEST(OpenSslBioTest, MakeOpenSslBioFromString) {
+
+}
+
 }  // namespace
-}  // namespace key_loader
 }  // namespace bridge
 }  // namespace kmsengine
