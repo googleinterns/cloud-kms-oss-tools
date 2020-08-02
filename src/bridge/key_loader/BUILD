@@ -22,7 +22,6 @@ cc_library(
     name = "key_loader",
     srcs = ["key_loader.cc"],
     hdrs = ["key_loader.h"],
-    linkopts = ["-lcrypto"],
     deps = [
         ":ec_key_loader",
         ":rsa_key_loader",

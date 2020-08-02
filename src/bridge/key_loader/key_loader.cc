@@ -16,9 +16,8 @@
 
 #include <utility>
 
-#include <openssl/bio.h>
-
 #include "src/backing/client/crypto_key_version_algorithm.h"
+#include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 #include "src/bridge/error/error.h"
