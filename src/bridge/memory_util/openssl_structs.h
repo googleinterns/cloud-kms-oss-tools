@@ -46,6 +46,19 @@ namespace bridge {
 // be converted to smart pointers since the engine does not "own" that
 // pointer.
 
+// Smart pointer wrapper around OpenSSL's BIO struct. Just an alias for
+// convenience.
+using OpenSslBio = std::unique_ptr<BIO, decltype(&BIO_free)>;
+
+// Smart pointer wrapper around OpenSSL's EC_KEY struct. Just an alias for
+// convenience.
+using OpenSslEcKey = std::unique_ptr<EC_KEY, decltype(&EC_KEY_free)>;
+
+// Smart pointer wrapper around OpenSSL's EC_KEY_METHOD struct. Just an alias
+// for convenience.
+using OpenSslEcKeyMethod = std::unique_ptr<EC_KEY_METHOD,
+                                           decltype(&EC_KEY_METHOD_free)>;
+
 // Smart pointer wrapper around OpenSSL's ENGINE struct. Just an alias for
 // convenience.
 using OpenSslEngine = std::unique_ptr<ENGINE, decltype(&ENGINE_free)>;
@@ -71,6 +84,24 @@ using OpenSslRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
 // Smart pointer wrapper around OpenSSL's RSA_METHOD struct. Just an alias for
 // convenience.
 using OpenSslRsaMethod = std::unique_ptr<RSA_METHOD, decltype(&RSA_meth_free)>;
+
+// Constructs a `std::unique_ptr` object which owns a fresh ENGINE instance.
+// May return `nullptr` if no memory is available.
+//
+// The OpenSSL `ENGINE_free` function is automatically called to dispose
+// of the underlying ENGINE instance when the pointer goes out of scope.
+inline OpenSslEcKey MakeEcKey() {
+  return OpenSslEcKey(EC_KEY_new(), &EC_KEY_free);
+}
+
+// Constructs a `std::unique_ptr` object which owns a fresh EC_KEY_METHOD
+// instance. May return `nullptr` if no memory is available.
+//
+// The OpenSSL `EC_KEY_METHOD_free` function is automatically called to dispose
+// of the underlying EC_KEY_METHOD instance when the pointer goes out of scope.
+inline OpenSslEcKeyMethod MakeEcKeyMethod() {
+  return OpenSslEcKeyMethod(EC_KEY_METHOD_new(nullptr), &EC_KEY_METHOD_free);
+}
 
 // Constructs a `std::unique_ptr` object which owns a fresh ENGINE instance.
 // May return `nullptr` if no memory is available.

@@ -26,7 +26,7 @@
 #include "src/bridge/ex_data_util/engine_data.h"
 #include "src/bridge/memory_util/openssl_structs.h"
 #include "src/testing_util/openssl_assertions.h"
-#include "src/testing_util/mock_rsa_key.h"
+#include "src/testing_util/mock_crypto_key_handle.h"
 #include "src/testing_util/mock_client.h"
 #include "src/testing_util/test_matchers.h"
 
@@ -35,7 +35,7 @@ namespace bridge {
 namespace {
 
 using ::kmsengine::testing_util::IsOk;
-using ::kmsengine::testing_util::MockRsaKey;
+using ::kmsengine::testing_util::MockCryptoKeyHandle;
 using ::kmsengine::testing_util::MockClient;
 using ::testing::IsNull;
 using ::testing::Not;
@@ -64,8 +64,8 @@ TEST(EngineBindTest, InitializesExternalDataSystem) {
   // Indirectly check that the external index system was initialized by
   // performing attach operations and seeing if they succeed.
   auto rsa = MakeRsa();
-  MockRsaKey rsa_key;
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk())
+  MockCryptoKeyHandle handle;
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&handle, rsa.get()), IsOk())
       << "ex_data_util RSA operations should have been initialized after "
          "EngineBind";
 
@@ -85,8 +85,9 @@ TEST(EngineDestroyTest, CleansUpExternalDataSystem) {
   // Indirectly check that the external index system was cleaned up by
   // performing attach operations and seeing if they fail.
   auto rsa = MakeRsa();
-  MockRsaKey rsa_key;
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), Not(IsOk()))
+  MockCryptoKeyHandle handle;
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&handle, rsa.get()),
+              Not(IsOk()))
       << "ex_data_util RSA operations should have been cleaned up after "
          "EngineDestroy";
 

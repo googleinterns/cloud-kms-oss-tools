@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_TESTING_UTIL_MOCK_RSA_KEY_H_
-#define KMSENGINE_TESTING_UTIL_MOCK_RSA_KEY_H_
+#ifndef KMSENGINE_TESTING_UTIL_MOCK_CRYPTO_KEY_HANDLE_H_
+#define KMSENGINE_TESTING_UTIL_MOCK_CRYPTO_KEY_HANDLE_H_
 
 #include <string>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "src/backing/rsa/rsa_key.h"
+#include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
 #include "src/backing/status/status_or.h"
@@ -30,7 +30,7 @@
 namespace kmsengine {
 namespace testing_util {
 
-class MockRsaKey : public ::kmsengine::backing::RsaKey {
+class MockCryptoKeyHandle : public ::kmsengine::backing::CryptoKeyHandle {
  public:
   MOCK_METHOD(StatusOr<std::string>, Sign,
               (::kmsengine::backing::DigestCase type,
@@ -43,4 +43,4 @@ class MockRsaKey : public ::kmsengine::backing::RsaKey {
 }  // namespace testing_util
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_TESTING_UTIL_MOCK_RSA_KEY_H_
+#endif  // KMSENGINE_TESTING_UTIL_MOCK_CRYPTO_KEY_HANDLE_H_

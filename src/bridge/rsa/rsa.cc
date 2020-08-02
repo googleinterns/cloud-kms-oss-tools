@@ -18,7 +18,7 @@
 
 #include <openssl/rsa.h>
 
-#include "src/backing/rsa/rsa_key.h"
+#include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 #include "src/bridge/error/error.h"
@@ -72,13 +72,13 @@ int Init(RSA *rsa) {
 //
 // Returns 1 on success; otherwise, returns 0.
 int Finish(RSA *rsa) {
-  // `rsa_key` is guaranteed to be non-null here (if the underlying external
+  // `crypto_key_handle` is guaranteed to be non-null here (if the underlying external
   // data struct was null, an error status would be returned).
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
-  delete rsa_key;
+      auto crypto_key_handle, GetCryptoKeyHandleFromOpenSslRsa(rsa), false);
+  delete crypto_key_handle;
 
-  auto status = AttachRsaKeyToOpenSslRsa(nullptr, rsa);
+  auto status = AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa);
   if (!status.ok()) {
     KMSENGINE_SIGNAL_ERROR(status);
   }
@@ -104,7 +104,7 @@ int Sign(int type, const unsigned char *digest_bytes,
   // letting the `RsaKey::Sign` method handling the conversions) since the
   // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto rsa_key, GetRsaKeyFromOpenSslRsa(rsa), false);
+      auto crypto_key_handle, GetCryptoKeyHandleFromOpenSslRsa(rsa), false);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto digest_type, ConvertOpenSslNidToDigestType(type), false);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
@@ -112,7 +112,8 @@ int Sign(int type, const unsigned char *digest_bytes,
 
   // Delegate handling of the signing operation to the backing layer.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto signature, rsa_key->Sign(digest_type, digest_string), false);
+      auto signature, crypto_key_handle->Sign(digest_type, digest_string),
+      false);
 
   // Copy results into the return pointers.
   if (signature_return != nullptr) {

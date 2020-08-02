@@ -24,15 +24,15 @@
 
 #include "absl/memory/memory.h"
 #include "absl/strings/escaping.h"
-#include "src/bridge/key_loader.h"
+#include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/bridge/ex_data_util/engine_data.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
-#include "src/testing_util/mock_client.h"
-#include "src/testing_util/test_matchers.h"
+#include "src/bridge/key_loader/key_loader.h"
 #include "src/bridge/memory_util/openssl_structs.h"
-#include "src/backing/rsa/kms_rsa_key.h"
 #include "src/bridge/rsa/rsa.h"
+#include "src/testing_util/mock_client.h"
 #include "src/testing_util/openssl_assertions.h"
+#include "src/testing_util/test_matchers.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -40,7 +40,7 @@ namespace {
 
 using ::kmsengine::backing::CryptoKeyVersionAlgorithm;
 using ::kmsengine::backing::PublicKey;
-using ::kmsengine::backing::KmsRsaKey;
+using ::kmsengine::backing::CryptoKeyHandle;
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockClient;
 using ::testing::IsNull;
@@ -257,10 +257,9 @@ TEST_P(RsaKeyLoaderTest, ReturnedKeyHasAttachedKmsRsaKey) {
   auto rsa = EVP_PKEY_get1_RSA(evp_pkey);
   ASSERT_THAT(rsa, Not(IsNull()));
 
-  ASSERT_THAT(GetRsaKeyFromOpenSslRsa(rsa), IsOk())
-      << "RSA should have an attached RsaKey";
-  auto rsa_key = static_cast<KmsRsaKey *>(GetRsaKeyFromOpenSslRsa(rsa).value());
-  EXPECT_THAT(rsa_key->key_resource_id(), StrEq(kKeyResourceId))
+  auto handle = GetCryptoKeyHandleFromOpenSslRsa(rsa);
+  ASSERT_THAT(handle, IsOk());
+  EXPECT_THAT(handle.value()->key_resource_id(), StrEq(kKeyResourceId))
       << "RsaKey should contain the key resource ID loaded in LoadPrivateKey";
 
   RSA_free(rsa);

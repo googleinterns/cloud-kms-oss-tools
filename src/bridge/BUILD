@@ -32,7 +32,7 @@ cc_library(
     linkopts = ["-lcrypto"],
     deps = [
         ":engine_name",
-        ":key_loader",
+        "//src/bridge/key_loader",
         "//src/backing",
         "//src/bridge/error",
         "//src/bridge/ex_data_util",
@@ -49,7 +49,7 @@ cc_test(
         ":engine_bind",
         "//src/bridge/memory_util:openssl_structs",
         "//src/testing_util:mock_client",
-        "//src/testing_util:mock_rsa_key",
+        "//src/testing_util:mock_crypto_key_handle",
         "//src/testing_util:openssl_assertions",
         "//src/testing_util:test_matchers",
         "@com_google_absl//absl/memory",
@@ -60,35 +60,4 @@ cc_test(
 cc_library(
     name = "engine_name",
     hdrs = ["engine_name.h"],
-)
-
-cc_library(
-    name = "key_loader",
-    srcs = ["key_loader.cc"],
-    hdrs = ["key_loader.h"],
-    linkopts = ["-lcrypto"],
-    deps = [
-        "//src/backing",
-        "//src/bridge/error",
-        "//src/bridge/ex_data_util",
-        "//src/bridge/memory_util:openssl_structs",
-    ],
-)
-
-cc_test(
-    name = "key_loader_test",
-    size = "small",
-    srcs = ["key_loader_test.cc"],
-    deps = [
-        ":key_loader",
-        "//src/bridge/ex_data_util:engine_data",
-        "//src/bridge/memory_util:openssl_structs",
-        "//src/bridge/rsa",
-        "//src/testing_util:mock_client",
-        "//src/testing_util:openssl_assertions",
-        "//src/testing_util:test_matchers",
-        "@com_google_absl//absl/memory",
-        "@com_google_absl//absl/strings",
-        "@com_google_googletest//:gtest_main",
-    ],
 )

@@ -19,48 +19,76 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src/bridge:__subpackages__"])
 
 cc_library(
-    name = "ex_data_util",
-    srcs = ["ex_data_util.cc"],
-    hdrs = ["ex_data_util.h"],
+    name = "key_loader",
+    srcs = ["key_loader.cc"],
+    hdrs = ["key_loader.h"],
     linkopts = ["-lcrypto"],
     deps = [
-        ":engine_data",
+        ":ec_key_loader",
+        ":rsa_key_loader",
         "//src/backing",
+        "//src/bridge/error",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/memory_util:openssl_structs",
     ],
 )
 
 cc_test(
-    name = "ex_data_util_test",
+    name = "key_loader_test",
     size = "small",
-    srcs = ["ex_data_util_test.cc"],
+    srcs = ["key_loader_test.cc"],
     deps = [
-        ":ex_data_util",
-        "//src/bridge/memory_util:openssl_structs",
+        ":key_loader",
+        "//src/bridge/rsa",
         "//src/testing_util:mock_client",
-        "//src/testing_util:mock_crypto_key_handle",
+        "//src/testing_util:openssl_assertions",
         "//src/testing_util:test_matchers",
+        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_library(
-    name = "engine_data",
-    hdrs = ["engine_data.h"],
+    name = "ec_key_loader",
+    srcs = ["ec_key_loader.cc"],
+    hdrs = ["ec_key_loader.h"],
     linkopts = ["-lcrypto"],
     deps = [
         "//src/backing",
+        "//src/bridge/ex_data_util",
         "//src/bridge/memory_util:openssl_structs",
     ],
 )
 
 cc_test(
-    name = "engine_data_test",
+    name = "ec_key_loader_test",
     size = "small",
-    srcs = ["engine_data_test.cc"],
+    srcs = ["ec_key_loader_test.cc"],
     deps = [
-        ":engine_data",
-        "//src/testing_util:mock_client",
-        "@com_google_absl//absl/memory",
+        ":ec_key_loader",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "rsa_key_loader",
+    srcs = ["rsa_key_loader.cc"],
+    hdrs = ["rsa_key_loader.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        "//src/backing",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/memory_util:openssl_structs",
+    ],
+)
+
+cc_test(
+    name = "rsa_key_loader_test",
+    size = "small",
+    srcs = ["rsa_key_loader_test.cc"],
+    deps = [
+        ":rsa_key_loader",
         "@com_google_googletest//:gtest_main",
     ],
 )

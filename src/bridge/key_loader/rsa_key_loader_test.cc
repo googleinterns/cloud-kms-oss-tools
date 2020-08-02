@@ -14,26 +14,14 @@
  * limitations under the License.
  */
 
-#include "src/backing/rsa/kms_rsa_key.h"
-
-#include <string>
-
-#include "src/backing/client/digest_case.h"
-#include "src/backing/client/public_key.h"
-#include "src/backing/status/status_or.h"
+#include "src/bridge/rsa_key_loader.h"
 
 namespace kmsengine {
-namespace backing {
+namespace bridge {
+namespace key_loader {
+namespace {
 
-StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
-                                      std::string message_digest) const {
-  return client_.AsymmetricSign(key_resource_id(), digest_type,
-                                message_digest);
-}
-
-StatusOr<PublicKey> KmsRsaKey::GetPublicKey() const {
-  return client_.GetPublicKey(key_resource_id());
-}
-
-}  // namespace backing
+}  // namespace
+}  // namespace key_loader
+}  // namespace bridge
 }  // namespace kmsengine

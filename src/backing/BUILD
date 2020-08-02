@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
 load("//:bazel/cc_binary_with_global_copts.bzl", "cc_binary", "transition_rule")
 
 package(default_visibility = ["//src:__subpackages__"])
@@ -64,8 +64,7 @@ cc_binary(
         "//src/backing/client/grpc_client:client_context_factory",
         "//src/backing/client/grpc_client:key_management_service_stub",
         "//src/backing/client/grpc_client:proto_util",
-        "//src/backing/rsa:kms_rsa_key",
-        "//src/backing/rsa:rsa_key",
+        "//src/backing/crypto_key_version",
         "//src/backing/status",
         "//src/backing/status:status_or",
     ],
@@ -81,7 +80,7 @@ filegroup(
     srcs = [
         "export_macros.h",
         "//src/backing/client:bridge_headers",
-        "//src/backing/rsa:bridge_headers",
+        "//src/backing/crypto_key_version:bridge_headers",
         "//src/backing/status:bridge_headers",
     ],
 )

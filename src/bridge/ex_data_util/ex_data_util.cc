@@ -22,7 +22,7 @@
 #include <openssl/rsa.h>
 #include <openssl/x509.h>
 
-#include "src/backing/rsa/rsa_key.h"
+#include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 #include "src/bridge/ex_data_util/engine_data.h"
@@ -31,20 +31,28 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+using ::kmsengine::backing::CryptoKeyHandle;
+
 // Represents an uninitialized OpenSSL external index. Value is -1 since
 // OpenSSL's `CRYPTO_get_ex_new_index` function for requesting external indicies
 // returns -1 on failure.
 constexpr int kUninitializedIndex = -1;
 
 // External index assigned by OpenSSL on a `RSA` struct. If uninitialized, it
-// has value `kUninitializedIndex`. Used in `AttachRsaKeyToOpenSslRsa` and
-// `GetRsaKeyFromOpenSslRsa`.
-int rsa_index = kUninitializedIndex;
+// has value `kUninitializedIndex`. Used in `AttachCryptoKeyHandleToOpenSslRsa`
+// and `GetCryptoKeyHandleFromOpenSslRsa`.
+static int rsa_index = kUninitializedIndex;
+
+// External index assigned by OpenSSL on a `EC_KEY` struct. If uninitialized, it
+// has value `kUninitializedIndex`. Used in
+// `AttachCryptoKeyHandleToOpenSslEcKey` and
+// `GetCryptoKeyHandleFromOpenSslEcKey`.
+static int ec_key_index = kUninitializedIndex;
 
 // External index assigned by OpenSSL on a `ENGINE` struct. If uninitialized, it
 // has value `kUninitializedIndex`. Used in `AttachEngineDataToOpenSslEngine`
 // and `GetEngineDataFromOpenSslEngine`.
-int engine_index = kUninitializedIndex;
+static int engine_index = kUninitializedIndex;
 
 // Requests an external index from OpenSSL for the index type `index_type`.
 // Valid index types are the `CRYPTO_EX_INDEX_*` constants found in OpenSSL's
@@ -66,9 +74,19 @@ StatusOr<int> GetIndex(int index_type) {
 // Returns `rsa_index` if it is initialized, or an error `Status`.
 inline StatusOr<int> GetRsaIndex() {
   if (rsa_index == kUninitializedIndex) {
-    return Status(StatusCode::kFailedPrecondition, "rsa_index uninitialized");
+    return Status(StatusCode::kFailedPrecondition,
+                  "rsa_index uninitialized");
   }
   return rsa_index;
+}
+
+// Returns `ec_key_index` if it is initialized, or an error `Status`.
+inline StatusOr<int> GetEcKeyIndex() {
+  if (ec_key_index == kUninitializedIndex) {
+    return Status(StatusCode::kFailedPrecondition,
+                  "ec_key_index uninitialized");
+  }
+  return ec_key_index;
 }
 
 // Returns `engine_index` if it is initialized, or an error `Status`.
@@ -95,33 +113,61 @@ void FreeExternalIndicies() {
   engine_index = kUninitializedIndex;
 }
 
-Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
+Status AttachCryptoKeyHandleToOpenSslRsa(CryptoKeyHandle *crypto_key_handle,
+                                         RSA *rsa) {
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
-  if (!RSA_set_ex_data(rsa, index, static_cast<void *>(rsa_key))) {
+  if (!RSA_set_ex_data(rsa, index, static_cast<void *>(crypto_key_handle))) {
     return Status(StatusCode::kInternal, "RSA_set_ex_data failed");
   }
   return Status();
 }
 
-Status AttachRsaKeyToOpenSslRsa(std::unique_ptr<backing::RsaKey> rsa_key,
-                                RSA *rsa) {
-  auto rsa_key_pointer = rsa_key.release();
-  auto status = AttachRsaKeyToOpenSslRsa(rsa_key_pointer, rsa);
-  if (!status.ok()) {
-    delete rsa_key_pointer;
-    return status;
-  }
+Status AttachCryptoKeyHandleToOpenSslRsa(
+    std::unique_ptr<CryptoKeyHandle> crypto_key_handle, RSA *rsa) {
+  KMSENGINE_RETURN_IF_ERROR(
+      AttachCryptoKeyHandleToOpenSslRsa(crypto_key_handle.get(), ec_key));
+  crypto_key_handle.release();
   return Status();
 }
 
-StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
+StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslRsa(const RSA *rsa) {
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
   auto ex_data = RSA_get_ex_data(rsa, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
                   "RSA instance was not initialized with Cloud KMS data");
   }
-  return static_cast<backing::RsaKey *>(ex_data);
+  return static_cast<CryptoKeyHandle *>(ex_data);
+}
+
+Status AttachCryptoKeyHandleToOpenSslEcKey(CryptoKeyHandle *crypto_key_handle,
+                                           EC_KEY *ec_key) {
+  KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEcKeyIndex());
+  if (!EC_KEY_set_ex_data(ec_key, index,
+                          static_cast<void *>(crypto_key_handle))) {
+    return Status(StatusCode::kInternal, "EC_KEY_set_ex_data failed");
+  }
+  return Status();
+}
+
+Status AttachCryptoKeyHandleToOpenSslEcKey(
+    std::unique_ptr<CryptoKeyHandle> crypto_key_handle,
+    EC_KEY *ec_key) {
+  KMSENGINE_RETURN_IF_ERROR(
+      AttachCryptoKeyHandleToOpenSslEcKey(crypto_key_handle.get(), ec_key));
+  crypto_key_handle.release();
+  return Status();
+}
+
+StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslEcKey(
+    const EC_KEY *ec_key) {
+  KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEcKeyIndex());
+  auto ex_data = EC_KEY_get_ex_data(ec_key, index);
+  if (ex_data == nullptr) {
+    return Status(StatusCode::kNotFound,
+                  "EC_KEY instance was not initialized with Cloud KMS data");
+  }
+  return static_cast<CryptoKeyHandle *>(ex_data);
 }
 
 Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {

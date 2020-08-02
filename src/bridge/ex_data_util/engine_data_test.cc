@@ -36,7 +36,8 @@ TEST(EngineDataTest, ClientRoundtrip) {
   EXPECT_CALL(*client, GetPublicKey("hello world"));
 
   auto rsa_method = MakeRsaMethod("", 0);
-  EngineData engine_data(std::move(client), std::move(rsa_method));
+  EngineData engine_data(std::move(client), std::move(rsa_method),
+                         {nullptr, nullptr});
 
   // Check that we got the same client back using a mock call.
   (void)engine_data.client().GetPublicKey("hello world");
@@ -45,7 +46,8 @@ TEST(EngineDataTest, ClientRoundtrip) {
 TEST(EngineDataTest, RsaMethodRoundtrip) {
   auto client = absl::make_unique<MockClient>();
   auto rsa_method = MakeRsaMethod("my RSA method", 0);
-  EngineData engine_data(std::move(client), std::move(rsa_method));
+  EngineData engine_data(std::move(client), std::move(rsa_method),
+                         {nullptr, nullptr});
 
   EXPECT_THAT(RSA_meth_get0_name(engine_data.rsa_method()),
               StrEq("my RSA method"));

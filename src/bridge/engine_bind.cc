@@ -45,7 +45,11 @@ StatusOr<EngineData *> MakeDefaultEngineData() {
 
   auto rsa_method = rsa::MakeKmsRsaMethod();
 
-  auto engine_data = new EngineData(std::move(client), std::move(rsa_method));
+  // TODO(zesp): Add EcKeyMethod.
+  auto ec_key_method = {nullptr, nullptr};
+
+  auto engine_data = new EngineData(std::move(client), std::move(rsa_method),
+                                    std::move(ec_key_method));
   if (engine_data == nullptr) {
     return Status(StatusCode::kResourceExhausted, "no memory available");
   }

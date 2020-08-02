@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BRIDGE_KEY_LOADER_H_
-#define KMSENGINE_BRIDGE_KEY_LOADER_H_
+#ifndef KMSENGINE_BRIDGE_KEY_LOADER_KEY_LOADER_H_
+#define KMSENGINE_BRIDGE_KEY_LOADER_KEY_LOADER_H_
 
 #include <openssl/engine.h>
-
-#include "src/backing/client/crypto_key_version_algorithm.h"
-#include "src/backing/rsa/kms_rsa_key.h"
-#include "src/backing/rsa/rsa_key.h"
-#include "src/backing/status/status.h"
-#include "src/backing/status/status_or.h"
-#include "src/bridge/error/error.h"
-#include "src/bridge/ex_data_util/ex_data_util.h"
-#include "src/bridge/memory_util/openssl_structs.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -43,10 +34,10 @@ namespace bridge {
 // TODO(zesp): This is currently just treating the `key_id` path as the Cloud
 // KMS key resource ID itself. It may be useful to let the user instead specify
 // a real file that contains the key resource ID in it instead.
-EVP_PKEY *LoadPrivateKey(ENGINE *openssl_engine, const char *key_id,
+EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
                          UI_METHOD *ui_method, void *callback_data);
 
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BRIDGE_KEY_LOADER_H_
+#endif  // KMSENGINE_BRIDGE_KEY_LOADER_KEY_LOADER_H_
