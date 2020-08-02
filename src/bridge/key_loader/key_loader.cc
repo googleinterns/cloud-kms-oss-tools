@@ -47,10 +47,9 @@ EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
   // `BIO` before attempting to parse the public key material.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       auto public_key_pem_bio, MakeOpenSslBioFromString(
-          static_cast<const char *>(public_key.pem().data()),
+          static_cast<const void *>(public_key.pem().data()),
           public_key.pem().length()),
       nullptr);
-  std::cout << "5" << std::endl;
 
   OpenSslEvpPkey evp_pkey {nullptr, nullptr};
   using ::kmsengine::backing::CryptoKeyVersionAlgorithm;
