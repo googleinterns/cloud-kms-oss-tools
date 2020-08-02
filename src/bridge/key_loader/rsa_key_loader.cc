@@ -110,8 +110,23 @@ StatusOr<OpenSslEvpPkey> MakeKmsRsaEvpPkey(
 
   KMSENGINE_ASSIGN_OR_RETURN(
       auto rsa, MakeRsaFromPublicKeyPemBio(std::move(public_key_bio)));
+
+  // Important: `AttachRsaMethodToOpenSslRsa` must be called on the `rsa`
+  // before any other initialization work is done to the `rsa`. This is
+  // because `AttachRsaMethodToOpenSslRsa` calls `RSA_set_method`, which
+  // will call the engine's `RSA_METHOD` `finish` function on `rsa` before
+  // setting `RSA_METHOD`.
+  //
+  // If `AttachRsaMethodToOpenSslRsa` is called after initialization work
+  // is performed on the `rsa`, then the initialization work done before the
+  // call may be clobbered by `RSA_set_method`'s call to `finish`. This can
+  // (and has) lead to difficult-to-track down debugging issues since the
+  // initialization work done after the call to `RSA_set_method` will still
+  // remain in the `rsa` struct, the the initialization work done before the
+  // call will have been removed.
   KMSENGINE_RETURN_IF_ERROR(
       AttachRsaMethodToOpenSslRsa(rsa_method, rsa.get()));
+
   KMSENGINE_RETURN_IF_ERROR(
       AttachCryptoKeyHandleToOpenSslRsa(std::move(crypto_key_handle),
                                         rsa.get()));

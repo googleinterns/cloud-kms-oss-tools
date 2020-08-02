@@ -103,8 +103,23 @@ StatusOr<OpenSslEvpPkey> MakeKmsEcEvpPkey(
 
   KMSENGINE_ASSIGN_OR_RETURN(
       auto ec_key, MakeEcKeyFromPublicKeyPemBio(std::move(public_key_bio)));
+
+  // Important: `AttachEcKeyMethodToOpenSslEcKey` must be called on the `ec_key`
+  // before any other initialization work is done to the `ec_key`. This is
+  // because `AttachEcKeyMethodToOpenSslEcKey` calls `EC_KEY_set_method`, which
+  // will call the engine's `EC_KEY_METHOD` `finish` function on `ec_key` before
+  // setting `EC_KEY_METHOD`.
+  //
+  // If `AttachEcKeyMethodToOpenSslEcKey` is called after initialization work
+  // is performed on the `ec_key`, then the initialization work done before the
+  // call may be clobbered by `EC_KEY_set_method`'s call to `finish`. This can
+  // (and has) lead to difficult-to-track down debugging issues since the
+  // initialization work done after the call to `EC_KEY_set_method` will still
+  // remain in the `ec_key` struct, the the initialization work done before the
+  // call will have been removed.
   KMSENGINE_RETURN_IF_ERROR(
       AttachEcKeyMethodToOpenSslEcKey(ec_key_method, ec_key.get()));
+
   KMSENGINE_RETURN_IF_ERROR(
       AttachCryptoKeyHandleToOpenSslEcKey(std::move(crypto_key_handle),
                                           ec_key.get()));
