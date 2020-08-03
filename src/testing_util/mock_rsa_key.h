@@ -35,9 +35,9 @@ class MockRsaKey : public ::kmsengine::backing::RsaKey {
   MOCK_METHOD(StatusOr<std::string>, Sign,
               (::kmsengine::backing::DigestCase type,
                std::string message_digest),
-              (override));
+              (const, override));
   MOCK_METHOD(StatusOr<::kmsengine::backing::PublicKey>, GetPublicKey, (),
-              (override));
+              (const, override));
 };
 
 }  // namespace testing_util
