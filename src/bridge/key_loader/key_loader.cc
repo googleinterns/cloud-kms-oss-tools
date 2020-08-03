@@ -45,7 +45,7 @@ EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
   // as an OpenSSL `BIO` stream, so we need to load the PublicKey's pem into a
   // `BIO` before attempting to parse the public key material.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto public_key_pem_bio, MakeOpenSslBioFromString(
+      auto public_key_pem_bio, MakeOpenSslMemoryBufferBio(
           static_cast<const void *>(public_key.pem().data()),
           public_key.pem().length()),
       nullptr);

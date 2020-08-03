@@ -62,7 +62,7 @@ class RsaKeyLoaderTest : public ::testing::Test {
 };
 
 TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkey) {
-  auto public_key_pem_bio_or = MakeOpenSslBioFromString(
+  auto public_key_pem_bio_or = MakeOpenSslMemoryBufferBio(
       kRsaPublicKey, sizeof(kRsaPublicKey));
   ASSERT_THAT(public_key_pem_bio_or, IsOk());
 
@@ -103,7 +103,7 @@ TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullBioWithoutDeleter) {
 }
 
 TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullCryptoKeyHandle) {
-  auto public_key_pem_bio_or = MakeOpenSslBioFromString(
+  auto public_key_pem_bio_or = MakeOpenSslMemoryBufferBio(
       kRsaPublicKey, sizeof(kRsaPublicKey));
   auto rsa_method = RSA_PKCS1_OpenSSL();
 
@@ -114,7 +114,7 @@ TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullCryptoKeyHandle) {
 }
 
 TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullRsaMethod) {
-  auto public_key_pem_bio_or = MakeOpenSslBioFromString(
+  auto public_key_pem_bio_or = MakeOpenSslMemoryBufferBio(
       kRsaPublicKey, sizeof(kRsaPublicKey));
   auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
 

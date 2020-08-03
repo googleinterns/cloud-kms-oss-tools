@@ -58,7 +58,7 @@ class EcKeyLoaderTest : public ::testing::Test {
 };
 
 TEST_F(EcKeyLoaderTest, MakeKmsRsaEvpPkey) {
-  auto public_key_pem_bio_or = MakeOpenSslBioFromString(
+  auto public_key_pem_bio_or = MakeOpenSslMemoryBufferBio(
       kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
   ASSERT_THAT(public_key_pem_bio_or, IsOk());
 
@@ -94,7 +94,7 @@ TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullBio) {
 }
 
 TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullCryptoKeyHandle) {
-  auto public_key_pem_bio_or = MakeOpenSslBioFromString(
+  auto public_key_pem_bio_or = MakeOpenSslMemoryBufferBio(
       kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
   auto ec_key_method = EC_KEY_OpenSSL();
 
@@ -105,7 +105,7 @@ TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullCryptoKeyHandle) {
 }
 
 TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullRsaMethod) {
-  auto public_key_pem_bio_or = MakeOpenSslBioFromString(
+  auto public_key_pem_bio_or = MakeOpenSslMemoryBufferBio(
       kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
   auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
 

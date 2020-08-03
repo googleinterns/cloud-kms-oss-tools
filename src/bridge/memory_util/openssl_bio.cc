@@ -27,7 +27,7 @@
 namespace kmsengine {
 namespace bridge {
 
-StatusOr<OpenSslBio> MakeOpenSslBioFromString(const void *data, int length) {
+StatusOr<OpenSslBio> MakeOpenSslMemoryBufferBio(const void *data, int length) {
   BIO *pem_stream = BIO_new_mem_buf(data, length);
   if (pem_stream == nullptr) {
     return Status(StatusCode::kInternal, "BIO_new_mem_buf failed");
