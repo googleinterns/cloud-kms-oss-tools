@@ -36,9 +36,9 @@ class MockClient : public ::kmsengine::backing::Client {
               (std::string key_version_resource_id,
                ::kmsengine::backing::DigestCase digest_case,
                std::string digest_bytes),
-              (override));
+              (const, override));
   MOCK_METHOD(StatusOr<::kmsengine::backing::PublicKey>, GetPublicKey,
-              (std::string key_version_resource_id), (override));
+              (std::string key_version_resource_id), (const, override));
 };
 
 }  // namespace testing_util

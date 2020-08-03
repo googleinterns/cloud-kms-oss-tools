@@ -37,11 +37,11 @@ class Client {
   // `GetPublicKey`.
   virtual StatusOr<std::string> AsymmetricSign(
       std::string key_version_resource_id, DigestCase digest_case,
-      std::string digest_bytes) = 0;
+      std::string digest_bytes) const = 0;
 
   // Returns the `PublicKey` for the given `key_version_resource_id`.
   virtual StatusOr<PublicKey> GetPublicKey(
-      std::string key_version_resource_id) = 0;
+      std::string key_version_resource_id) const = 0;
 };
 
 }  // namespace backing
