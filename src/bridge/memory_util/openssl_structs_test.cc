@@ -30,13 +30,13 @@ namespace {
 using ::testing::NotNull;
 
 TEST(OpenSslMakeTest, MakeEcKeySetsDeleter) {
-  auto ec_key = MakeEcKey();
+  OpenSslEcKey ec_key = MakeEcKey();
   ASSERT_THAT(ec_key, NotNull());
   EXPECT_EQ(ec_key.get_deleter(), &EC_KEY_free);
 }
 
 TEST(OpenSslMakeTest, MakeEcKeyMethodSetsDeleter) {
-  auto ec_key_method = MakeEcKeyMethod();
+  OpenSslEcKeyMethod ec_key_method = MakeEcKeyMethod();
   ASSERT_THAT(ec_key_method, NotNull());
   EXPECT_EQ(ec_key_method.get_deleter(), &EC_KEY_METHOD_free);
 }
@@ -44,7 +44,7 @@ TEST(OpenSslMakeTest, MakeEcKeyMethodSetsDeleter) {
 TEST(OpenSslMakeTest, MakeEcKeyMethodPerformsShallowCopy) {
   const EC_KEY_METHOD *default_ec_key_method = EC_KEY_OpenSSL();
 
-  auto ec_key_method = MakeEcKeyMethod(default_ec_key_method);
+  OpenSslEcKeyMethod ec_key_method = MakeEcKeyMethod(default_ec_key_method);
   ASSERT_THAT(ec_key_method, NotNull());
   EXPECT_EQ(ec_key_method.get_deleter(), &EC_KEY_METHOD_free);
 
@@ -58,51 +58,51 @@ TEST(OpenSslMakeTest, MakeEcKeyMethodPerformsShallowCopy) {
 }
 
 TEST(OpenSslMakeTest, MakeEngineSetsDeleter) {
-  auto engine = MakeEngine();
+  OpenSslEngine engine = MakeEngine();
   ASSERT_THAT(engine, NotNull());
   EXPECT_EQ(engine.get_deleter(), &ENGINE_free);
 }
 
 TEST(OpenSslMakeTest, MakeEvpPkeySetsDeleter) {
-  auto evp_pkey = MakeEvpPkey();
+  OpenSslEvpPkey evp_pkey = MakeEvpPkey();
   ASSERT_THAT(evp_pkey, NotNull());
   EXPECT_EQ(evp_pkey.get_deleter(), &EVP_PKEY_free);
 }
 
 TEST(OpenSslMakeTest, MakeEvpDigestContextSetsDeleter) {
-  auto context = MakeEvpDigestContext();
+  OpenSslEvpDigestContext context = MakeEvpDigestContext();
   ASSERT_THAT(context, NotNull());
   EXPECT_EQ(context.get_deleter(), &EVP_MD_CTX_free);
 }
 
 TEST(OpenSslStructsTest, MakeRsaSetsDeleter) {
-  auto rsa = MakeRsa();
+  OpenSslRsa rsa = MakeRsa();
   ASSERT_THAT(rsa, NotNull());
   EXPECT_EQ(rsa.get_deleter(), &RSA_free);
 }
 
 TEST(OpenSslStructsTest, MakeRsaMethodSetsDeleter) {
-  auto rsa_method = MakeRsaMethod("", 0);
+  OpenSslRsaMethod rsa_method = MakeRsaMethod("", 0);
   ASSERT_THAT(rsa_method, NotNull());
   EXPECT_EQ(rsa_method.get_deleter(), &RSA_meth_free);
 }
 
 TEST(OpenSslStructsTest, MakeRsaMethodSetsName) {
-  auto empty_name = MakeRsaMethod("", 0);
+  OpenSslRsaMethod empty_name = MakeRsaMethod("", 0);
   ASSERT_THAT(empty_name, NotNull());
   EXPECT_STREQ(RSA_meth_get0_name(empty_name.get()), "");
 
-  auto some_name = MakeRsaMethod("my-name", 0);
+  OpenSslRsaMethod some_name = MakeRsaMethod("my-name", 0);
   ASSERT_THAT(some_name, NotNull());
   EXPECT_STREQ(RSA_meth_get0_name(some_name.get()), "my-name");
 }
 
 TEST(OpenSslStructsTest, MakeRsaMethodSetsFlags) {
-  auto with_flag = MakeRsaMethod("", RSA_FLAG_EXT_PKEY);
+  OpenSslRsaMethod with_flag = MakeRsaMethod("", RSA_FLAG_EXT_PKEY);
   ASSERT_THAT(with_flag, NotNull());
   EXPECT_TRUE(RSA_meth_get_flags(with_flag.get()) & RSA_FLAG_EXT_PKEY);
 
-  auto without_flag = MakeRsaMethod("", 0);
+  OpenSslRsaMethod without_flag = MakeRsaMethod("", 0);
   ASSERT_THAT(without_flag, NotNull());
   EXPECT_FALSE(RSA_meth_get_flags(without_flag.get()) & RSA_FLAG_EXT_PKEY);
 }
