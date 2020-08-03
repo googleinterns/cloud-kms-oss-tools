@@ -87,8 +87,11 @@ inline OpenSslEcKey MakeEcKey() {
   return OpenSslEcKey(EC_KEY_new(), &EC_KEY_free);
 }
 
-// Constructs a `std::unique_ptr` object which owns a fresh EC_KEY_METHOD
-// instance. May return `nullptr` if no memory is available.
+// Constructs a `std::unique_ptr` object which contains a `EC_KEY_METHOD`
+// instance that is a shallow copy of the input `method`. May return `nullptr`
+// if no memory is available.
+//
+// If `method` == nullptr, then returns a fresh `EC_KEY_METHOD` instance.
 //
 // The OpenSSL `EC_KEY_METHOD_free` function is automatically called to dispose
 // of the underlying EC_KEY_METHOD instance when the pointer goes out of scope.
@@ -96,11 +99,7 @@ inline OpenSslEcKeyMethod MakeEcKeyMethod(const EC_KEY_METHOD *method) {
   return OpenSslEcKeyMethod(EC_KEY_METHOD_new(method), &EC_KEY_METHOD_free);
 }
 
-// Constructs a `std::unique_ptr` object which owns a fresh EC_KEY_METHOD
-// instance. May return `nullptr` if no memory is available.
-//
-// The OpenSSL `EC_KEY_METHOD_free` function is automatically called to dispose
-// of the underlying EC_KEY_METHOD instance when the pointer goes out of scope.
+// Alias for `MakeEcKeyMethod(nullptr)`.
 inline OpenSslEcKeyMethod MakeEcKeyMethod() {
   return MakeEcKeyMethod(nullptr);
 }

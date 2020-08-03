@@ -41,6 +41,23 @@ TEST(OpenSslMakeTest, MakeEcKeyMethodSetsDeleter) {
   EXPECT_EQ(ec_key_method.get_deleter(), &EC_KEY_METHOD_free);
 }
 
+TEST(OpenSslMakeTest, MakeEcKeyMethodPerformsShallowCopy) {
+  const EC_KEY_METHOD *default_ec_key_method = EC_KEY_OpenSSL();
+
+  auto ec_key_method = MakeEcKeyMethod(default_ec_key_method);
+  ASSERT_THAT(ec_key_method, NotNull());
+  EXPECT_EQ(ec_key_method.get_deleter(), &EC_KEY_METHOD_free);
+
+  EXPECT_EQ(EC_KEY_METHOD_get_init(ec_key_method.get()),
+            EC_KEY_METHOD_get_init(default_ec_key_method));
+  EXPECT_EQ(EC_KEY_METHOD_get_compute_key(ec_key_method.get()),
+            EC_KEY_METHOD_get_compute_key(default_ec_key_method));
+  EXPECT_EQ(EC_KEY_METHOD_get_sign(ec_key_method.get()),
+            EC_KEY_METHOD_get_sign(default_ec_key_method));
+  EXPECT_EQ(EC_KEY_METHOD_get_verify(ec_key_method.get()),
+            EC_KEY_METHOD_get_verify(default_ec_key_method));
+}
+
 TEST(OpenSslMakeTest, MakeEngineSetsDeleter) {
   auto engine = MakeEngine();
   ASSERT_THAT(engine, NotNull());
