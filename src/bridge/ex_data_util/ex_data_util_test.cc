@@ -39,7 +39,7 @@ TEST(ExDataUtilTest, RsaKeyRoundtrip) {
   MockRsaKey rsa_key;
   ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
 
-  RsaKey *actual = GetRsaKeyFromOpenSslRsa(rsa.get());
+  StatusOr<RsaKey *> actual = GetRsaKeyFromOpenSslRsa(rsa.get());
   EXPECT_THAT(actual, IsOk());
   EXPECT_EQ(actual.value(), &rsa_key);
 
@@ -86,7 +86,7 @@ TEST(ExDataUtilTest, EngineDataRoundtrip) {
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
               IsOk());
 
-  EngineData *actual = GetEngineDataFromOpenSslEngine(engine.get());
+  StatusOr<EngineData *> actual = GetEngineDataFromOpenSslEngine(engine.get());
   EXPECT_THAT(actual, IsOk());
   EXPECT_EQ(actual.value(), &engine_data);
 
