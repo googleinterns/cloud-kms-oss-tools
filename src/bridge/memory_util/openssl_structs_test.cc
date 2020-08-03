@@ -48,14 +48,13 @@ TEST(OpenSslMakeTest, MakeEcKeyMethodPerformsShallowCopy) {
   ASSERT_THAT(ec_key_method, NotNull());
   EXPECT_EQ(ec_key_method.get_deleter(), &EC_KEY_METHOD_free);
 
-  EXPECT_EQ(EC_KEY_METHOD_get_init(ec_key_method.get()),
-            EC_KEY_METHOD_get_init(default_ec_key_method));
-  EXPECT_EQ(EC_KEY_METHOD_get_compute_key(ec_key_method.get()),
-            EC_KEY_METHOD_get_compute_key(default_ec_key_method));
-  EXPECT_EQ(EC_KEY_METHOD_get_sign(ec_key_method.get()),
-            EC_KEY_METHOD_get_sign(default_ec_key_method));
-  EXPECT_EQ(EC_KEY_METHOD_get_verify(ec_key_method.get()),
-            EC_KEY_METHOD_get_verify(default_ec_key_method));
+  auto actual_init;
+  EC_KEY_METHOD_get_init(ec_key_method.get(), &actual_init);
+
+  auto expected_init;
+  EC_KEY_METHOD_get_init(default_ec_key_method, &expected_init);
+
+  EXPECT_EQ(actual_init, expected_init);
 }
 
 TEST(OpenSslMakeTest, MakeEngineSetsDeleter) {
