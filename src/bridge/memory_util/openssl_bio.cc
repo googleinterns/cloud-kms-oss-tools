@@ -36,7 +36,7 @@ StatusOr<OpenSslBio> MakeOpenSslBioFromString(const void *data, int length) {
   // Second parameter of `OpenSslBio` specifies the deleter function that should
   // be called on the underlying BIO pointer when the `OpenSslBio` smart pointer
   // goes out of scope.
-  return OpenSslBio(pem_stream, BIO_free);
+  return OpenSslBio(pem_stream, &BIO_free);
 }
 
 }  // namespace bridge

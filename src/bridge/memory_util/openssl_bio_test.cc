@@ -38,7 +38,7 @@ constexpr char kRsaPublicKey[] = "-----BEGIN PUBLIC KEY-----\n"
   "wQIDAQAB\n"
   "-----END PUBLIC KEY-----\n";
 
-TEST(OpenSslBioTest, MakeOpenSslBioFromString) {
+TEST(OpenSslBioTest, MakeOpenSslBioFromStringWorksWithRsaPemRead) {
   auto public_key_bio_or = MakeOpenSslBioFromString(kRsaPublicKey,
                                                     sizeof(kRsaPublicKey));
   ASSERT_THAT(public_key_bio_or, IsOk());
@@ -46,6 +46,15 @@ TEST(OpenSslBioTest, MakeOpenSslBioFromString) {
   auto public_key_bio = std::move(public_key_bio_or.value());
   EXPECT_OPENSSL_SUCCESS(
       PEM_read_bio_RSA_PUBKEY(public_key_bio.get(), nullptr, nullptr, nullptr));
+}
+
+TEST(OpenSslBioTest, MakeOpenSslBioFromStringSetsDeleter) {
+  auto public_key_bio_or = MakeOpenSslBioFromString(kRsaPublicKey,
+                                                    sizeof(kRsaPublicKey));
+  ASSERT_THAT(public_key_bio_or, IsOk());
+
+  auto public_key_bio = std::move(public_key_bio_or.value());
+  EXPECT_EQ(public_key_bio.get_deleter(), &BIO_free);
 }
 
 }  // namespace

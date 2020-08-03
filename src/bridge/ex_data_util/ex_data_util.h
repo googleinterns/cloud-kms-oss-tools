@@ -43,6 +43,9 @@ void FreeExternalIndicies();
 
 // Attaches an `CryptoKeyHandle` instance to the OpenSSL `RSA` instance. Returns
 // an error `Status` if an error occurred.
+//
+// When possible, use the `unique_ptr` version to make ownership semantics
+// clearer and to simplify cleanup in error cases.
 Status AttachCryptoKeyHandleToOpenSslRsa(
     backing::CryptoKeyHandle *crypto_key_handle, RSA *rsa);
 Status AttachCryptoKeyHandleToOpenSslRsa(
@@ -57,8 +60,11 @@ Status AttachCryptoKeyHandleToOpenSslRsa(
 StatusOr<backing::CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslRsa(
     const RSA *rsa);
 
-// Attaches an `CryptoKeyHandle` instance to the OpenSSL `EcKey` instance. Returns
-// an error `Status` if an error occurred.
+// Attaches an `CryptoKeyHandle` instance to the OpenSSL `EC_KEY` instance.
+// Returns an error `Status` if an error occurred.
+//
+// When possible, use the `unique_ptr` version to make ownership semantics
+// clearer and to simplify cleanup in error cases.
 Status AttachCryptoKeyHandleToOpenSslEcKey(
     backing::CryptoKeyHandle *crypto_key_handle, EC_KEY *ec_key);
 Status AttachCryptoKeyHandleToOpenSslEcKey(

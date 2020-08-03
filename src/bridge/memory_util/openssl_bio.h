@@ -25,8 +25,10 @@ namespace bridge {
 // Instantiates a `BIO` (OpenSSL's abstraction for a stream of data) and loads
 // the given string `bytes` into the stream.
 //
-// The memory stored in `data` must outlive the `BIO` instance. The behavior
-// of the output `BIO` is undefined otherwise.
+// The memory stored in `data` must outlive the `BIO` instance, since
+// `MakeOpenSslBioFromString` is implemented with `BIO_new_mem_buf` which only
+// makes a shallow copy of the `data`. The behavior of the output `BIO` is
+// undefined if the memory in `data` goes out of scope.
 //
 // Returns the `BIO` as a unique pointer that calls `BIO_free` when the pointer
 // goes out of scope, or returns an error `Status` if unsuccessful.

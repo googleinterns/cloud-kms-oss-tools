@@ -69,7 +69,7 @@ class KMSENGINE_EXPORT CryptoKeyHandle {
 
 // Creates a `unique_ptr` containing a `CryptoKeyHandle` implementation.
 KMSENGINE_EXPORT StatusOr<std::unique_ptr<CryptoKeyHandle>> MakeCryptoKeyHandle(
-    std::string key_resource_id, Client const& client);
+    std::string const& key_resource_id, Client const& client);
 
 }  // namespace backing
 }  // namespace kmsengine

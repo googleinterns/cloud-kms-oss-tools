@@ -128,7 +128,7 @@ Status AttachCryptoKeyHandleToOpenSslRsa(
     std::unique_ptr<CryptoKeyHandle> crypto_key_handle, RSA *rsa) {
   KMSENGINE_RETURN_IF_ERROR(
       AttachCryptoKeyHandleToOpenSslRsa(crypto_key_handle.get(), rsa));
-  crypto_key_handle.release();
+  crypto_key_handle.release();  // Only release if attach was successful.
   return Status();
 }
 
@@ -156,7 +156,7 @@ Status AttachCryptoKeyHandleToOpenSslEcKey(
     std::unique_ptr<CryptoKeyHandle> crypto_key_handle, EC_KEY *ec_key) {
   KMSENGINE_RETURN_IF_ERROR(
       AttachCryptoKeyHandleToOpenSslEcKey(crypto_key_handle.get(), ec_key));
-  crypto_key_handle.release();
+  crypto_key_handle.release();  // Only release if attach was successful.
   return Status();
 }
 

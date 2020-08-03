@@ -16,10 +16,12 @@
 
 #include "src/backing/crypto_key_handle/crypto_key_handle.h"
 
+#include <memory>
 #include <string>
 
 #include "absl/memory/memory.h"
 #include "absl/strings/str_format.h"
+#include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
 #include "src/backing/status/status_or.h"
@@ -31,10 +33,9 @@ namespace {
 // Implementation of `CryptoKeyHandle`.
 class KmsCryptoKeyHandle : public ::kmsengine::backing::CryptoKeyHandle {
  public:
-  KmsCryptoKeyHandle(std::string key_resource_id, Client const& client)
+  KmsCryptoKeyHandle(std::string const& key_resource_id, const Client& client)
       : key_resource_id_(key_resource_id),
         client_(client) {}
-  ~KmsCryptoKeyHandle() = default;
 
   // `KmsCryptoKeyHandle` is copyable and moveable.
   KmsCryptoKeyHandle(const KmsCryptoKeyHandle& other) = default;
@@ -45,8 +46,8 @@ class KmsCryptoKeyHandle : public ::kmsengine::backing::CryptoKeyHandle {
     return key_resource_id_;
   }
 
-  StatusOr<std::string> Sign(DigestCase digest_type, std::string digest_bytes)
-      const override {
+  StatusOr<std::string> Sign(DigestCase digest_type,
+                             std::string digest_bytes) const override {
     return client_.AsymmetricSign(key_resource_id(), digest_type, digest_bytes);
   }
 
@@ -62,7 +63,7 @@ class KmsCryptoKeyHandle : public ::kmsengine::backing::CryptoKeyHandle {
 }  // namespace
 
 StatusOr<std::unique_ptr<CryptoKeyHandle>> MakeCryptoKeyHandle(
-    std::string key_resource_id, Client const& client) {
+    std::string const& key_resource_id, Client const& client) {
   std::unique_ptr<CryptoKeyHandle> handle =
       absl::make_unique<KmsCryptoKeyHandle>(key_resource_id, client);
   if (handle == nullptr) {

@@ -19,7 +19,6 @@
 #include <memory>
 #include <string>
 
-#include "absl/strings/string_view.h"
 #include "google/cloud/kms/v1/resources.pb.h"
 #include "google/cloud/kms/v1/service.pb.h"
 #include "grpcpp/grpcpp.h"

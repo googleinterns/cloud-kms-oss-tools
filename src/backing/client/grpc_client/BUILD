@@ -126,7 +126,6 @@ cc_library(
         "//src/backing/client:digest_case",
         "//src/backing/status",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/strings",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
     ],
 )
