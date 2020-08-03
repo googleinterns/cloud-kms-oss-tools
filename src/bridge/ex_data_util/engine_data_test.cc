@@ -56,9 +56,7 @@ TEST(EngineDataTest, RsaMethodRoundtrip) {
 }
 
 TEST(EngineDataTest, EcKeyMethodRoundtrip) {
-  // `EC_KEY_OpenSSL` is the default OpenSSL `EC_KEY_METHOD`.
   const EC_KEY_METHOD *default_ec_key_method = EC_KEY_OpenSSL();
-
   EngineData engine_data(nullptr,
                          OpenSslRsaMethod(nullptr, nullptr),
                          MakeEcKeyMethod(default_ec_key_method));
@@ -66,8 +64,8 @@ TEST(EngineDataTest, EcKeyMethodRoundtrip) {
   // Check that we got the same `EC_KEY_METHOD` back by checking that function
   // pointers match.
   int (*actual_keygen_function)(EC_KEY *key) = nullptr;
-  EC_KEY_METHOD_get_keygen(
-      engine_data.ec_key_method(), &actual_keygen_function);
+  EC_KEY_METHOD_get_keygen(engine_data.ec_key_method(),
+                           &actual_keygen_function);
 
   int (*expected_keygen_function)(EC_KEY *key) = nullptr;
   EC_KEY_METHOD_get_keygen(default_ec_key_method, &expected_keygen_function);
