@@ -33,6 +33,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <gtest/gtest-spi.h>
 
 #include "src/testing_util/openssl_assertions.h"
 #include "src/bridge/error/error.h"
@@ -56,6 +57,12 @@ int ExpectedToSucceed() {
 TEST(OpenSslSuccessTest, ExpectsSuccess) {
   EXPECT_OPENSSL_SUCCESS(ExpectedToSucceed());
   ASSERT_OPENSSL_SUCCESS(ExpectedToSucceed());
+}
+
+TEST(OpenSslSuccessTest, ExpectsSuccess) {
+  EXPECT_NONFATAL_FAILURE(
+      EXPECT_OPENSSL_SUCCESS(ExpectedToSucceed()),
+      "unexpectedly returned false");
 }
 
 TEST(OpenSslFailureTest, MatchesErrorMessage) {
