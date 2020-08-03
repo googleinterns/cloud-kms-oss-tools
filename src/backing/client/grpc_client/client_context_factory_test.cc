@@ -31,19 +31,25 @@ namespace {
 using ::kmsengine::backing::client::testing_util::FakeSystemClock;
 using ::kmsengine::backing::client::SystemClock;
 using ::testing::Range;
+using ::testing::Combine;
 
-class ClientContextFactoryTest : public
-    testing::TestWithParam<std::chrono::milliseconds> {
+class ClientContextFactoryTest : public testing::TestWithParam<
+    std::tuple<std::chrono::milliseconds, std::chrono::milliseconds>> {
   // Purposely empty; no fixtures to instantiate.
 };
 
+// A `Range` of different times for testing purposes.
+const auto kTimeRange = Range(std::chrono::milliseconds(0),
+                              std::chrono::milliseconds(1000),
+                              std::chrono::milliseconds(50));
+
 INSTANTIATE_TEST_SUITE_P(DeadlineParameters, ClientContextFactoryTest,
-                         Range(std::chrono::milliseconds(0),
-                               std::chrono::milliseconds(1000),
-                               std::chrono::milliseconds(50)));
+                         Combine(kTimeRange, kTimeRange));
 
 TEST_P(ClientContextFactoryTest, MakeContextSetsDeadline) {
-  auto timeout_duration = GetParam();
+  const auto timeout_duration = std::get<0>(GetParam());
+  const auto time_passed_after_factory_create = std::get<1>(GetParam());
+
   auto fake_clock = std::make_shared<FakeSystemClock>();
   auto factory = CreateClientContextFactory(timeout_duration, fake_clock);
 
