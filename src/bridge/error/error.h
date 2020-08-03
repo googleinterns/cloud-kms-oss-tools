@@ -57,8 +57,9 @@ void SignalErrorToOpenSSL(Status status, const char *function_name,
 //
 // Defined as a macro that expands to `SignalErrorToOpenSSL` and adds the
 // `__func__`, `__FILE__`, and `__LINE__` parameters.
-#define KMSENGINE_SIGNAL_ERROR(status) \
-  SignalErrorToOpenSSL(status, __func__, __FILE__, __LINE__);
+#define KMSENGINE_SIGNAL_ERROR(status)                                  \
+  ::kmsengine::bridge::SignalErrorToOpenSSL(status, __func__, __FILE__, \
+                                            __LINE__);
 
 // Returns the library code assigned by OpenSSL.
 int GetErrorLibraryId();
