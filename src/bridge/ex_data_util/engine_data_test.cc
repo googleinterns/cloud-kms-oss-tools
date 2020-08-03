@@ -55,6 +55,28 @@ TEST(EngineDataTest, RsaMethodRoundtrip) {
               StrEq(kRsaMethodName));
 }
 
+TEST(EngineDataTest, EcKeyMethodRoundtrip) {
+  // `EC_KEY_OpenSSL` is the default OpenSSL `EC_KEY_METHOD`.
+  const EC_KEY_METHOD *default_ec_key_method = EC_KEY_OpenSSL();
+  OpenSslEcKeyMethod key_method = MakeEcKeyMethod(default_ec_key_method);
+
+  EngineData engine_data(absl::make_unique<MockClient>(),
+                         MakeRsaMethod(kRsaMethodName, /*rsa_flags=*/0),
+                         MakeEcKeyMethod());
+
+  // Check that we got the same `EC_KEY_METHOD` back by checking that function
+  // pointers match.
+  int (*actual_keygen_function)(EC_KEY *key) = nullptr;
+  EC_KEY_METHOD_get_keygen(
+      engine_data.ec_key_method(), &actual_keygen_function);
+
+  int (*expected_keygen_function)(EC_KEY *key) = nullptr;
+  EC_KEY_METHOD_get_keygen(default_ec_key_method, &expected_keygen_function);
+
+  EXPECT_EQ(actual_keygen_function, expected_keygen_function);
+}
+}
+
 }  // namespace
 }  // namespace bridge
 }  // namespace kmsengine
