@@ -48,10 +48,10 @@ TEST(OpenSslMakeTest, MakeEcKeyMethodPerformsShallowCopy) {
   ASSERT_THAT(ec_key_method, NotNull());
   EXPECT_EQ(ec_key_method.get_deleter(), &EC_KEY_METHOD_free);
 
-  int (*pkeygen)(EC_KEY *key) actual_keygen_function;
+  int (*actual_keygen_function)(EC_KEY *key) = nullptr;
   EC_KEY_METHOD_get_keygen(ec_key_method.get(), &actual_keygen_function);
 
-  int (*pkeygen)(EC_KEY *key) expected_keygen_function;
+  int (*expected_keygen_function)(EC_KEY *key) = nullptr;
   EC_KEY_METHOD_get_keygen(default_ec_key_method, &expected_keygen_function);
 
   EXPECT_EQ(actual_keygen_function, expected_keygen_function);
