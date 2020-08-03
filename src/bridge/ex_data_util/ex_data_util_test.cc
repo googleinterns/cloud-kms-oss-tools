@@ -32,43 +32,43 @@ using ::kmsengine::testing_util::MockRsaKey;
 using ::testing::Not;
 
 TEST(ExDataUtilTest, RsaKeyRoundtrip) {
-  ASSERT_THAT(InitExternalIndicies(), IsOk());
+  ASSERT_THAT(InitExternalIndices(), IsOk());
 
-  auto rsa = MakeRsa();
+  OpenSslRsa rsa = MakeRsa();
   MockRsaKey rsa_key;
   ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
 
-  auto actual = GetRsaKeyFromOpenSslRsa(rsa.get());
+  RsaKey *actual = GetRsaKeyFromOpenSslRsa(rsa.get());
   EXPECT_THAT(actual, IsOk());
   EXPECT_EQ(actual.value(), &rsa_key);
 
-  FreeExternalIndicies();
+  FreeExternalIndices();
 }
 
 TEST(ExDataUtilTest, HandlesNullRsaKey) {
-  ASSERT_THAT(InitExternalIndicies(), IsOk());
+  ASSERT_THAT(InitExternalIndices(), IsOk());
 
-  auto rsa = MakeRsa();
+  OpenSslRsa rsa = MakeRsa();
   ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
   EXPECT_THAT(GetRsaKeyFromOpenSslRsa(rsa.get()), Not(IsOk()));
 
-  FreeExternalIndicies();
+  FreeExternalIndices();
 }
 
 TEST(ExDataUtilTest, ReturnsErrorOnNullRsa) {
-  ASSERT_THAT(InitExternalIndicies(), IsOk());
+  ASSERT_THAT(InitExternalIndices(), IsOk());
 
   MockRsaKey rsa_key;
   ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, nullptr), Not(IsOk()));
   ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, nullptr), Not(IsOk()));
   EXPECT_THAT(GetRsaKeyFromOpenSslRsa(nullptr), Not(IsOk()));
 
-  FreeExternalIndicies();
+  FreeExternalIndices();
 }
 
 TEST(ExDataUtilTest, ReturnsErrorWhenRsaExternalIndiciesNotInitialized) {
   // Explicitly not calling `InitExternalIndices` here.
-  auto rsa = MakeRsa();
+  OpenSslRsa rsa = MakeRsa();
   MockRsaKey rsa_key;
 
   EXPECT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), Not(IsOk()));
@@ -78,32 +78,32 @@ TEST(ExDataUtilTest, ReturnsErrorWhenRsaExternalIndiciesNotInitialized) {
 }
 
 TEST(ExDataUtilTest, EngineDataRoundtrip) {
-  ASSERT_THAT(InitExternalIndicies(), IsOk());
+  ASSERT_THAT(InitExternalIndices(), IsOk());
 
-  auto engine = MakeEngine();
+  OpenSslEngine engine = MakeEngine();
   EngineData engine_data(nullptr, {nullptr, nullptr});
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
               IsOk());
 
-  auto actual = GetEngineDataFromOpenSslEngine(engine.get());
+  EngineData *actual = GetEngineDataFromOpenSslEngine(engine.get());
   EXPECT_THAT(actual, IsOk());
   EXPECT_EQ(actual.value(), &engine_data);
 
-  FreeExternalIndicies();
+  FreeExternalIndices();
 }
 
 TEST(ExDataUtilTest, HandlesNullEngineData) {
-  ASSERT_THAT(InitExternalIndicies(), IsOk());
+  ASSERT_THAT(InitExternalIndices(), IsOk());
 
-  auto engine = MakeEngine();
+  OpenSslEngine engine = MakeEngine();
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());
   EXPECT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), Not(IsOk()));
 
-  FreeExternalIndicies();
+  FreeExternalIndices();
 }
 
 TEST(ExDataUtilTest, ReturnsErrorOnNullEngine) {
-  ASSERT_THAT(InitExternalIndicies(), IsOk());
+  ASSERT_THAT(InitExternalIndices(), IsOk());
 
   EngineData engine_data(nullptr, {nullptr, nullptr});
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, nullptr),
@@ -111,12 +111,12 @@ TEST(ExDataUtilTest, ReturnsErrorOnNullEngine) {
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, nullptr), Not(IsOk()));
   EXPECT_THAT(GetEngineDataFromOpenSslEngine(nullptr), Not(IsOk()));
 
-  FreeExternalIndicies();
+  FreeExternalIndices();
 }
 
 TEST(ExDataUtilTest, ReturnsErrorWhenEngineExternalIndiciesNotInitialized) {
   // Explicitly not calling `InitExternalIndices` here.
-  auto engine = MakeEngine();
+  OpenSslEngine engine = MakeEngine();
   EngineData engine_data(nullptr, {nullptr, nullptr});
 
   EXPECT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),

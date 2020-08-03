@@ -32,7 +32,7 @@ namespace bridge {
 namespace {
 
 // Represents an uninitialized OpenSSL external index. Value is -1 since
-// OpenSSL's `CRYPTO_get_ex_new_index` function for requesting external indicies
+// OpenSSL's `CRYPTO_get_ex_new_index` function for requesting external indices
 // returns -1 on failure.
 static constexpr int kUninitializedIndex = -1;
 
@@ -82,13 +82,13 @@ inline StatusOr<int> GetEngineIndex() {
 
 }  // namespace
 
-Status InitExternalIndicies() {
+Status InitExternalIndices() {
   KMSENGINE_ASSIGN_OR_RETURN(rsa_index, GetIndex(CRYPTO_EX_INDEX_RSA));
   KMSENGINE_ASSIGN_OR_RETURN(engine_index, GetIndex(CRYPTO_EX_INDEX_ENGINE));
   return Status();
 }
 
-void FreeExternalIndicies() {
+void FreeExternalIndices() {
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_RSA, rsa_index);
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_ENGINE, engine_index);
   rsa_index = kUninitializedIndex;
@@ -113,7 +113,7 @@ StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
   }
 
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
-  auto ex_data = RSA_get_ex_data(rsa, index);
+  void *ex_data = RSA_get_ex_data(rsa, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
                   "RSA instance was not initialized with Cloud KMS data");
@@ -139,7 +139,7 @@ StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine) {
   }
 
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEngineIndex());
-  auto ex_data = ENGINE_get_ex_data(engine, index);
+  void *ex_data = ENGINE_get_ex_data(engine, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
                   "ENGINE instance was not initialized with Cloud KMS data");

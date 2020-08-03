@@ -28,17 +28,17 @@
 namespace kmsengine {
 namespace bridge {
 
-// Attempts to request ex_data indicies from OpenSSL, and, if successful,
+// Attempts to request ex_data indices from OpenSSL, and, if successful,
 // returns a success `Status`.
 //
 // This function must be called before any of the `Attach*` or `Get*` functions
-// are called. Callers of `InitExternalIndicies` should then call
-// `FreeExternalIndicies` to release the ex_data indicies back to OpenSSL after
+// are called. Callers of `InitExternalIndices` should then call
+// `FreeExternalIndices` to release the ex_data indices back to OpenSSL after
 // they have finished using them to avoid memory leaks.
-Status InitExternalIndicies();
+Status InitExternalIndices();
 
-// Frees the ex_data indicies requested from OpenSSL.
-void FreeExternalIndicies();
+// Frees the ex_data indices requested from OpenSSL.
+void FreeExternalIndices();
 
 // Attaches an `RsaKey` instance to the OpenSSL `RSA` instance. Returns an
 // error `Status` if an error occurred.
