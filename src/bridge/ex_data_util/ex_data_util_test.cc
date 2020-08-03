@@ -27,6 +27,7 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+using ::kmsengine::backing::RsaKey;
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockRsaKey;
 using ::testing::Not;
