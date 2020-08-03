@@ -62,3 +62,14 @@ cc_library(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_test(
+    name = "openssl_assertions_test",
+    size = "small",
+    srcs = ["openssl_assertions_test.cc"],
+    deps = [
+        ":openssl_assertions",
+        "//src/bridge/error",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
