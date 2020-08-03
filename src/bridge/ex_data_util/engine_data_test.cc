@@ -32,7 +32,7 @@ using ::kmsengine::testing_util::MockClient;
 using ::testing::StrEq;
 
 TEST(EngineDataTest, ClientRoundtrip) {
-  std::unique_ptr<Client> client = absl::make_unique<MockClient>();
+  auto client = absl::make_unique<MockClient>();
   EXPECT_CALL(*client, GetPublicKey("hello world"));
 
   EngineData engine_data(std::move(client),
