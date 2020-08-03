@@ -36,8 +36,8 @@ TEST(EngineDataTest, ClientRoundtrip) {
   EXPECT_CALL(*client, GetPublicKey("hello world"));
 
   EngineData engine_data(std::move(client),
-                         MakeRsaMethod("", 0),
-                         MakeEcKeyMethod());
+                         OpenSslRsaMethod(nullptr, nullptr),
+                         OpenSslEcKeyMethod(nullptr, nullptr));
 
   // Check that we got the same client back using a mock call.
   (void)engine_data.client().GetPublicKey("hello world");
@@ -45,9 +45,9 @@ TEST(EngineDataTest, ClientRoundtrip) {
 
 TEST(EngineDataTest, RsaMethodRoundtrip) {
   constexpr auto kRsaMethodName = "my RSA method";
-  EngineData engine_data(absl::make_unique<MockClient>(),
+  EngineData engine_data(nullptr,
                          MakeRsaMethod(kRsaMethodName, /*rsa_flags=*/0),
-                         MakeEcKeyMethod());
+                         OpenSslEcKeyMethod(nullptr, nullptr));
 
   // Check that we got the same `RSA_METHOD` back by checking the name of
   // the returned `RSA_METHOD`.
@@ -58,11 +58,10 @@ TEST(EngineDataTest, RsaMethodRoundtrip) {
 TEST(EngineDataTest, EcKeyMethodRoundtrip) {
   // `EC_KEY_OpenSSL` is the default OpenSSL `EC_KEY_METHOD`.
   const EC_KEY_METHOD *default_ec_key_method = EC_KEY_OpenSSL();
-  OpenSslEcKeyMethod key_method = MakeEcKeyMethod(default_ec_key_method);
 
-  EngineData engine_data(absl::make_unique<MockClient>(),
-                         MakeRsaMethod(kRsaMethodName, /*rsa_flags=*/0),
-                         MakeEcKeyMethod());
+  EngineData engine_data(nullptr,
+                         OpenSslRsaMethod(nullptr, nullptr),
+                         MakeEcKeyMethod(default_ec_key_method));
 
   // Check that we got the same `EC_KEY_METHOD` back by checking that function
   // pointers match.
@@ -74,7 +73,6 @@ TEST(EngineDataTest, EcKeyMethodRoundtrip) {
   EC_KEY_METHOD_get_keygen(default_ec_key_method, &expected_keygen_function);
 
   EXPECT_EQ(actual_keygen_function, expected_keygen_function);
-}
 }
 
 }  // namespace
