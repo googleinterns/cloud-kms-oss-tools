@@ -43,6 +43,14 @@ class PublicKey {
   CryptoKeyVersionAlgorithm algorithm_;
 };
 
+inline bool operator==(PublicKey const& lhs, PublicKey const& rhs) {
+  return lhs.pem() == rhs.pem() && lhs.algorithm() == rhs.algorithm();
+}
+
+inline bool operator!=(PublicKey const& lhs, PublicKey const& rhs) {
+  return !(lhs == rhs);
+}
+
 }  // namespace backing
 }  // namespace kmsengine
 

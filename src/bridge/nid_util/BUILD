@@ -16,39 +16,25 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//src:__subpackages__"])
+package(default_visibility = ["//src/bridge:__subpackages__"])
 
 cc_library(
-    name = "mock_client",
-    hdrs = ["mock_client.h"],
+    name = "nid_util",
+    srcs = ["nid_util.cc"],
+    hdrs = ["nid_util.h"],
+    linkopts = ["-lcrypto"],
     deps = [
-        "//src/backing/client",
-        "//src/backing/client:digest_case",
-        "//src/backing/client:public_key",
-        "//src/backing/status:status_or",
-    ],
-)
-
-cc_library(
-    name = "test_matchers",
-    srcs = ["test_matchers.cc"],
-    hdrs = ["test_matchers.h"],
-    deps = [
-        "@com_google_absl//absl/strings:str_format",
-        "@com_google_absl//absl/types:optional",
-        "@com_google_googletest//:gtest_main",
-        "@com_google_protobuf//:protobuf",
+        "//src/backing",
     ],
 )
 
 cc_test(
-    name = "test_matchers_test",
+    name = "nid_util_test",
     size = "small",
-    srcs = ["test_matchers_test.cc"],
+    srcs = ["nid_util_test.cc"],
     deps = [
-        ":test_matchers",
-        "//src/backing",
+        ":nid_util",
+        "//src/testing_util:test_matchers",
         "@com_google_googletest//:gtest_main",
-        "@com_google_protobuf//:protobuf",
     ],
 )

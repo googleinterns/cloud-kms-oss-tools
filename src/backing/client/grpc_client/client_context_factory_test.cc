@@ -15,6 +15,7 @@
  */
 
 #include <chrono>
+#include <tuple>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -47,8 +48,7 @@ TEST_P(ClientContextFactoryTest, MakeContextSetsDeadline) {
   auto factory = CreateClientContextFactory(timeout_duration, fake_clock);
 
   // Some arbitrary amount of time passes after factory is instantiated.
-  SystemClock real_clock;
-  SystemClock::time_point time(real_clock.Now());
+  SystemClock::time_point time(time_passed_after_factory_create);
   fake_clock->SetTime(time);
 
   std::unique_ptr<grpc::ClientContext> context = factory->MakeContext();
