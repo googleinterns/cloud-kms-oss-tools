@@ -16,6 +16,9 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <openssl/ec.h>
+#include <openssl/engine.h>
+#include <openssl/evp.h>
 #include <openssl/rsa.h>
 
 #include "src/bridge/memory_util/openssl_structs.h"
@@ -24,50 +27,67 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
-using ::testing::Not;
-using ::testing::IsNull;
+using ::testing::NotNull;
+
+TEST(OpenSslMakeTest, MakeEcKeySetsDeleter) {
+  auto ec_key = MakeEcKey();
+  ASSERT_THAT(ec_key, NotNull());
+  EXPECT_EQ(ec_key.get_deleter(), &EC_KEY_free);
+}
+
+TEST(OpenSslMakeTest, MakeEcKeyMethodSetsDeleter) {
+  auto ec_key_method = MakeEcKeyMethod();
+  ASSERT_THAT(ec_key_method, NotNull());
+  EXPECT_EQ(ec_key_method.get_deleter(), &EC_KEY_METHOD_free);
+}
 
 TEST(OpenSslMakeTest, MakeEngineSetsDeleter) {
   auto engine = MakeEngine();
-  ASSERT_THAT(engine, Not(IsNull()));
+  ASSERT_THAT(engine, NotNull());
   EXPECT_EQ(engine.get_deleter(), &ENGINE_free);
 }
 
 TEST(OpenSslMakeTest, MakeEvpPkeySetsDeleter) {
   auto evp_pkey = MakeEvpPkey();
-  ASSERT_THAT(evp_pkey, Not(IsNull()));
+  ASSERT_THAT(evp_pkey, NotNull());
   EXPECT_EQ(evp_pkey.get_deleter(), &EVP_PKEY_free);
+}
+
+TEST(OpenSslMakeTest, MakeEvpDigestContextSetsDeleter) {
+  auto context = MakeEvpDigestContext();
+  ASSERT_THAT(context, NotNull());
+  EXPECT_EQ(context.get_deleter(), &EVP_MD_CTX_free);
 }
 
 TEST(OpenSslStructsTest, MakeRsaSetsDeleter) {
   auto rsa = MakeRsa();
-  ASSERT_THAT(rsa, Not(IsNull()));
+  ASSERT_THAT(rsa, NotNull());
   EXPECT_EQ(rsa.get_deleter(), &RSA_free);
 }
 
 TEST(OpenSslStructsTest, MakeRsaMethodSetsDeleter) {
   auto rsa_method = MakeRsaMethod("", 0);
-  ASSERT_THAT(rsa_method, Not(IsNull()));
+  ASSERT_THAT(rsa_method, NotNull());
   EXPECT_EQ(rsa_method.get_deleter(), &RSA_meth_free);
 }
 
 TEST(OpenSslStructsTest, MakeRsaMethodSetsName) {
   auto empty_name = MakeRsaMethod("", 0);
-  ASSERT_THAT(empty_name, Not(IsNull()));
+  ASSERT_THAT(empty_name, NotNull());
   EXPECT_STREQ(RSA_meth_get0_name(empty_name.get()), "");
 
   auto some_name = MakeRsaMethod("my-name", 0);
-  ASSERT_THAT(some_name, Not(IsNull()));
+  ASSERT_THAT(some_name, NotNull());
   EXPECT_STREQ(RSA_meth_get0_name(some_name.get()), "my-name");
 }
 
 TEST(OpenSslStructsTest, MakeRsaMethodSetsFlags) {
   auto with_flag = MakeRsaMethod("", RSA_FLAG_EXT_PKEY);
-  ASSERT_THAT(with_flag, Not(IsNull()));
+  ASSERT_THAT(with_flag, NotNull());
   EXPECT_TRUE(RSA_meth_get_flags(with_flag.get()) & RSA_FLAG_EXT_PKEY);
 
   auto without_flag = MakeRsaMethod("", 0);
-  ASSERT_THAT(without_flag, Not(IsNull()));
+  ASSERT_THAT(without_flag, NotNull());
   EXPECT_FALSE(RSA_meth_get_flags(without_flag.get()) & RSA_FLAG_EXT_PKEY);
 }
 
