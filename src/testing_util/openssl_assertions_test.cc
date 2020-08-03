@@ -32,41 +32,43 @@
  */
 
 #include <gmock/gmock.h>
-#include <google/protobuf/wrappers.pb.h>
 #include <gtest/gtest.h>
 
-#include "src/backing/status/status.h"
-#include "src/backing/status/status_or.h"
-#include "src/testing_util/test_matchers.h"
+#include "src/testing_util/openssl_assertions.h"
+#include "src/bridge/error/error.h"
 
 namespace kmsengine {
 namespace testing_util {
 namespace {
 
-using ::testing::Not;
-
-const Status kCancelled = Status(StatusCode::kCancelled, "cancelled");
-const Status kNotFound = Status(StatusCode::kNotFound, "not found");
-
-TEST(IsOk, WorksWithStatus) {
-  EXPECT_THAT(Status(StatusCode::kOk, "test"), IsOk());
-  EXPECT_THAT(kCancelled, Not(IsOk()));
-  EXPECT_THAT(kNotFound, Not(IsOk()));
+// Returns falsy value on error.
+int ExpectedToError() {
+  KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kInternal,
+                                "a unique error message"));
+  return 0;
 }
 
-TEST(IsOk, WorksWithStatusOr) {
-  EXPECT_THAT(StatusOr<int>(1), IsOk());
-  EXPECT_THAT(StatusOr<int>(kCancelled), Not(IsOk()));
-  EXPECT_THAT(StatusOr<int>(kNotFound), Not(IsOk()));
+// Returns truthy value on success.
+int ExpectedToSucceed() {
+  return 1;
 }
 
-TEST(EqualsProto, Basic) {
-  ::google::protobuf::StringValue actual;
-  actual.set_value("Hello World");
-  ::google::protobuf::StringValue not_actual;
+TEST(OpenSslSuccessTest, ExpectsSuccess) {
+  EXPECT_OPENSSL_SUCCESS(ExpectedToSucceed());
+  ASSERT_OPENSSL_SUCCESS(ExpectedToSucceed());
+}
 
-  EXPECT_THAT(actual, EqualsProto(actual));
-  EXPECT_THAT(actual, Not(EqualsProto(not_actual)));
+TEST(OpenSslFailureTest, MatchesErrorMessage) {
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), "a unique error message");
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), "a unique error message");
+}
+
+TEST(OpenSslFailureTest, MatchesSubstringErrorMessage) {
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), "error message");
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), "error message");
+
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), "");
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), "");
 }
 
 }  // namespace
