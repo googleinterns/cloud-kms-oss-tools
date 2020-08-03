@@ -40,8 +40,7 @@ Status FromGrpcStatusToStatus(grpc::Status const& status);
 // Helper function for converting `Digest::DigestCase` protobuf enums to
 // engine-native `DigestCase` enums.
 constexpr DigestCase FromProtoToDigestCase(
-    google::cloud::kms::v1::Digest::DigestCase
-        algorithm) {
+    google::cloud::kms::v1::Digest::DigestCase algorithm) {
   // Works because underlying values of engine-native `DigestCase` enums are
   // equivalent to their protobuf counterparts.
   return static_cast<DigestCase>(algorithm);
