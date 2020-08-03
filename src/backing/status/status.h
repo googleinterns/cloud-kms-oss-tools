@@ -86,7 +86,7 @@ class Status {
       : code_(status_code), message_(std::move(message)) {}
 
   // "OK" status for convenience.
-  const Status kOk = Status(StatusCode::kOk, "");
+  static const Status kOk;
 
   bool ok() const { return code_ == StatusCode::kOk; }
 

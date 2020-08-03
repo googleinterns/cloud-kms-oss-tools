@@ -85,7 +85,7 @@ inline StatusOr<int> GetEngineIndex() {
 Status InitExternalIndices() {
   KMSENGINE_ASSIGN_OR_RETURN(rsa_index, GetIndex(CRYPTO_EX_INDEX_RSA));
   KMSENGINE_ASSIGN_OR_RETURN(engine_index, GetIndex(CRYPTO_EX_INDEX_ENGINE));
-  return Status();
+  return Status::kOk;
 }
 
 void FreeExternalIndices() {
@@ -104,7 +104,7 @@ Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
   if (!RSA_set_ex_data(rsa, index, static_cast<void *>(rsa_key))) {
     return Status(StatusCode::kInternal, "RSA_set_ex_data failed");
   }
-  return Status();
+  return Status::kOk;
 }
 
 StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
@@ -130,7 +130,7 @@ Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {
   if (!ENGINE_set_ex_data(engine, index, static_cast<void *>(data))) {
     return Status(StatusCode::kInternal, "ENGINE_set_ex_data failed");
   }
-  return Status();
+  return Status::kOk;
 }
 
 StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine) {
