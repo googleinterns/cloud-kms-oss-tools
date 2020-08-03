@@ -43,7 +43,6 @@ cc_library(
     srcs = ["crypto_key_handle.cc"],
     hdrs = ["crypto_key_handle.h"],
     deps = [
-        "//src/backing:export_macros",
         "//src/backing/client",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
