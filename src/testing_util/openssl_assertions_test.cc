@@ -59,9 +59,12 @@ TEST(OpenSslSuccessTest, ExpectsSuccess) {
   ASSERT_OPENSSL_SUCCESS(ExpectedToSucceed());
 }
 
-TEST(OpenSslSuccessTest, ExpectsSuccess) {
+TEST(OpenSslSuccessTest, FailsOnFailure) {
   EXPECT_NONFATAL_FAILURE(
-      EXPECT_OPENSSL_SUCCESS(ExpectedToSucceed()),
+      EXPECT_OPENSSL_SUCCESS(ExpectedToError()),
+      "unexpectedly returned false");
+  EXPECT_FATAL_FAILURE(
+      ASSERT_OPENSSL_SUCCESS(ExpectedToError()),
       "unexpectedly returned false");
 }
 
@@ -76,6 +79,15 @@ TEST(OpenSslFailureTest, MatchesSubstringErrorMessage) {
 
   EXPECT_OPENSSL_FAILURE(ExpectedToError(), "");
   ASSERT_OPENSSL_FAILURE(ExpectedToError(), "");
+}
+
+TEST(OpenSslFailureTest, FailsOnSuccess) {
+  EXPECT_NONFATAL_FAILURE(
+      EXPECT_OPENSSL_FAILURE(ExpectedToSucceed(), ""),
+      "unexpectedly returned true");
+  EXPECT_FATAL_FAILURE(
+      ASSERT_OPENSSL_FAILURE(ExpectedToSucceed(), ""),
+      "unexpectedly returned true");
 }
 
 }  // namespace
