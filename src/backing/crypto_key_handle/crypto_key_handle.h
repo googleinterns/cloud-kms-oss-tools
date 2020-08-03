@@ -48,7 +48,7 @@ namespace backing {
 // associated `CryptoKeyHandle` methods. This is because some conversions
 // require knowledge of symbols from the OpenSSL library (which are not
 // visible to the backing layer).
-class KMSENGINE_EXPORT CryptoKeyHandle {
+class CryptoKeyHandle {
  public:
   virtual ~CryptoKeyHandle() = default;
 
@@ -68,7 +68,7 @@ class KMSENGINE_EXPORT CryptoKeyHandle {
 };
 
 // Creates a `unique_ptr` containing a `CryptoKeyHandle` implementation.
-KMSENGINE_EXPORT StatusOr<std::unique_ptr<CryptoKeyHandle>> MakeCryptoKeyHandle(
+StatusOr<std::unique_ptr<CryptoKeyHandle>> MakeCryptoKeyHandle(
     std::string const& key_resource_id, Client const& client);
 
 }  // namespace backing
