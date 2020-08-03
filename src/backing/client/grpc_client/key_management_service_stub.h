@@ -39,15 +39,16 @@ namespace grpc_client {
 // tests easier and also allows the calling code to directly use the
 // `KMSENGINE_RETURN_IF_ERROR` macro from `status.h` on the call.
 //
-// TODO(zesp): This is used in lieu of the `KeyManagementService::StubInterface`
-// gRPC-generated interface for testing purposes, as there are various issues
-// with how the `cc_grpc_library` Bazel rule interacts with .proto files defined
-// in an external repository which prevents us from automatically generating
-// gRPC mocks for the `StubInterface` using the `generate_mocks` flag. It would
-// be a good idea to try to get the generated mocks working since otherwise
+// TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/57): This is
+// used in lieu of the `KeyManagementService::StubInterface` gRPC-generated
+// interface for testing purposes, as there are various issues with how the
+// `cc_grpc_library` Bazel rule interacts with .proto files defined in an
+// external repository which prevents us from automatically generating gRPC
+// mocks for the `StubInterface` using the `generate_mocks` flag. It would be a
+// good idea to try to get the generated mocks working since otherwise
 // there is no way to test that the correct `StubInterface` methods are being
-// called without making real gRPC calls. See
-// https://github.com/googleinterns/cloud-kms-oss-tools/issues/57 for details.
+// called without making real gRPC calls other than just visually checking the
+// code.
 class KeyManagementServiceStub {
  public:
   virtual ~KeyManagementServiceStub() = default;
