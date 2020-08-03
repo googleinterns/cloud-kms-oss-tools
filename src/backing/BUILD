@@ -28,7 +28,7 @@ cc_binary(
     name = "libkms.so",
     srcs = [
         "//src/backing/client:sources",
-        "//src/backing/rsa:sources",
+        "//src/backing/crypto_key_handle:sources",
         "//src/backing/status:sources",
     ],
     linkshared = 1,
@@ -40,8 +40,7 @@ cc_binary(
         "//src/backing/client:public_key",
         "//src/backing/client/grpc_client:client_context_factory",
         "//src/backing/client/grpc_client:proto_util",
-        "//src/backing/rsa:kms_rsa_key",
-        "//src/backing/rsa:rsa_key",
+        "//src/backing/crypto_key_handle",
         "//src/backing/status",
         "//src/backing/status:status_or",
     ],
@@ -51,7 +50,7 @@ filegroup(
     name = "headers",
     srcs = [
         "//src/backing/client:bridge_headers",
-        "//src/backing/rsa:bridge_headers",
+        "//src/backing/crypto_key_handle:bridge_headers",
         "//src/backing/status:bridge_headers",
     ],
 )
