@@ -77,13 +77,13 @@ google::cloud::kms::v1::Digest MakeDigest(DigestCase type,
   google::cloud::kms::v1::Digest proto_digest;
   switch (type) {
     case DigestCase::kSha256:
-      proto_digest.set_sha256(digest_bytes.data(), digest_bytes.length());
+      proto_digest.set_sha256(digest_bytes);
       break;
     case DigestCase::kSha384:
-      proto_digest.set_sha384(digest_bytes.data(), digest_bytes.length());
+      proto_digest.set_sha384(digest_bytes);
       break;
     case DigestCase::kSha512:
-      proto_digest.set_sha512(digest_bytes.data(), digest_bytes.length());
+      proto_digest.set_sha512(digest_bytes);
       break;
   }
   return proto_digest;
