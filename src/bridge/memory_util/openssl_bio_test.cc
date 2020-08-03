@@ -40,42 +40,37 @@ constexpr char kRsaPublicKey[] = "-----BEGIN PUBLIC KEY-----\n"
   "wQIDAQAB\n"
   "-----END PUBLIC KEY-----\n";
 
-constexpr int kLinesInRsaPublicKey = 9;
+TEST(OpenSslBioTest, MakeOpenSslMemoryBufferBioContainsExpectedBytes) {
+  auto public_key_bio_or = MakeOpenSslMemoryBufferBio(kRsaPublicKey,
+                                                      sizeof(kRsaPublicKey));
+  ASSERT_THAT(public_key_bio_or, IsOk());
+  auto public_key_bio = std::move(public_key_bio_or.value());
+
+  char read_buffer[sizeof(kRsaPublicKey)];
+  EXPECT_OPENSSL_SUCCESS(BIO_read(public_key_bio.get(), read_buffer,
+                                  /*num_bytes_to_read=*/sizeof(kRsaPublicKey)));
+  EXPECT_THAT(read_buffer, StrEq(kRsaPublicKey));
+}
 
 TEST(OpenSslBioTest, MakeOpenSslMemoryBufferBioWorksWithRsaPemRead) {
   auto public_key_bio_or = MakeOpenSslMemoryBufferBio(kRsaPublicKey,
                                                       sizeof(kRsaPublicKey));
   ASSERT_THAT(public_key_bio_or, IsOk());
+  auto public_key_bio = std::move(public_key_bio_or.value());
 
   // If `PEM_read_bio_RSA_PUBKEY` fails, make sure that the data in the pointer
   // given to `BIO_new_mem_buf` still exists after `MakeOpenSslMemoryBufferBio`
   // returns.
-  auto public_key_bio = std::move(public_key_bio_or.value());
   EXPECT_OPENSSL_SUCCESS(
       PEM_read_bio_RSA_PUBKEY(public_key_bio.get(), nullptr, nullptr, nullptr));
-}
-
-TEST(OpenSslBioTest, MakeOpenSslMemoryBufferBioIsLoadedCorrectly) {
-  auto public_key_bio_or = MakeOpenSslMemoryBufferBio(kRsaPublicKey,
-                                                      sizeof(kRsaPublicKey));
-  ASSERT_THAT(public_key_bio_or, IsOk());
-
-  auto public_key_bio = std::move(public_key_bio_or.value());
-  EXPECT_EQ(BIO_get_buffer_num_lines(public_key_bio.get()),
-            kLinesInRsaPublicKey);
-
-  constexpr kBytesToRead = sizeof(kRsaPublicKey);
-  char buffer[kBytesToRead];
-  EXPECT_THAT(BIO_read(public_key_bio.get(), buffer, kBytesToRead),
-              StrEq(kRsaPublicKey));
 }
 
 TEST(OpenSslBioTest, MakeOpenSslMemoryBufferBioSetsDeleter) {
   auto public_key_bio_or = MakeOpenSslMemoryBufferBio(kRsaPublicKey,
                                                       sizeof(kRsaPublicKey));
   ASSERT_THAT(public_key_bio_or, IsOk());
-
   auto public_key_bio = std::move(public_key_bio_or.value());
+
   EXPECT_EQ(public_key_bio.get_deleter(), &BIO_free);
 }
 
