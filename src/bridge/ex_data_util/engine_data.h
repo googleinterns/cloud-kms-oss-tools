@@ -39,10 +39,11 @@ namespace bridge {
 class EngineData {
  public:
   EngineData(std::unique_ptr<backing::Client> client,
-             OpenSslRsaMethod rsa_method)
+             OpenSslRsaMethod rsa_method,
+             OpenSslEcKeyMethod ec_key_method)
       : client_(std::move(client)),
-        rsa_method_(std::move(rsa_method)) {}
-  ~EngineData() = default;
+        rsa_method_(std::move(rsa_method)),
+        ec_key_method_(std::move(ec_key_method)) {}
 
   // `EngineData` is not copyable or movable.
   EngineData(const EngineData&) = delete;
@@ -59,9 +60,17 @@ class EngineData {
   // function, and the OpenSSL API functions consume raw pointers.
   const RSA_METHOD *rsa_method() const { return rsa_method_.get(); }
 
+  // Returns a raw pointer to the engine's `EC_KEY_METHOD`.
+  //
+  // The return type is a raw pointer instead of a reference since the main
+  // usage case for accessing the `EC_KEY_METHOD` is to pass it to an OpenSSL
+  // API function, and the OpenSSL API functions consume raw pointers.
+  const EC_KEY_METHOD *ec_key_method() const { return ec_key_method_.get(); }
+
  private:
-  std::unique_ptr<backing::Client> client_;
-  OpenSslRsaMethod rsa_method_;
+  const std::unique_ptr<backing::Client> client_;
+  const OpenSslRsaMethod rsa_method_;
+  const OpenSslEcKeyMethod ec_key_method_;
 };
 
 }  // namespace bridge
