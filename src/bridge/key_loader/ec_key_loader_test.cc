@@ -43,6 +43,9 @@ constexpr char kEcdsaPublicKey[] =
   "yEh6Szz2in47Tv5n52m9dLYyPCbqZkOB5nTSqtscpkQD/HpykCggvx09iQ==\n"
   "-----END PUBLIC KEY-----\n";
 
+// `EC_KEY_OpenSSL` is OpenSSL's default `EC_KEY_METHOD` implementation.
+const EC_KEY_METHOD *kDefaultOpenSslEcKeyMethod = EC_KEY_OpenSSL();
+
 // Fixture for testing `MakeKmsEcEvpPkey`. The fixture initializes (and cleans
 // up) the `ex_data_util` system, which is necessary since `MakeKmsEcEvpPkey`
 // invokes `ex_data_util` functions. (This initialization is normally done by
@@ -57,60 +60,50 @@ class EcKeyLoaderTest : public ::testing::Test {
   }
 };
 
-TEST_F(EcKeyLoaderTest, MakeKmsRsaEvpPkey) {
-  auto public_key_pem_bio_or = MakeOpenSslMemoryBufferBio(
-      kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
+TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkey) {
+  StatusOr<PublicKey> public_key_pem_bio_or =
+      MakeOpenSslMemoryBufferBio(kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
   ASSERT_THAT(public_key_pem_bio_or, IsOk());
 
-  auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
-  ASSERT_THAT(crypto_key_handle, NotNull());
-
-  // `EC_KEY_OpenSSL` returns the default OpenSSL `EC_KEY_METHOD`.
-  auto ec_key_method = EC_KEY_OpenSSL();
-  ASSERT_THAT(ec_key_method, NotNull());
-
-  auto evp_pkey_or = MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),
-                                      std::move(crypto_key_handle),
-                                      ec_key_method);
+  StatusOr<OpenSslEvpPkey> evp_pkey_or =
+      MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),
+                       absl::make_unique<MockCryptoKeyHandle>(),
+                       kDefaultOpenSslEcKeyMethod);
   ASSERT_THAT(evp_pkey_or, IsOk());
 
-  auto evp_pkey = std::move(evp_pkey_or.value());
-  EXPECT_EQ(EVP_PKEY_id(evp_pkey.get()), EVP_PKEY_EC);
+  EXPECT_EQ(EVP_PKEY_id(evp_pkey_or.value().get()), EVP_PKEY_RSA);
 }
 
-TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullBio) {
-  auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
-  auto ec_key_method = EC_KEY_OpenSSL();
-
-  EXPECT_THAT(MakeKmsEcEvpPkey({nullptr, BIO_free},
-                               std::move(crypto_key_handle),
-                               ec_key_method),
+TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullBioWithDeleter) {
+  EXPECT_THAT(MakeKmsEcEvpPkey(OpenSslBio(nullptr, BIO_free),
+                               absl::make_unique<MockCryptoKeyHandle>(),
+                               kDefaultOpenSslEcKeyMethod),
               Not(IsOk()));
+}
 
-  EXPECT_THAT(MakeKmsEcEvpPkey({nullptr, nullptr},
-                               std::move(crypto_key_handle),
-                               ec_key_method),
+TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullBioWithoutDeleter) {
+  EXPECT_THAT(MakeKmsEcEvpPkey(OpenSslBio(nullptr, nullptr),
+                               absl::make_unique<MockCryptoKeyHandle>(),
+                               kDefaultOpenSslEcKeyMethod),
               Not(IsOk()));
 }
 
 TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullCryptoKeyHandle) {
-  auto public_key_pem_bio_or = MakeOpenSslMemoryBufferBio(
-      kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
-  auto ec_key_method = EC_KEY_OpenSSL();
+  StatusOr<PublicKey> public_key_pem_bio_or =
+      MakeOpenSslMemoryBufferBio(kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
 
   EXPECT_THAT(MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),
                                nullptr,
-                               ec_key_method),
+                               kDefaultOpenSslEcKeyMethod),
               Not(IsOk()));
 }
 
 TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullRsaMethod) {
-  auto public_key_pem_bio_or = MakeOpenSslMemoryBufferBio(
-      kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
-  auto crypto_key_handle = absl::make_unique<MockCryptoKeyHandle>();
+  StatusOr<PublicKey> public_key_pem_bio_or =
+      MakeOpenSslMemoryBufferBio(kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
 
   EXPECT_THAT(MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),
-                               std::move(crypto_key_handle),
+                               absl::make_unique<MockCryptoKeyHandle>(),
                                nullptr),
               Not(IsOk()));
 }
