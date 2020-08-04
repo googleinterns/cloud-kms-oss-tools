@@ -223,7 +223,8 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(RsaKeyLoaderTest, GeneratedKeyContainsHasTypeRsa) {
   EXPECT_CALL(mock_client(), GetPublicKey);
 
-  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
+  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
+                                      nullptr);
   ASSERT_THAT(evp_pkey, Not(IsNull()));
 
   EXPECT_EQ(EVP_PKEY_size(evp_pkey), kExpectedKeySize);
@@ -233,50 +234,55 @@ TEST_P(RsaKeyLoaderTest, GeneratedKeyContainsHasTypeRsa) {
   EVP_PKEY_free(evp_pkey);
 }
 
-TEST_P(RsaKeyLoaderTest, ReturnedKeyContainsEngineRsaMethodImplementation) {
+TEST_P(RsaKeyLoaderTest, ReturnedEvpPkeyHasAttachedRsaStruct) {
   EXPECT_CALL(mock_client(), GetPublicKey);
 
-  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
+  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
+                                      nullptr);
   ASSERT_THAT(evp_pkey, Not(IsNull()));
 
-  auto rsa = EVP_PKEY_get1_RSA(evp_pkey);
-  ASSERT_THAT(rsa, Not(IsNull()));
+  EXPECT_THAT(EVP_PKEY_get0_RSA(evp_pkey), Not(IsNull()));
 
-  EXPECT_EQ(RSA_get_method(rsa), engine_data().rsa_method())
-      << "Underlying RSA struct of EVP_PKEY should be initialized with the "
-         "EngineData's RSA_METHOD";
-
-  RSA_free(rsa);
   EVP_PKEY_free(evp_pkey);
 }
 
-TEST_P(RsaKeyLoaderTest, ReturnedKeyHasAttachedKmsRsaKey) {
+TEST_P(RsaKeyLoaderTest, AttachedRsaStructHasCryptoKeyHandleWithCorrectKeyId) {
   EXPECT_CALL(mock_client(), GetPublicKey);
 
-  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
+  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
+                                      nullptr);
   ASSERT_THAT(evp_pkey, Not(IsNull()));
 
-  auto rsa = EVP_PKEY_get1_RSA(evp_pkey);
-  ASSERT_THAT(rsa, Not(IsNull()));
-
-  auto handle = GetCryptoKeyHandleFromOpenSslRsa(rsa);
+  auto handle = GetCryptoKeyHandleFromOpenSslRsa(EVP_PKEY_get0_RSA(evp_pkey));
   ASSERT_THAT(handle, IsOk());
   EXPECT_THAT(handle.value()->key_resource_id(), StrEq(kKeyResourceId))
       << "RsaKey should contain the key resource ID loaded in LoadPrivateKey";
 
-  RSA_free(rsa);
   EVP_PKEY_free(evp_pkey);
 }
 
-TEST_P(RsaKeyLoaderTest, UnderlyingRsaStructDelegatesSignOperationsToClient) {
+TEST_P(RsaKeyLoaderTest, AttachedRsaStructHasCorrectRsaMethodImplementation) {
+  EXPECT_CALL(mock_client(), GetPublicKey);
+
+  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
+                                      nullptr);
+  ASSERT_THAT(evp_pkey, Not(IsNull()));
+
+  EXPECT_EQ(RSA_get_method(EVP_PKEY_get0_RSA(evp_pkey)),
+            engine_data().rsa_method())
+      << "Underlying RSA struct of EVP_PKEY should be initialized with the "
+         "EngineData's RSA_METHOD";
+
+  EVP_PKEY_free(evp_pkey);
+}
+
+TEST_P(RsaKeyLoaderTest, AttachedRsaStructDelegatesSignOperationsToClient) {
   EXPECT_CALL(mock_client(), GetPublicKey);
   EXPECT_CALL(mock_client(), AsymmetricSign).Times(AtLeast(1));
 
-  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
+  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
+                                      nullptr);
   ASSERT_THAT(evp_pkey, Not(IsNull()));
-
-  auto rsa = EVP_PKEY_get1_RSA(evp_pkey);
-  ASSERT_THAT(rsa, Not(IsNull()));
 
   // OpenSSL recommends calling `RSA_sign` twice; once to get the
   // `signature_length` so the caller knows how much memory to allocate, and
@@ -286,14 +292,15 @@ TEST_P(RsaKeyLoaderTest, UnderlyingRsaStructDelegatesSignOperationsToClient) {
   unsigned int signature_length;
   ASSERT_OPENSSL_SUCCESS(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
-               digest.length(), nullptr, &signature_length, rsa));
+               digest.length(), nullptr, &signature_length,
+               EVP_PKEY_get0_RSA(evp_pkey)));
 
   std::string signature(signature_length, '\0');
   ASSERT_OPENSSL_SUCCESS(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
                digest.length(),
                reinterpret_cast<unsigned char *>(&signature[0]),
-               &signature_length, rsa));
+               &signature_length, EVP_PKEY_get0_RSA(evp_pkey)));
 
   // We reconstruct the string here because `signature.length()` is not
   // guaranteed to equal `signature_length`, and so this prevents us from
@@ -302,7 +309,6 @@ TEST_P(RsaKeyLoaderTest, UnderlyingRsaStructDelegatesSignOperationsToClient) {
   EXPECT_THAT(actual, StrEq(expected_signature()));
   EXPECT_EQ(signature_length, expected_signature().length());
 
-  RSA_free(rsa);
   EVP_PKEY_free(evp_pkey);
 }
 
@@ -314,10 +320,11 @@ TEST_P(RsaKeyLoaderTest, GeneratedKeyWorksWithEvpDigestSignFunctions) {
   // cache the result.
   EXPECT_CALL(mock_client(), AsymmetricSign).Times(AtLeast(1));
 
-  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
+  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
+                                      nullptr);
   ASSERT_THAT(evp_pkey, Not(IsNull()));
 
-  auto digest_context = MakeEvpDigestContext();
+  OpenSslEvpDigestContext digest_context = MakeEvpDigestContext();
   ASSERT_OPENSSL_SUCCESS(
       EVP_DigestSignInit(digest_context.get(), nullptr, EVP_sha256(), nullptr,
                          evp_pkey));
@@ -356,7 +363,8 @@ TEST_P(RsaKeyLoaderTest, GeneratedKeyWorksWithEvpDigestFunction) {
   EXPECT_CALL(mock_client(), GetPublicKey);
   // EXPECT_CALL(mock_client(), AsymmetricSign);
 
-  auto evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr);
+  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
+                                      nullptr);
   ASSERT_THAT(evp_pkey, Not(IsNull()));
 
   // auto digest_context = MakeEvpDigestContext();
