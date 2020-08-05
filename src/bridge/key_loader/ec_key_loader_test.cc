@@ -61,7 +61,7 @@ class EcKeyLoaderTest : public ::testing::Test {
 };
 
 TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkey) {
-  StatusOr<PublicKey> public_key_pem_bio_or =
+  StatusOr<OpenSslBio> public_key_pem_bio_or =
       MakeOpenSslMemoryBufferBio(kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
   ASSERT_THAT(public_key_pem_bio_or, IsOk());
 
@@ -89,7 +89,7 @@ TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullBioWithoutDeleter) {
 }
 
 TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullCryptoKeyHandle) {
-  StatusOr<PublicKey> public_key_pem_bio_or =
+  StatusOr<OpenSslBio> public_key_pem_bio_or =
       MakeOpenSslMemoryBufferBio(kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
 
   EXPECT_THAT(MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),
@@ -99,7 +99,7 @@ TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullCryptoKeyHandle) {
 }
 
 TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullRsaMethod) {
-  StatusOr<PublicKey> public_key_pem_bio_or =
+  StatusOr<OpenSslBio> public_key_pem_bio_or =
       MakeOpenSslMemoryBufferBio(kEcdsaPublicKey, sizeof(kEcdsaPublicKey));
 
   EXPECT_THAT(MakeKmsEcEvpPkey(std::move(public_key_pem_bio_or.value()),

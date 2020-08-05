@@ -32,6 +32,7 @@ namespace {
 
 using ::testing::Not;
 using ::testing::NotNull;
+using ::kmsengine::backing::PublicKey;
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockCryptoKeyHandle;
 
@@ -65,7 +66,7 @@ class RsaKeyLoaderTest : public ::testing::Test {
 };
 
 TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkey) {
-  StatusOr<PublicKey> public_key_pem_bio_or =
+  StatusOr<OpenSslBio> public_key_pem_bio_or =
       MakeOpenSslMemoryBufferBio(kRsaPublicKey, sizeof(kRsaPublicKey));
   ASSERT_THAT(public_key_pem_bio_or, IsOk());
 
@@ -93,7 +94,7 @@ TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullBioWithoutDeleter) {
 }
 
 TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullCryptoKeyHandle) {
-  StatusOr<PublicKey> public_key_pem_bio_or =
+  StatusOr<OpenSslBio> public_key_pem_bio_or =
       MakeOpenSslMemoryBufferBio(kRsaPublicKey, sizeof(kRsaPublicKey));
 
   EXPECT_THAT(MakeKmsRsaEvpPkey(std::move(public_key_pem_bio_or.value()),
@@ -103,7 +104,7 @@ TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullCryptoKeyHandle) {
 }
 
 TEST_F(RsaKeyLoaderTest, MakeKmsRsaEvpPkeyErrorsOnNullRsaMethod) {
-  StatusOr<PublicKey> public_key_pem_bio_or =
+  StatusOr<OpenSslBio> public_key_pem_bio_or =
       MakeOpenSslMemoryBufferBio(kRsaPublicKey, sizeof(kRsaPublicKey));
 
   EXPECT_THAT(MakeKmsRsaEvpPkey(std::move(public_key_pem_bio_or.value()),

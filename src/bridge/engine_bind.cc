@@ -141,6 +141,7 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
   if (!ENGINE_set_id(e, kEngineId) ||
       !ENGINE_set_name(e, kEngineName) ||
       !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
+      !ENGINE_set_load_pubkey_function(e, LoadPrivateKey) ||
       !ENGINE_set_load_privkey_function(e, LoadPrivateKey) ||
       !EngineInit(e) ||
       !ENGINE_set_destroy_function(e, EngineDestroy)) {
