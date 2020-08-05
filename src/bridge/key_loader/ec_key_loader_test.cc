@@ -71,7 +71,7 @@ TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkey) {
                        kDefaultOpenSslEcKeyMethod);
   ASSERT_THAT(evp_pkey_or, IsOk());
 
-  EXPECT_EQ(EVP_PKEY_id(evp_pkey_or.value().get()), EVP_PKEY_RSA);
+  EXPECT_EQ(EVP_PKEY_id(evp_pkey_or.value().get()), EVP_PKEY_EC);
 }
 
 TEST_F(EcKeyLoaderTest, MakeKmsEcEvpPkeyErrorsOnNullBioWithDeleter) {
