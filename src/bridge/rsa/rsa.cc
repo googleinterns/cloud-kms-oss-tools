@@ -75,8 +75,8 @@ int Init(RSA *rsa) {
 //
 // Returns 1 on success; otherwise, returns 0.
 int Finish(RSA *rsa) {
-  // `crypto_key_handle` is guaranteed to be non-null here (if the underlying external
-  // data struct was null, an error status would be returned).
+  // `crypto_key_handle` is guaranteed to be non-null here (if the underlying
+  // external data struct was null, an error status would be returned).
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const backing::CryptoKeyHandle *crypto_key_handle,
       GetCryptoKeyHandleFromOpenSslRsa(rsa), false);
@@ -145,6 +145,9 @@ int Sign(int type, const unsigned char *digest_bytes,
 // from the OpenSSL API.
 int Verify(int type, const unsigned char *m, unsigned int m_len,
            const unsigned char *sigbuf, unsigned int siglen, const RSA *rsa) {
+  // TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/101):
+  // This method is currently purposely left unimplemented, but it may need to
+  // be implemented.
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
   return false;
@@ -189,6 +192,9 @@ int PrivateEncrypt(int from_length, const unsigned char *from,
 // from the OpenSSL API.
 int PrivateDecrypt(int from_length, const unsigned char *from,
                    unsigned char *to, RSA *rsa, int padding) {
+  // TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/102):
+  // Currently unimplemented on purpose, but can be defined when keys with the
+  // `ASYMMETRIC_DECRYPT` purpose should be supported by the engine.
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
   return -1;
