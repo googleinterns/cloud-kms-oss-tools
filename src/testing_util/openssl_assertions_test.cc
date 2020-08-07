@@ -42,6 +42,9 @@ namespace kmsengine {
 namespace testing_util {
 namespace {
 
+using ::testing::HasSubstr;
+using ::testing::StrEq;
+
 // Returns falsy value on error.
 int ExpectedToError() {
   KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kInternal,
@@ -69,24 +72,26 @@ TEST(OpenSslSuccessTest, FailsOnFailure) {
 }
 
 TEST(OpenSslFailureTest, MatchesErrorMessage) {
-  EXPECT_OPENSSL_FAILURE(ExpectedToError(), "a unique error message");
-  ASSERT_OPENSSL_FAILURE(ExpectedToError(), "a unique error message");
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("a unique error message"));
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("a unique error"));
+
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), StrEq("a unique error message"));
 }
 
 TEST(OpenSslFailureTest, MatchesSubstringErrorMessage) {
-  EXPECT_OPENSSL_FAILURE(ExpectedToError(), "error message");
-  ASSERT_OPENSSL_FAILURE(ExpectedToError(), "error message");
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("error message"));
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("error message"));
 
-  EXPECT_OPENSSL_FAILURE(ExpectedToError(), "");
-  ASSERT_OPENSSL_FAILURE(ExpectedToError(), "");
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr(""));
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr(""));
 }
 
 TEST(OpenSslFailureTest, FailsOnSuccess) {
   EXPECT_NONFATAL_FAILURE(
-      EXPECT_OPENSSL_FAILURE(ExpectedToSucceed(), ""),
+      EXPECT_OPENSSL_FAILURE(ExpectedToSucceed(), HasSubstr("")),
       "unexpectedly returned true");
   EXPECT_FATAL_FAILURE(
-      ASSERT_OPENSSL_FAILURE(ExpectedToSucceed(), ""),
+      ASSERT_OPENSSL_FAILURE(ExpectedToSucceed(), HasSubstr("")),
       "unexpectedly returned true");
 }
 
