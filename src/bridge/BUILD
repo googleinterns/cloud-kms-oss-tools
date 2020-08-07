@@ -14,15 +14,32 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
-package(default_visibility = ["//src:__subpackages__"])
+package(default_visibility = ["//src/bridge:__subpackages__"])
 
-cc_library(
-    name = "bridge",
+cc_binary(
+    name = "libengine.so",
     srcs = ["main.c"],
     linkopts = ["-lcrypto"],
-    deps = ["//src/bridge:engine_bind"],
+    linkshared = 1,
+    linkstatic = 1,
+    visibility = ["//test:__subpackages__"],
+    deps = [
+        "//src/bridge:engine_bind",
+        "//src/bridge:engine_name",
+        "//src/bridge/error",
+        "//src/bridge/error:error_strings",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/ex_data_util:engine_data",
+        "//src/bridge/key_loader",
+        "//src/bridge/key_loader:ec_key_loader",
+        "//src/bridge/key_loader:rsa_key_loader",
+        "//src/bridge/memory_util:openssl_bio",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/bridge/nid_util",
+        "//src/bridge/rsa",
+    ],
 )
 
 cc_library(
