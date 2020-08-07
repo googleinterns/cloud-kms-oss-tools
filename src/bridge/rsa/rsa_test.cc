@@ -73,6 +73,9 @@ class RsaMethodTest : public ::testing::Test {
 TEST_F(RsaMethodTest, RsaMethodCallbacksAreInitialized) {
   // The OpenSSL specification does not explicitly permit these RSA operations
   // to be null, so we check to make sure that they're defined.
+  //
+  // The other operations (`mod_exp`, `bn_mod_exp`, and `keygen`) may be null
+  // according to the OpenSSL specification (but they may also be defined).
   EXPECT_THAT(RSA_meth_get_pub_enc(rsa_method()), NotNull());
   EXPECT_THAT(RSA_meth_get_pub_dec(rsa_method()), NotNull());
   EXPECT_THAT(RSA_meth_get_verify(rsa_method()), NotNull());
@@ -81,14 +84,6 @@ TEST_F(RsaMethodTest, RsaMethodCallbacksAreInitialized) {
   EXPECT_THAT(RSA_meth_get_sign(rsa_method()), NotNull());
   EXPECT_THAT(RSA_meth_get_init(rsa_method()), NotNull());
   EXPECT_THAT(RSA_meth_get_finish(rsa_method()), NotNull());
-
-  // `mod_exp`, `bn_mod_exp`, and `keygen` may be null according to the OpenSSL
-  // specification. They should be set to null in the current version of the
-  // engine since they are unimplemented, though they may be defined if the
-  // engine's functionality needs to be extended in any way.
-  EXPECT_THAT(RSA_meth_get_mod_exp(rsa_method()), IsNull());
-  EXPECT_THAT(RSA_meth_get_bn_mod_exp(rsa_method()), IsNull());
-  EXPECT_THAT(RSA_meth_get_keygen(rsa_method()), IsNull());
 }
 
 TEST_F(RsaMethodTest, FinishCleansUpCryptoKeyHandle) {
