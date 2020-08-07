@@ -74,8 +74,9 @@ testing::AssertionResult IsOpenSslSuccess(const char* expr,
 }
 
 // Returns `testing::AssertionSuccess` if `openssl_return` is false and the
-// first OpenSSL error in the OpenSSL error queue contains the substring
-// `substr_error`. Otherwise, returns `testing::AssertionFailure`.
+// first OpenSSL error in the OpenSSL error queue has a message that matches
+// the input GoogleMock `error_message_matcher`. Otherwise, returns
+// `testing::AssertionFailure`.
 //
 // Defined as a predicate instead of a matcher since matchers must be purely
 // functional, but `ERR_get_error_line_data` has OpenSSL-internal side-effects.
