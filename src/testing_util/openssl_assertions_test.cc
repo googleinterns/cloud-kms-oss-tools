@@ -72,10 +72,9 @@ TEST(OpenSslSuccessTest, FailsOnFailure) {
 }
 
 TEST(OpenSslFailureTest, MatchesErrorMessage) {
-  EXPECT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("a unique error message"));
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(),
+                         HasSubstr("a unique error message"));
   ASSERT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("a unique error"));
-
-  EXPECT_OPENSSL_FAILURE(ExpectedToError(), StrEq("a unique error message"));
 }
 
 TEST(OpenSslFailureTest, MatchesSubstringErrorMessage) {

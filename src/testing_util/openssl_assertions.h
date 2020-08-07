@@ -81,11 +81,11 @@ testing::AssertionResult IsOpenSslSuccess(const char* expr,
 // functional, but `ERR_get_error_line_data` has OpenSSL-internal side-effects.
 testing::AssertionResult IsOpenSslFailure(
     const char* return_expr,
-    const char* /*error_message_matcher_expr*/,
+    const char* error_message_matcher_expr,
     const bool openssl_return,
-    const testing::MatcherInterface<std::string> error_message_matcher) {
-  std::string expected = absl::StrFormat("false with OpenSSL error containing "
-                                         "'%s'", substr_error);
+    const testing::Matcher<std::string> error_message_matcher) {
+  std::string expected = absl::StrFormat("false with OpenSSL error matching "
+                                         "'%s'", error_message_matcher_expr);
   if (openssl_return) {
     return MakeFormattedAssertionFailure(
         absl::StrFormat("%s unexpectedly returned true...", return_expr),
