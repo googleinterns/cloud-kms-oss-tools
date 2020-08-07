@@ -39,7 +39,7 @@ cc_test(
     srcs = ["key_loader_test.cc"],
     deps = [
         ":key_loader",
-        "//src/bridge/rsa",
+        "//src/bridge/crypto",
         "//src/testing_util:mock_client",
         "//src/testing_util:openssl_assertions",
         "//src/testing_util:test_matchers",

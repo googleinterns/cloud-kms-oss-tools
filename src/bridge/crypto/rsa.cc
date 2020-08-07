@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/bridge/rsa/rsa.h"
+#include "src/bridge/crypto/rsa.h"
 
 #include <string>
 

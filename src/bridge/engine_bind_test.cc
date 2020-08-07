@@ -21,7 +21,7 @@
 #include "absl/memory/memory.h"
 #include "src/bridge/engine_bind.h"
 #include "src/bridge/engine_name.h"
-#include "src/bridge/rsa/rsa.h"
+#include "src/bridge/crypto/rsa.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/ex_data_util/engine_data.h"
 #include "src/bridge/memory_util/openssl_structs.h"

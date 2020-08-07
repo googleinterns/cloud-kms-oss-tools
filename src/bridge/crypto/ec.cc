@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/bridge/rsa/ec.h"
+#include "src/bridge/crypto/ec.h"
 
 #include "src/bridge/memory_util/openssl_structs.h"
 
@@ -23,25 +23,33 @@ namespace bridge {
 namespace rsa {
 namespace {
 
-int Copy(EC_KEY *dest, const EC_KEY *src) {
+int Init(EC_KEY *key) {
+  return 0;
+}
 
+int Finish(EC_KEY *key) {
+  return 0;
+}
+
+int Copy(EC_KEY *dest, const EC_KEY *src) {
+  return 0;
 }
 
 int SetGroup(EC_KEY *key, const EC_GROUP *grp) {
-
+  return 0;
 }
 
 int SetPrivate(EC_KEY *key, const BIGNUM *priv_key) {
-
+  return 0;
 }
 
 int SetPublic(EC_KEY *key, const EC_POINT *pub_key) {
-
+  return 0;
 }
 
 int SignEx(int type, const unsigned char *dgst, int dgstlen,
-         unsigned char *sig, unsigned int *siglen, const BIGNUM *kinv,
-         const BIGNUM *r, EC_KEY *eckey) {
+           unsigned char *sig, unsigned int *siglen, const BIGNUM *kinv,
+           const BIGNUM *r, EC_KEY *eckey) {
   return 0;
 }
 
@@ -93,10 +101,24 @@ OpenSslEcKeyMethod MakeKmsEcKeyMethod() {
     return OpenSslEcKeyMethod(nullptr, nullptr);
   }
 
-  if (!EC_KEY_METHOD_set_init(ec_key_method.get(), Init) ||
-      !EC_KEY_METHOD_set_sign(ec_key_method.get(), SignEx, SignSetup,
-                              DoSignEx) ||
+  if (// `EC_KEY_METHOD_set_init` sets multiple callback functions that are used
+      // for `EC_KEY`-related memory management.
+      //
+      // See https://man.openbsd.org/EC_KEY_METHOD_new.3#EC_KEY_METHOD_set_init
+      // for explanations of each callback and where the callbacks are called.
+      !EC_KEY_METHOD_set_init(ec_key_method.get(), Init, Finish, Copy,
+                              SetGroup, SetPrivate, SetPublic) ||
+      // `EC_KEY_METHOD_set_sign` consumes three functions: the first function
+      // is the implementation for `ECDSA_sign_ex`, the second function is for
+      // `ECDSA_sign_setup`, and the third function is for `ECDSA_do_sign_ex`.
+      !EC_KEY_METHOD_set_sign(ec_key_method.get(),
+                              SignEx, SignSetup, DoSignEx) ||
+      // `EC_KEY_METHOD_set_verify` consumes two functions: the first function
+      // is the implementation for `ECDSA_verify` and the second function is the
+      // implementation for `ECDSA_do_verify`.
       !EC_KEY_METHOD_set_verify(ec_key_method.get(), Verify, DoVerify) ||
+      // `EC_KEY_METHOD_set_keygen` sets the function that implements
+      // `EC_KEY_generate_key`.
       !EC_KEY_METHOD_set_keygen(ec_key_method.get(), GenerateKey) ||
       // `EC_KEY_METHOD_set_compute_key` sets the function that implements
       // `ECDH_compute_key`.
@@ -104,8 +126,7 @@ OpenSslEcKeyMethod MakeKmsEcKeyMethod() {
     return OpenSslEcKeyMethod(nullptr, nullptr);
   }
 
-
-  return rsa_method;
+  return ec_key_method;
 }
 
 }  // namespace rsa

@@ -29,7 +29,7 @@
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/key_loader/key_loader.h"
 #include "src/bridge/memory_util/openssl_structs.h"
-#include "src/bridge/rsa/rsa.h"
+#include "src/bridge/crypto/rsa.h"
 #include "src/testing_util/mock_client.h"
 #include "src/testing_util/openssl_assertions.h"
 #include "src/testing_util/test_matchers.h"

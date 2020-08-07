@@ -23,7 +23,7 @@
 #include "src/bridge/ex_data_util/engine_data.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/key_loader/key_loader.h"
-#include "src/bridge/rsa/rsa.h"
+#include "src/bridge/crypto/rsa.h"
 #include "src/backing/client/client_factory.h"
 
 namespace kmsengine {
