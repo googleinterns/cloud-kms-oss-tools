@@ -43,11 +43,8 @@ constexpr char kRsaMethodName[] = "Google Cloud KMS RSA Method";
 //
 constexpr int kRsaMethodFlags = RSA_FLAG_EXT_PKEY | RSA_METHOD_FLAG_NO_CHECK;
 
-// Allocates memory for and initializes an OpenSSL RSA_METHOD struct with
+// Allocates memory for and initializes an OpenSSL `RSA_METHOD` struct with
 // pointers to the Cloud KMS engine RSA implementations.
-//
-// The returned pointer should be freed using FreeKmsOpenSSLRsaMethod when the
-// engine is unloaded.
 OpenSslRsaMethod MakeKmsRsaMethod();
 
 }  // namespace rsa

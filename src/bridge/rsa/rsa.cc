@@ -204,7 +204,9 @@ int PrivateDecrypt(int from_length, const unsigned char *from,
 
 OpenSslRsaMethod MakeKmsRsaMethod() {
   OpenSslRsaMethod rsa_method = MakeRsaMethod(kRsaMethodName, kRsaMethodFlags);
-  if (!rsa_method) return OpenSslRsaMethod(nullptr, nullptr);
+  if (rsa_method == nullptr) {
+    return OpenSslRsaMethod(nullptr, nullptr);
+  }
 
   // `RSA_PKCS1_OpenSSL` returns the default OpenSSL `RSA_METHOD`
   // implementation. We use it to "borrow" default implementations for public
