@@ -112,8 +112,8 @@ testing::AssertionResult IsOpenSslFailure(
 
   return MakeFormattedAssertionFailure(
       absl::StrFormat("%s returned false and produced OpenSSL error, but "
-                      "OpenSSL error did not contain expected substring...",
-                      return_expr),
+                      "OpenSSL error message '%s' did not match '%s'...",
+                      return_expr, data, error_message_matcher_expr),
       expected,
       absl::StrFormat("false, with error in %s:%d [%s]", file, line, data));
 }
