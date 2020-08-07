@@ -38,7 +38,7 @@ cc_binary(
         "//src/bridge/memory_util:openssl_bio",
         "//src/bridge/memory_util:openssl_structs",
         "//src/bridge/nid_util",
-        "//src/bridge/crypto",
+        "//src/bridge/crypto:rsa",
     ],
 )
 
@@ -54,7 +54,7 @@ cc_library(
         "//src/bridge/ex_data_util",
         "//src/bridge/ex_data_util:engine_data",
         "//src/bridge/key_loader",
-        "//src/bridge/crypto",
+        "//src/bridge/crypto:rsa",
     ],
 )
 

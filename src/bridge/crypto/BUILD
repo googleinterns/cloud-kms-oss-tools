@@ -44,3 +44,30 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "ec",
+    srcs = ["ec.cc"],
+    hdrs = ["ec.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        "//src/backing",
+        "//src/bridge/error",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/bridge/nid_util",
+    ],
+)
+
+cc_test(
+    name = "ec_test",
+    size = "small",
+    srcs = ["ec_test.cc"],
+    deps = [
+        ":ec",
+        "//src/testing_util:mock_crypto_key_handle",
+        "//src/testing_util:openssl_assertions",
+        "//src/testing_util:test_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

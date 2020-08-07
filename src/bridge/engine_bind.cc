@@ -43,7 +43,7 @@ StatusOr<EngineData *> MakeDefaultEngineData() {
   // more information.
   auto client = backing::MakeDefaultClientWithoutTimeout();
 
-  auto rsa_method = rsa::MakeKmsRsaMethod();
+  auto rsa_method = crypto::MakeKmsRsaMethod();
 
   // TODO(zesp): Add EcKeyMethod.
   OpenSslEcKeyMethod ec_key_method = {nullptr, nullptr};

@@ -31,7 +31,7 @@
 
 namespace kmsengine {
 namespace bridge {
-namespace rsa {
+namespace crypto {
 namespace {
 
 // Wrapper around error-checking and `reinterpret_cast` to make a std::string
@@ -251,6 +251,6 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
   return rsa_method;
 }
 
-}  // namespace rsa
+}  // namespace crypto
 }  // namespace bridge
 }  // namespace kmsengine

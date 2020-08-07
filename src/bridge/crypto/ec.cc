@@ -20,7 +20,7 @@
 
 namespace kmsengine {
 namespace bridge {
-namespace rsa {
+namespace crypto {
 namespace {
 
 int Init(EC_KEY *key) {
@@ -129,6 +129,6 @@ OpenSslEcKeyMethod MakeKmsEcKeyMethod() {
   return ec_key_method;
 }
 
-}  // namespace rsa
+}  // namespace crypto
 }  // namespace bridge
 }  // namespace kmsengine

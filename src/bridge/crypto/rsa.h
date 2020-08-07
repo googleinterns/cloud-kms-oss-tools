@@ -25,7 +25,7 @@
 
 namespace kmsengine {
 namespace bridge {
-namespace rsa {
+namespace crypto {
 
 // A human-readable name associated with the Cloud KMS engine's RSA_METHOD.
 //
@@ -47,7 +47,7 @@ constexpr int kRsaMethodFlags = RSA_FLAG_EXT_PKEY | RSA_METHOD_FLAG_NO_CHECK;
 // pointers to the Cloud KMS engine RSA implementations.
 OpenSslRsaMethod MakeKmsRsaMethod();
 
-}  // namespace rsa
+}  // namespace crypto
 }  // namespace bridge
 }  // namespace kmsengine
 

@@ -31,7 +31,7 @@
 
 namespace kmsengine {
 namespace bridge {
-namespace rsa {
+namespace crypto {
 namespace {
 
 using ::kmsengine::testing_util::IsOk;
@@ -174,6 +174,6 @@ TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
 }
 
 }  // namespace
-}  // namespace rsa
+}  // namespace crypto
 }  // namespace bridge
 }  // namespace kmsengine

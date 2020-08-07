@@ -21,13 +21,13 @@
 
 namespace kmsengine {
 namespace bridge {
-namespace rsa {
+namespace crypto {
 
 // Allocates memory for and initializes an OpenSSL `EC_KEY_METHOD` struct with
 // pointers to the Cloud KMS engine EC implementations.
 OpenSslEcKeyMethod MakeKmsEcKeyMethod();
 
-}  // namespace rsa
+}  // namespace crypto
 }  // namespace bridge
 }  // namespace kmsengine
 

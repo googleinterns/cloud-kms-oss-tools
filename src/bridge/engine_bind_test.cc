@@ -74,7 +74,7 @@ TEST(EngineBindTest, InitializesExternalDataSystem) {
          "EngineBind";
 
   auto client = absl::make_unique<MockClient>();
-  auto rsa_method = rsa::MakeKmsRsaMethod();
+  auto rsa_method = crypto::MakeKmsRsaMethod();
   auto ec_key_method = MakeFakeEcKeyMethod();
   auto data = new EngineData(
       std::move(client), std::move(rsa_method), std::move(ec_key_method));
@@ -99,7 +99,7 @@ TEST(EngineDestroyTest, CleansUpExternalDataSystem) {
 
   auto fake_engine = MakeEngine();
   auto client = absl::make_unique<MockClient>();
-  auto rsa_method = rsa::MakeKmsRsaMethod();
+  auto rsa_method = crypto::MakeKmsRsaMethod();
   auto ec_key_method = MakeFakeEcKeyMethod();
   auto data = new EngineData(
       std::move(client), std::move(rsa_method), std::move(ec_key_method));

@@ -180,7 +180,7 @@ class RsaKeyLoaderTest : public KeyLoaderTest {
   RsaKeyLoaderTest()
       : public_key_(PublicKey(kRsaPublicKey, std::get<0>(GetParam()))),
         engine_data_(absl::make_unique<MockClient>(),
-                     rsa::MakeKmsRsaMethod(),
+                     crypto::MakeKmsRsaMethod(),
                      {nullptr, nullptr}) {}
 
   // Initializes a `EngineData` struct and attaches it to `engine()` prior to
@@ -415,7 +415,7 @@ TEST_P(EcKeyLoaderTest, DISABLED_LoadPrivateKey) {
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
 
   auto engine_data = absl::make_unique<EngineData>(
-      std::move(client), rsa::MakeKmsRsaMethod(),
+      std::move(client), crypto::MakeKmsRsaMethod(),
       MakeEcKeyMethod(EC_KEY_OpenSSL()));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data.get(), engine()),
               IsOk());
@@ -441,7 +441,7 @@ TEST_P(UnsupportedKeyLoaderTest, LoadPrivateKey) {
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(PublicKey("", algorithm)));
 
   auto engine_data = absl::make_unique<EngineData>(
-      std::move(client), rsa::MakeKmsRsaMethod(),
+      std::move(client), crypto::MakeKmsRsaMethod(),
       MakeEcKeyMethod(EC_KEY_OpenSSL()));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data.get(), engine()),
               IsOk());
