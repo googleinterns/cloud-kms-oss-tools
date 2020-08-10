@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef KMSENGINE_BRIDGE_RSA_RSA_METHOD_H_
-#define KMSENGINE_BRIDGE_RSA_RSA_METHOD_H_
-
-#include <memory>
+#ifndef KMSENGINE_BRIDGE_CRYPTO_RSA_H_
+#define KMSENGINE_BRIDGE_CRYPTO_RSA_H_
 
 #include <openssl/rsa.h>
 
@@ -51,4 +49,4 @@ OpenSslRsaMethod MakeKmsRsaMethod();
 }  // namespace bridge
 }  // namespace kmsengine
 
-#endif  // KMSENGINE_BRIDGE_RSA_RSA_METHOD_H_
+#endif  // KMSENGINE_BRIDGE_CRYPTO_RSA_H_

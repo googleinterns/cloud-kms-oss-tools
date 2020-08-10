@@ -16,41 +16,18 @@
 
 #include "src/bridge/crypto/rsa.h"
 
-#include <string>
-
 #include <openssl/rsa.h>
 
-#include "src/backing/client/digest_case.h"
 #include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status.h"
-#include "src/backing/status/status_or.h"
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/memory_util/openssl_structs.h"
-#include "src/bridge/nid_util/nid_util.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace crypto {
 namespace {
-
-// Wrapper around error-checking and `reinterpret_cast` to make a std::string
-// representing a digest passed from OpenSSL as an unsigned char pointer and
-// length.
-StatusOr<std::string> MakeDigestString(const unsigned char *m,
-                                       const unsigned int m_length) {
-  if (m == nullptr) {
-    return Status(StatusCode::kInvalidArgument,
-                  "Message digest pointer cannot be null");
-  }
-  if (m_length == 0) {
-    return Status(StatusCode::kInvalidArgument,
-                  "Message digest length cannot be zero");
-  }
-
-  std::string digest(reinterpret_cast<const char *>(m), m_length);
-  return digest;
-}
 
 // Called when OpenSSL's `RSA_new_method` is called to initialize a new
 // `RSA` struct using the Cloud KMS engine.
@@ -103,34 +80,17 @@ int Finish(RSA *rsa) {
 int Sign(int type, const unsigned char *digest_bytes,
          unsigned int digest_length, unsigned char *signature_return,
          unsigned int *signature_length, const RSA *rsa) {
-  // Convert arguments to engine-native structures for convenience. These
-  // conversions need to take place within the bridge layer (as opposed to
-  // letting the `RsaKey::Sign` method handling the conversions) since the
-  // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const backing::CryptoKeyHandle *crypto_key_handle,
       GetCryptoKeyHandleFromOpenSslRsa(rsa), false);
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const backing::DigestCase digest_type,
-      ConvertOpenSslNidToDigestType(type), false);
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const std::string digest_string,
-      MakeDigestString(digest_bytes, digest_length), false);
 
-  // Delegate handling of the signing operation to the backing layer.
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const std::string signature,
-      crypto_key_handle->Sign(digest_type, digest_string), false);
-
-  // Copy results into the return pointers.
-  if (signature_return != nullptr) {
-    signature.copy(reinterpret_cast<char *>(signature_return),
-                   signature.length());
+  Status result = CommonSign(type, digest_bytes, digest_length,
+                             signature_return, signature_length,
+                             crypto_key_handle);
+  if (!result.ok()) {
+    KMSENGINE_SIGNAL_ERROR(result);
+    return false;
   }
-  if (signature_length != nullptr) {
-    *signature_length = signature.length();
-  }
-
   return true;
 }
 
