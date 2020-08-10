@@ -17,8 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "src/backing/rsa/kms_rsa_key.h"
-#include "src/backing/status/status.h"
+#include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status_or.h"
 #include "src/testing_util/mock_client.h"
 #include "src/testing_util/test_matchers.h"
@@ -36,33 +35,49 @@ using ::testing::StrEq;
 
 constexpr auto kSampleKeyResourceId = "resource_id";
 
-TEST(KmsRsaKeyTest, SignSuccess) {
+TEST(CryptoKeyHandleTest, KeyResourceIdRoundtrip) {
+  MockClient client;
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
+  EXPECT_THAT(crypto_key_handle->key_resource_id(),
+              StrEq(kSampleKeyResourceId));
+}
+
+TEST(CryptoKeyHandleTest, SignSuccess) {
   auto expected_signature = "signature";
   MockClient client;
   EXPECT_CALL(client, AsymmetricSign(kSampleKeyResourceId, _, _))
       .Times(1)
       .WillOnce(Return(StatusOr<std::string>(expected_signature)));
 
-  KmsRsaKey key(kSampleKeyResourceId, client);
-  auto result = key.Sign(DigestCase::kSha256, "my digest");
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
+  auto result = crypto_key_handle->Sign(DigestCase::kSha256, "my digest");
   EXPECT_THAT(result, IsOk());
   EXPECT_EQ(result.value(), expected_signature);
 }
 
-TEST(KmsRsaKeyTest, SignFailure) {
+TEST(CryptoKeyHandleTest, SignFailure) {
   auto expected_status = Status(StatusCode::kCancelled, "cancelled");
   MockClient client;
   EXPECT_CALL(client, AsymmetricSign(kSampleKeyResourceId, _, _))
       .Times(1)
       .WillOnce(Return(StatusOr<std::string>(expected_status)));
 
-  KmsRsaKey key(kSampleKeyResourceId, client);
-  auto result = key.Sign(DigestCase::kSha256, "my digest");
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
+  auto result = crypto_key_handle->Sign(DigestCase::kSha256, "my digest");
   EXPECT_THAT(result, Not(IsOk()));
   EXPECT_EQ(result.status(), expected_status);
 }
 
-TEST(KmsRsaKeyTest, GetPublicKeySuccess) {
+TEST(CryptoKeyHandleTest, GetPublicKeySuccess) {
   PublicKey expected("my public key",
                      CryptoKeyVersionAlgorithm::kRsaSignPss2048Sha256);
   MockClient client;
@@ -70,21 +85,27 @@ TEST(KmsRsaKeyTest, GetPublicKeySuccess) {
       .Times(1)
       .WillOnce(Return(StatusOr<PublicKey>(expected)));
 
-  KmsRsaKey key(kSampleKeyResourceId, client);
-  auto result = key.GetPublicKey();
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
+  auto result = crypto_key_handle->GetPublicKey();
   EXPECT_THAT(result, IsOk());
   EXPECT_EQ(result.value(), expected);
 }
 
-TEST(KmsRsaKeyTest, GetPublicKeyFailure) {
+TEST(CryptoKeyHandleTest, GetPublicKeyFailure) {
   auto expected_status = Status(StatusCode::kCancelled, "cancelled");
   MockClient client;
   EXPECT_CALL(client, GetPublicKey(kSampleKeyResourceId))
       .Times(1)
       .WillOnce(Return(StatusOr<PublicKey>(expected_status)));
 
-  KmsRsaKey key(kSampleKeyResourceId, client);
-  auto result = key.GetPublicKey();
+  auto crypto_key_handle_or = MakeCryptoKeyHandle(kSampleKeyResourceId, client);
+  ASSERT_THAT(crypto_key_handle_or, IsOk());
+  auto crypto_key_handle = std::move(crypto_key_handle_or.value());
+
+  auto result = crypto_key_handle->GetPublicKey();
   EXPECT_THAT(result, Not(IsOk()));
   EXPECT_EQ(result.status(), expected_status);
 }

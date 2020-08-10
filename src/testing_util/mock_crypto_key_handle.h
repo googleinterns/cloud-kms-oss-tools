@@ -14,26 +14,34 @@
  * limitations under the License.
  */
 
-#include "src/backing/rsa/kms_rsa_key.h"
+#ifndef KMSENGINE_TESTING_UTIL_MOCK_RSA_KEY_H_
+#define KMSENGINE_TESTING_UTIL_MOCK_RSA_KEY_H_
 
 #include <string>
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
+#include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status_or.h"
 
 namespace kmsengine {
-namespace backing {
+namespace testing_util {
 
-StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
-                                      std::string message_digest) const {
-  return client_.AsymmetricSign(key_resource_id(), digest_type,
-                                message_digest);
-}
+class MockCryptoKeyHandle : public ::kmsengine::backing::CryptoKeyHandle {
+ public:
+  MOCK_METHOD(std::string, key_resource_id, (), (const, override));
+  MOCK_METHOD(StatusOr<std::string>, Sign,
+              (::kmsengine::backing::DigestCase type,
+               std::string message_digest),
+              (const, override));
+  MOCK_METHOD(StatusOr<::kmsengine::backing::PublicKey>, GetPublicKey, (),
+              (const, override));
+};
 
-StatusOr<PublicKey> KmsRsaKey::GetPublicKey() const {
-  return client_.GetPublicKey(key_resource_id());
-}
-
-}  // namespace backing
+}  // namespace testing_util
 }  // namespace kmsengine
+
+#endif  // KMSENGINE_TESTING_UTIL_MOCK_RSA_KEY_H_
