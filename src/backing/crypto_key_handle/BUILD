@@ -22,8 +22,7 @@ package(default_visibility = ["//src:__subpackages__"])
 filegroup(
     name = "bridge_headers",
     srcs = [
-        "kms_rsa_key.h",
-        "rsa_key.h",
+        "crypto_key_handle.h",
     ],
 )
 
@@ -40,36 +39,27 @@ filegroup(
 )
 
 cc_library(
-    name = "kms_rsa_key",
-    srcs = ["kms_rsa_key.cc"],
-    hdrs = ["kms_rsa_key.h"],
+    name = "crypto_key_handle",
+    srcs = ["crypto_key_handle.cc"],
+    hdrs = ["crypto_key_handle.h"],
     deps = [
-        ":rsa_key",
         "//src/backing/client",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
         "//src/backing/status:status_or",
+        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/strings:str_format",
     ],
 )
 
 cc_test(
-    name = "kms_rsa_key_test",
+    name = "crypto_key_handle_test",
     size = "small",
-    srcs = ["kms_rsa_key_test.cc"],
+    srcs = ["crypto_key_handle_test.cc"],
     deps = [
-        ":kms_rsa_key",
+        ":crypto_key_handle",
         "//src/testing_util:mock_client",
         "//src/testing_util:test_matchers",
         "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "rsa_key",
-    hdrs = ["rsa_key.h"],
-    deps = [
-        "//src/backing/client:digest_case",
-        "//src/backing/client:public_key",
-        "//src/backing/status:status_or",
     ],
 )

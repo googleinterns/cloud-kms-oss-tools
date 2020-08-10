@@ -48,11 +48,11 @@ cc_library(
 )
 
 cc_library(
-    name = "mock_rsa_key",
-    hdrs = ["mock_rsa_key.h"],
+    name = "mock_crypto_key_handle",
+    hdrs = ["mock_crypto_key_handle.h"],
     deps = [
         "//src/backing/client:digest_case",
-        "//src/backing/rsa:rsa_key",
+        "//src/backing/crypto_key_handle",
         "//src/backing/status",
         "//src/backing/status:status_or",
         "@com_google_googletest//:gtest_main",
