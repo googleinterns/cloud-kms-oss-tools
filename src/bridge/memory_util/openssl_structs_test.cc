@@ -16,6 +16,7 @@
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <openssl/engine.h>
 #include <openssl/rsa.h>
 
 #include "src/bridge/memory_util/openssl_structs.h"

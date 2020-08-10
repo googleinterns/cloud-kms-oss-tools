@@ -19,6 +19,35 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src/bridge:__subpackages__"])
 
 cc_library(
+    name = "ex_data_util",
+    srcs = ["ex_data_util.cc"],
+    hdrs = ["ex_data_util.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        ":engine_data",
+        "//src/backing",
+    ],
+)
+
+cc_test(
+    name = "ex_data_util_test",
+    size = "small",
+    srcs = ["ex_data_util_test.cc"],
+    # TODO(zesp): Remove when https://github.com/googleinterns/cloud-kms-oss-tools/pull/84/
+    # is merged in.
+    linkstatic = True,
+    linkopts = ["-l:libcrypto.a", "-ldl"],
+    deps = [
+        ":ex_data_util",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/testing_util:mock_client",
+        "//src/testing_util:mock_rsa_key",
+        "//src/testing_util:test_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "engine_data",
     hdrs = ["engine_data.h"],
     linkopts = ["-lcrypto"],

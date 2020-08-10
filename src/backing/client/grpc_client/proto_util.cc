@@ -19,7 +19,6 @@
 #include <memory>
 #include <string>
 
-#include "absl/strings/string_view.h"
 #include "google/cloud/kms/v1/resources.pb.h"
 #include "google/cloud/kms/v1/service.pb.h"
 #include "grpcpp/grpcpp.h"
@@ -74,17 +73,17 @@ StatusCode MapStatusCode(grpc::StatusCode const& code) {
 }  // namespace
 
 google::cloud::kms::v1::Digest MakeDigest(DigestCase type,
-                                          absl::string_view digest_bytes) {
+                                          std::string digest_bytes) {
   google::cloud::kms::v1::Digest proto_digest;
   switch (type) {
     case DigestCase::kSha256:
-      proto_digest.set_sha256(digest_bytes.data());
+      proto_digest.set_sha256(digest_bytes);
       break;
     case DigestCase::kSha384:
-      proto_digest.set_sha384(digest_bytes.data());
+      proto_digest.set_sha384(digest_bytes);
       break;
     case DigestCase::kSha512:
-      proto_digest.set_sha512(digest_bytes.data());
+      proto_digest.set_sha512(digest_bytes);
       break;
   }
   return proto_digest;
