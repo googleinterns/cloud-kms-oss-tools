@@ -50,14 +50,14 @@ class EngineData {
 
   // Returns a reference to the `backing::Client` associated with the
   // `EngineData`.
-  inline backing::Client const& client() const { return *client_; }
+  backing::Client const& client() const { return *client_; }
 
   // Returns a raw pointer to the engine's `RSA_METHOD`.
   //
   // The return type is a raw pointer instead of a reference since the main
   // usage case for accessing the `RSA_METHOD` is to pass it to an OpenSSL API
   // function, and the OpenSSL API functions consume raw pointers.
-  inline const RSA_METHOD *rsa_method() const { return rsa_method_.get(); }
+  const RSA_METHOD *rsa_method() const { return rsa_method_.get(); }
 
  private:
   std::unique_ptr<backing::Client> client_;

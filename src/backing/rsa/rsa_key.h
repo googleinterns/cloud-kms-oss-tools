@@ -48,7 +48,7 @@ class RsaKey {
   //
   // Should be used in the engine's implementation of `RSA_sign`.
   virtual StatusOr<std::string> Sign(DigestCase type,
-                                     std::string message_digest) = 0;
+                                     std::string message_digest) const = 0;
 
   // Returns the PEM-encoded public key of the underlying RSA private key, or
   // an error `Status`.
@@ -59,7 +59,7 @@ class RsaKey {
   // actual public key verification needs to happen in the bridge layer instead
   // since verification needs to be implemented with OpenSSL functions that are
   // only available to the bridge layer.
-  virtual StatusOr<PublicKey> GetPublicKey() = 0;
+  virtual StatusOr<PublicKey> GetPublicKey() const = 0;
 };
 
 }  // namespace backing

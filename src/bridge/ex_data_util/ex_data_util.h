@@ -43,6 +43,10 @@ void FreeExternalIndicies();
 
 // Attaches an `RsaKey` instance to the OpenSSL `RSA` instance. Returns an
 // error `Status` if an error occurred.
+//
+// `rsa_key` may be null (for example, to reset attached data when freeing
+// a previously-attached `RsaKey` to avoid use-after-free errors). `rsa` may
+// not be null.
 Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa);
 Status AttachRsaKeyToOpenSslRsa(std::unique_ptr<backing::RsaKey> rsa_key,
                                 RSA *rsa);
@@ -52,10 +56,15 @@ Status AttachRsaKeyToOpenSslRsa(std::unique_ptr<backing::RsaKey> rsa_key,
 // external data is null, then an error `Status` is returned.)
 //
 // Attached data is only defined by a previous call to `AttachRsaKeyToRSA`.
+// `rsa` may not be null.
 StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa);
 
 // Attaches an `Client` instance to the OpenSSL `RSA` instance. Returns an
 // error `Status` if an error occurred.
+//
+// `data` may be null (for example, to reset attached data when freeing
+// a previously-attached `EngineData` to avoid use-after-free errors). `engine`
+// may not be null.
 Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine);
 
 // Returns a raw pointer to the `EngineData` instance attacked to the given
@@ -64,6 +73,7 @@ Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine);
 // returned.)
 //
 // Attached data is only defined by a previous call to `AttachClientToENGINE`.
+// `engine` may not be null.
 StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine);
 
 }  // namespace bridge

@@ -33,6 +33,10 @@ cc_test(
     name = "ex_data_util_test",
     size = "small",
     srcs = ["ex_data_util_test.cc"],
+    # TODO(zesp): Remove when https://github.com/googleinterns/cloud-kms-oss-tools/pull/84/
+    # is merged in.
+    linkstatic = True,
+    linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":ex_data_util",
         "//src/bridge/memory_util:openssl_structs",

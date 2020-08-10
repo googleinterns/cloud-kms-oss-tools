@@ -38,6 +38,12 @@ cc_binary(
         "//src/backing/client:crypto_key_version_algorithm",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
+<<<<<<< HEAD
+=======
+        "//src/backing/client/grpc_client:client_context_factory",
+        "//src/backing/client/grpc_client:key_management_service_stub",
+        "//src/backing/client/grpc_client:proto_util",
+>>>>>>> master
         "//src/backing/rsa:kms_rsa_key",
         "//src/backing/rsa:rsa_key",
         "//src/backing/status",

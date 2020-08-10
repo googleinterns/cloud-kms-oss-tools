@@ -44,8 +44,8 @@ class KmsRsaKey : public RsaKey {
 
   // RsaKey methods.
   StatusOr<std::string> Sign(DigestCase digest_type,
-                             std::string message_digest) override;
-  StatusOr<PublicKey> GetPublicKey() override;
+                             std::string message_digest) const override;
+  StatusOr<PublicKey> GetPublicKey() const override;
 
  private:
   std::string key_resource_id_;

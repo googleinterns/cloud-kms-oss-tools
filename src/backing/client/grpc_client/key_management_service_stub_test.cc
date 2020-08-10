@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-#include "src/backing/rsa/kms_rsa_key.h"
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
-#include <string>
-
-#include "src/backing/client/digest_case.h"
-#include "src/backing/client/public_key.h"
-#include "src/backing/status/status_or.h"
+#include "src/backing/client/grpc_client/key_management_service_stub.h"
 
 namespace kmsengine {
 namespace backing {
+namespace grpc_client {
+namespace {
 
-StatusOr<std::string> KmsRsaKey::Sign(DigestCase digest_type,
-                                      std::string message_digest) const {
-  return client_.AsymmetricSign(key_resource_id(), digest_type,
-                                message_digest);
+TEST(KeyManagementServiceStubTest, CreateDefaultKeyManagementServiceStub) {
+  auto credentials = grpc::InsecureChannelCredentials();
+
+  // Just check that the factory method works, since calling the interface
+  // methods will launch actual RPC calls.
+  (void)CreateKeyManagementServiceStub("", credentials);
 }
 
-StatusOr<PublicKey> KmsRsaKey::GetPublicKey() const {
-  return client_.GetPublicKey(key_resource_id());
-}
-
+}  // namespace
+}  // namespace grpc_client
 }  // namespace backing
 }  // namespace kmsengine

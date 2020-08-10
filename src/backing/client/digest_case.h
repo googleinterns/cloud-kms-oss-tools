@@ -17,6 +17,7 @@
 #ifndef KMSENGINE_BACKING_CLIENT_DIGEST_CASE_H_
 #define KMSENGINE_BACKING_CLIENT_DIGEST_CASE_H_
 
+#include <string>
 #include <type_traits>
 
 namespace kmsengine {
@@ -43,6 +44,10 @@ enum class DigestCase : int {
 constexpr int DigestCaseToInt(DigestCase digest) {
   return static_cast<std::underlying_type<DigestCase>::type>(digest);
 }
+
+// Converts a `DigestCase` to a human-readable string.
+std::string DigestCaseToString(DigestCase digest_case);
+std::ostream& operator<<(std::ostream& os, DigestCase digest_case);
 
 }  // namespace backing
 }  // namespace kmsengine
