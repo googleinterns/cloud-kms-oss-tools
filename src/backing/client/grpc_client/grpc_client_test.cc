@@ -95,7 +95,8 @@ TEST_P(AsymmetricSignTest, AsymmetricSignReturnsSignatureInResponse) {
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
-  auto actual = client.AsymmetricSign(key, digest_case, digest_bytes);
+  StatusOr<std::string> actual = client.AsymmetricSign(key, digest_case,
+                                                       digest_bytes);
   EXPECT_THAT(actual, IsOk());
   EXPECT_THAT(actual.value(), StrEq(expected_signature));
 }
@@ -136,7 +137,8 @@ TEST_P(AsymmetricSignTest, AsymmetricSignReturnsErrors) {
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
-  auto actual = client.AsymmetricSign(key, digest_case, digest_bytes);
+  StatusOr<std::string> actual = client.AsymmetricSign(key, digest_case,
+                                                       digest_bytes);
   EXPECT_THAT(actual, Not(IsOk()));
   EXPECT_THAT(actual.status().code(), StatusCode::kCancelled);
   EXPECT_THAT(actual.status().message(), "cancelled");
@@ -166,7 +168,7 @@ TEST_P(GetPublicKeyTest, GetPublicKeyReturnsResponse) {
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
-  auto actual = client.GetPublicKey(key);
+  StatusOr<PublicKey> actual = client.GetPublicKey(key);
   EXPECT_THAT(actual, IsOk());
   EXPECT_THAT(actual.value().pem(), StrEq("my public key"));
   EXPECT_EQ(actual.value().algorithm(),
@@ -184,7 +186,7 @@ TEST_P(GetPublicKeyTest, GetPublicKeyReturnsErrors) {
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
-  auto actual = client.GetPublicKey(key);
+  StatusOr<PublicKey> actual = client.GetPublicKey(key);
   EXPECT_THAT(actual, Not(IsOk()));
   EXPECT_THAT(actual.status().code(), StatusCode::kCancelled);
   EXPECT_THAT(actual.status().message(), "cancelled");
