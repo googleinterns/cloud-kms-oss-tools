@@ -24,7 +24,6 @@
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 #include "src/bridge/ex_data_util/engine_data.h"
-#include "src/bridge/memory_util/openssl_structs.h"
 
 namespace kmsengine {
 namespace bridge {
