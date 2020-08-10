@@ -103,7 +103,7 @@ Status InitExternalIndices() {
   KMSENGINE_ASSIGN_OR_RETURN(rsa_index, GetIndex(CRYPTO_EX_INDEX_RSA));
   KMSENGINE_ASSIGN_OR_RETURN(ec_key_index, GetIndex(CRYPTO_EX_INDEX_EC_KEY));
   KMSENGINE_ASSIGN_OR_RETURN(engine_index, GetIndex(CRYPTO_EX_INDEX_ENGINE));
-  return Status();
+  return Status::kOk;
 }
 
 void FreeExternalIndices() {
