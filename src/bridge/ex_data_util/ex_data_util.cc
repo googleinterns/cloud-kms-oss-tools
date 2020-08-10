@@ -141,7 +141,7 @@ StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslRsa(const RSA *rsa) {
   }
 
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
-  auto ex_data = RSA_get_ex_data(rsa, index);
+  void *ex_data = RSA_get_ex_data(rsa, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
                   "RSA instance was not initialized with Cloud KMS data");
@@ -178,7 +178,7 @@ StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslEcKey(
   }
 
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEcKeyIndex());
-  auto ex_data = EC_KEY_get_ex_data(ec_key, index);
+  void *ex_data = EC_KEY_get_ex_data(ec_key, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
                   "EC_KEY instance was not initialized with Cloud KMS data");
@@ -195,7 +195,7 @@ Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {
   if (!ENGINE_set_ex_data(engine, index, static_cast<void *>(data))) {
     return Status(StatusCode::kInternal, "ENGINE_set_ex_data failed");
   }
-  return Status();
+  return Status::kOk;
 }
 
 StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine) {
@@ -204,7 +204,7 @@ StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine) {
   }
 
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEngineIndex());
-  auto ex_data = ENGINE_get_ex_data(engine, index);
+  void *ex_data = ENGINE_get_ex_data(engine, index);
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
                   "ENGINE instance was not initialized with Cloud KMS data");
