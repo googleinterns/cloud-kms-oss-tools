@@ -67,9 +67,27 @@ const std::string kSampleKeyNames[] = {
   "",
 };
 
-class AsymmetricSignTest : public
-    testing::TestWithParam<std::tuple<std::string, DigestCase, std::string>> {
-  // Purposely empty; no fixtures to instantiate.
+// Test fixture for testing `GrpcClient`.
+//
+// Instantiates a `MockKeyManagementServiceStub` and
+// `MockClientContextFactory`.
+class GrpcClientTest : public testing::Test {
+ protected:
+  GrpcClientTest()
+      : stub(absl::make_unique<MockKeyManagementServiceStub>()),
+        context_factory(absl::make_unique<MockClientContextFactory>()) {}
+  virtual ~GrpcClientTest() = default;
+
+  std::unique_ptr<MockKeyManagementServiceStub> stub;
+  std::unique_ptr<MockClientContextFactory> context_factory;
+};
+
+class AsymmetricSignTest :
+    public GrpcClientTest,
+    public testing::WithParamInterface<std::tuple<std::string, DigestCase,
+                                                  std::string>> {
+  // Purposely empty; used to write value-parameterized tests on top of the
+  // `GrpcClientTest` fixture.
 };
 
 INSTANTIATE_TEST_SUITE_P(AsymmetricSignParameters, AsymmetricSignTest,
@@ -86,12 +104,10 @@ TEST_P(AsymmetricSignTest, AsymmetricSignReturnsSignatureInResponse) {
   google::cloud::kms::v1::AsymmetricSignResponse mock_response;
   mock_response.set_signature(expected_signature);
 
-  auto stub = absl::make_unique<MockKeyManagementServiceStub>();
   EXPECT_CALL(*stub, AsymmetricSign)
       .WillOnce(DoAll(SetArgPointee</*response_param_index=*/2>(mock_response),
                       Return(Status::kOk)));
 
-  auto context_factory = absl::make_unique<MockClientContextFactory>();
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
@@ -107,12 +123,10 @@ TEST_P(AsymmetricSignTest, AsymmetricSignSetsCorrectRequestFields) {
   const std::string expected_digest_bytes = std::get<2>(GetParam());
 
   google::cloud::kms::v1::AsymmetricSignRequest actual_request;
-  auto stub = absl::make_unique<MockKeyManagementServiceStub>();
   EXPECT_CALL(*stub, AsymmetricSign)
       .WillOnce(DoAll(SaveArg</*request_param_index=*/1>(&actual_request),
                       Return(Status::kOk)));
 
-  auto context_factory = absl::make_unique<MockClientContextFactory>();
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
@@ -129,11 +143,9 @@ TEST_P(AsymmetricSignTest, AsymmetricSignReturnsErrors) {
   const DigestCase digest_case = std::get<1>(GetParam());
   const std::string digest_bytes = std::get<2>(GetParam());
 
-  auto stub = absl::make_unique<MockKeyManagementServiceStub>();
   EXPECT_CALL(*stub, AsymmetricSign)
       .WillOnce(Return(Status(StatusCode::kCancelled, "cancelled")));
 
-  auto context_factory = absl::make_unique<MockClientContextFactory>();
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
@@ -144,8 +156,11 @@ TEST_P(AsymmetricSignTest, AsymmetricSignReturnsErrors) {
   EXPECT_THAT(actual.status().message(), "cancelled");
 }
 
-class GetPublicKeyTest : public testing::TestWithParam<std::string> {
-  // Purposely empty; no fixtures to instantiate.
+class GetPublicKeyTest :
+    public GrpcClientTest,
+    public testing::WithParamInterface<std::string> {
+  // Purposely empty; used to write value-parameterized tests on top of the
+  // `GrpcClientTest` fixture.
 };
 
 INSTANTIATE_TEST_SUITE_P(GetPublicKeyParameters, GetPublicKeyTest,
@@ -159,12 +174,10 @@ TEST_P(GetPublicKeyTest, GetPublicKeyReturnsResponse) {
   mock_response.set_algorithm(
       google::cloud::kms::v1::CryptoKeyVersion::RSA_SIGN_PSS_2048_SHA256);
 
-  auto stub = absl::make_unique<MockKeyManagementServiceStub>();
   EXPECT_CALL(*stub, GetPublicKey)
       .WillOnce(DoAll(SetArgPointee</*response_param_index=*/2>(mock_response),
                       Return(Status::kOk)));
 
-  auto context_factory = absl::make_unique<MockClientContextFactory>();
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
@@ -178,11 +191,9 @@ TEST_P(GetPublicKeyTest, GetPublicKeyReturnsResponse) {
 TEST_P(GetPublicKeyTest, GetPublicKeyReturnsErrors) {
   const std::string key = GetParam();
 
-  auto stub = absl::make_unique<MockKeyManagementServiceStub>();
   EXPECT_CALL(*stub, GetPublicKey)
       .WillOnce(Return(Status(StatusCode::kCancelled, "cancelled")));
 
-  auto context_factory = absl::make_unique<MockClientContextFactory>();
   EXPECT_CALL(*context_factory, MakeContext);
 
   GrpcClient client(std::move(stub), std::move(context_factory));
