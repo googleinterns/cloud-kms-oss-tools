@@ -22,16 +22,17 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "src/backing/rsa/rsa_key.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
+#include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status_or.h"
 
 namespace kmsengine {
 namespace testing_util {
 
-class MockRsaKey : public ::kmsengine::backing::RsaKey {
+class MockCryptoKeyHandle : public ::kmsengine::backing::CryptoKeyHandle {
  public:
+  MOCK_METHOD(std::string, key_resource_id, (), (const, override));
   MOCK_METHOD(StatusOr<std::string>, Sign,
               (::kmsengine::backing::DigestCase type,
                std::string message_digest),
