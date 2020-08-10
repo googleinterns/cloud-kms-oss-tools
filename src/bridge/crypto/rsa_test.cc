@@ -89,7 +89,7 @@ TEST_F(RsaMethodTest, RsaMethodCallbacksAreInitialized) {
 TEST_F(RsaMethodTest, FinishCleansUpCryptoKeyHandle) {
   // Using `RSA_new` instead of `MakeRsa` here so we can explicitly call
   // `RSA_free` at the end to test that the mock got cleaned up.
-  auto rsa = RSA_new();
+  RSA *rsa = RSA_new();
   ASSERT_THAT(rsa, NotNull());
   RSA_set_method(rsa, rsa_method());
 
@@ -107,27 +107,27 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
   // so it cleans itself up before the end of the test. This is important so
   // that it deletes the `MockCryptoKeyHandle` before the test body ends
   // (otherwise a testing error will be raised).
-  auto rsa = MakeRsaWithKmsMethod();
+  OpenSslRsaMethod rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
 
-  std::string expected = "my signature";
+  auto expected = "my signature";
   auto handle = new MockCryptoKeyHandle();
   EXPECT_CALL(*handle, Sign).WillOnce(Return(StatusOr<std::string>(expected)));
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
 
-  unsigned char msg[] = "sample digest";
-  unsigned int msg_length = std::strlen(reinterpret_cast<char *>(msg));
+  std::string digest = "sample digest";
   unsigned char signature[expected.length()];
   unsigned int signature_length;
-  ASSERT_OPENSSL_SUCCESS(RSA_sign(NID_sha256, msg, msg_length, signature,
-                                  &signature_length, rsa.get()));
+  ASSERT_OPENSSL_SUCCESS(
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(), signature, &signature_length, rsa.get()));
 
   std::string actual(reinterpret_cast<char *>(signature), signature_length);
   EXPECT_THAT(actual, StrEq(expected));
 }
 
 TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
-  auto rsa = MakeRsaWithKmsMethod();
+  OpenSslRsaMethod rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
 
   auto expected_error_message = "mock CryptoKeyHandle::Sign failed";
@@ -136,27 +136,27 @@ TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
       Status(StatusCode::kInternal, expected_error_message))));
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
 
-  unsigned char msg[] = "sample digest";
-  unsigned int msg_length = std::strlen(reinterpret_cast<char *>(msg));
+  std::string digest = "sample digest";
   EXPECT_OPENSSL_FAILURE(
-      RSA_sign(NID_sha256, msg, msg_length, nullptr, nullptr, rsa.get()),
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(), nullptr, nullptr, rsa.get()),
       expected_error_message);
 }
 
 TEST_F(RsaMethodTest, SignHandlesMissingCryptoKeyHandle) {
-  auto rsa = MakeRsaWithKmsMethod();
+  OpenSslRsaMethod rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()), IsOk());
 
-  unsigned char msg[] = "sample digest";
-  unsigned int msg_length = std::strlen(reinterpret_cast<char *>(msg));
+  std::string digest = "sample digest";
   EXPECT_OPENSSL_FAILURE(
-      RSA_sign(NID_sha256, msg, msg_length, nullptr, nullptr, rsa.get()),
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(), nullptr, nullptr, rsa.get()),
       "RSA instance was not initialized with Cloud KMS data");
 }
 
 TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
-  auto rsa = MakeRsaWithKmsMethod();
+  OpenSslRsaMethod rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
 
   auto handle = new MockCryptoKeyHandle();
@@ -166,10 +166,10 @@ TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
   // Use MD5 as our "bad digest type" example, since it's not supported by
   // Cloud KMS (and since it's an insecure algorithm, it probably won't be
   // supported in the future).
-  unsigned char msg[] = "sample digest";
-  unsigned int msg_length = std::strlen(reinterpret_cast<char *>(msg));
+  std::string digest = "sample digest";
   EXPECT_OPENSSL_FAILURE(
-      RSA_sign(NID_md5, msg, msg_length, nullptr, nullptr, rsa.get()),
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(), nullptr, nullptr, rsa.get()),
       "Unsupported digest type");
 }
 

@@ -107,7 +107,7 @@ int Verify(int type, const unsigned char *m, unsigned int m_len,
            const unsigned char *sigbuf, unsigned int siglen, const RSA *rsa) {
   // TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/101):
   // This method is currently purposely left unimplemented, but it may need to
-  // be implemented.
+  // be implemented at some point in the future.
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
   return false;
@@ -131,11 +131,6 @@ int PrivateEncrypt(int from_length, const unsigned char *from,
   // may or may not be possible to simply redirect `PrivateEncrypt` to `Sign`.
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
-
-  // unsigned int signature_length;
-  // if (!Sign(NID_sha256, from, from_length, to, &signature_length, rsa)) {
-  //   return -1;
-  // }
   return -1;
 }
 
