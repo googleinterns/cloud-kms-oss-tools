@@ -31,13 +31,15 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+using ::kmsengine::backing::CryptoKeyHandle;
+
 // Represents an uninitialized OpenSSL external index. Value is -1 since
 // OpenSSL's `CRYPTO_get_ex_new_index` function for requesting external indices
 // returns -1 on failure.
 static constexpr int kUninitializedIndex = -1;
 
 // External index assigned by OpenSSL on a `RSA` struct. If uninitialized, it
-// has value `kUninitializedIndex`. Used in `AttachRsaKeyToOpenSslRsa` and
+// has value `kUninitializedIndex`. Used in `AttachCryptoKeyHandleToOpenSslRsa` and
 // `GetRsaKeyFromOpenSslRsa`.
 static int rsa_index = kUninitializedIndex;
 
@@ -95,7 +97,7 @@ void FreeExternalIndices() {
   engine_index = kUninitializedIndex;
 }
 
-Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
+Status AttachCryptoKeyHandleToOpenSslRsa(CryptoKeyHandle *rsa_key, RSA *rsa) {
   if (rsa == nullptr) {
     return Status(StatusCode::kInvalidArgument, "RSA cannot be null");
   }
@@ -107,7 +109,7 @@ Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa) {
   return Status::kOk;
 }
 
-StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
+StatusOr<CryptoKeyHandle *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
   if (rsa == nullptr) {
     return Status(StatusCode::kInvalidArgument, "RSA cannot be null");
   }
@@ -118,7 +120,7 @@ StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
     return Status(StatusCode::kNotFound,
                   "RSA instance was not initialized with Cloud KMS data");
   }
-  return static_cast<backing::RsaKey *>(ex_data);
+  return static_cast<CryptoKeyHandle *>(ex_data);
 }
 
 Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {

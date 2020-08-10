@@ -46,7 +46,7 @@ void FreeExternalIndices();
 // `rsa_key` may be null (for example, to reset attached data when freeing
 // a previously-attached `RsaKey` to avoid use-after-free errors). `rsa` may
 // not be null.
-Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa);
+Status AttachRsaKeyToOpenSslRsa(backing::CryptoKeyHandle *rsa_key, RSA *rsa);
 
 // Returns a raw pointer to the `RsaKey` instance attacked to the given
 // OpenSSL `RSA` struct. Raw pointer will never be null (if the underlying
@@ -54,7 +54,7 @@ Status AttachRsaKeyToOpenSslRsa(backing::RsaKey *rsa_key, RSA *rsa);
 //
 // Attached data is only defined by a previous call to `AttachRsaKeyToRSA`.
 // `rsa` may not be null.
-StatusOr<backing::RsaKey *> GetRsaKeyFromOpenSslRsa(const RSA *rsa);
+StatusOr<backing::CryptoKeyHandle *> GetRsaKeyFromOpenSslRsa(const RSA *rsa);
 
 // Attaches an `Client` instance to the OpenSSL `RSA` instance. Returns an
 // error `Status` if an error occurred.
