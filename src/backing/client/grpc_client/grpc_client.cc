@@ -44,12 +44,13 @@ StatusOr<std::string> GrpcClient::AsymmetricSign(
   proto_request.mutable_digest()->CopyFrom(
       MakeDigest(digest_case, digest_bytes));
 
-  auto context = client_context_factory_->MakeContext();
+  std::unique_ptr<grpc::ClientContext> context =
+      client_context_factory_->MakeContext();
   google::cloud::kms::v1::AsymmetricSignResponse proto_response;
   KMSENGINE_RETURN_IF_ERROR(stub_->AsymmetricSign(context.get(), proto_request,
                                                   &proto_response));
 
-  return std::move(proto_response.signature());
+  return proto_response.signature();
 }
 
 StatusOr<PublicKey> GrpcClient::GetPublicKey(
@@ -57,7 +58,8 @@ StatusOr<PublicKey> GrpcClient::GetPublicKey(
   google::cloud::kms::v1::GetPublicKeyRequest proto_request;
   proto_request.set_name(std::move(key_version_resource_id));
 
-  auto context = client_context_factory_->MakeContext();
+  std::unique_ptr<grpc::ClientContext> context =
+      client_context_factory_->MakeContext();
   google::cloud::kms::v1::PublicKey proto_response;
   KMSENGINE_RETURN_IF_ERROR(stub_->GetPublicKey(context.get(), proto_request,
                                                 &proto_response));

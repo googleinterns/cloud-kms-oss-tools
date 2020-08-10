@@ -19,7 +19,6 @@
 
 #include <string>
 
-#include "absl/strings/string_view.h"
 #include "google/cloud/kms/v1/resources.pb.h"
 #include "google/cloud/kms/v1/service.pb.h"
 #include "grpcpp/grpcpp.h"
@@ -32,7 +31,7 @@ namespace backing {
 
 // Factory function which creates an protobuf `Digest`.
 google::cloud::kms::v1::Digest MakeDigest(DigestCase type,
-                                          absl::string_view digest_bytes);
+                                          std::string digest_bytes);
 
 // Helper function for converting a `grpc::Status` to a engine-native `Status`.
 Status FromGrpcStatusToStatus(grpc::Status const& status);
