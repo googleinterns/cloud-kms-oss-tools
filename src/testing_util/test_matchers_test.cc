@@ -31,10 +31,9 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include <google/protobuf/wrappers.pb.h>
-#include <gmock/gmock.h>
-
-#include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
