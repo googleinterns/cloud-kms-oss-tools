@@ -29,6 +29,9 @@ namespace bridge {
 namespace crypto {
 namespace {
 
+using ::kmsengine::CryptoKeyHandle;
+using ::kmsengine::DigestCase;
+
 // Called when OpenSSL's `RSA_new_method` is called to initialize a new
 // `RSA` struct using the Cloud KMS engine.
 //
@@ -55,7 +58,7 @@ int Finish(RSA *rsa) {
   // `crypto_key_handle` is guaranteed to be non-null here (if the underlying
   // external data struct was null, an error status would be returned).
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const backing::CryptoKeyHandle *crypto_key_handle,
+      const CryptoKeyHandle *crypto_key_handle,
       GetCryptoKeyHandleFromOpenSslRsa(rsa), false);
   delete crypto_key_handle;
 
@@ -80,16 +83,32 @@ int Finish(RSA *rsa) {
 int Sign(int type, const unsigned char *digest_bytes,
          unsigned int digest_length, unsigned char *signature_return,
          unsigned int *signature_length, const RSA *rsa) {
+  // Convert arguments to engine-native structures for convenience. These
+  // conversions need to take place within the bridge layer (as opposed to
+  // letting the `RsaKey::Sign` method handling the conversions) since the
+  // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const backing::CryptoKeyHandle *crypto_key_handle,
-      GetCryptoKeyHandleFromOpenSslRsa(rsa), false);
+      const CryptoKeyHandle *crypto_key_handle,
+      GetCryptoKeyHandleFromEcKey(ec_key), false);
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      const DigestCase digest_type,
+      ConvertOpenSslNidToDigestType(type), false);
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      const std::string digest_string,
+      MakeDigestString(digest_bytes, digest_length), false);
 
-  Status result = CommonSign(type, digest_bytes, digest_length,
-                             signature_return, signature_length,
-                             crypto_key_handle);
-  if (!result.ok()) {
-    KMSENGINE_SIGNAL_ERROR(result);
-    return false;
+  // Delegate handling of the signing operation to the backing layer.
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      const std::string signature,
+      crypto_key_handle->Sign(digest_type, digest_string), false);
+
+  // Copy results into the return pointers.
+  if (signature_return != nullptr) {
+    signature.copy(reinterpret_cast<char *>(signature_return),
+                   signature.length());
+  }
+  if (signature_length != nullptr) {
+    *signature_length = signature.length();
   }
   return true;
 }
