@@ -56,11 +56,9 @@ cc_binary(
     deps = [
         ":export_macros",
         "//src/backing/client",
-        "//src/backing/client:client_factory",
         "//src/backing/client:crypto_key_version_algorithm",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
-        "//src/backing/client/grpc_client",
         "//src/backing/client/grpc_client:client_context_factory",
         "//src/backing/client/grpc_client:key_management_service_stub",
         "//src/backing/client/grpc_client:proto_util",

@@ -23,7 +23,6 @@ filegroup(
     name = "bridge_headers",
     srcs = [
         "client.h",
-        "client_factory.h",
         "crypto_key_version_algorithm.h",
         "digest_case.h",
         "public_key.h",

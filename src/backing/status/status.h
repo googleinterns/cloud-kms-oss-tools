@@ -87,6 +87,9 @@ class KMSENGINE_EXPORT Status {
   explicit Status(StatusCode status_code, std::string message)
       : code_(status_code), message_(std::move(message)) {}
 
+  // "OK" status for convenience.
+  static const Status kOk;
+
   bool ok() const { return code_ == StatusCode::kOk; }
 
   StatusCode code() const { return code_; }
