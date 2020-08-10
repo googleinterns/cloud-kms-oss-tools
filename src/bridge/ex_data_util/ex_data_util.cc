@@ -34,7 +34,7 @@ namespace {
 using ::kmsengine::backing::CryptoKeyHandle;
 
 // Represents an uninitialized OpenSSL external index. Value is -1 since
-// OpenSSL's `CRYPTO_get_ex_new_index` function for requesting external indicies
+// OpenSSL's `CRYPTO_get_ex_new_index` function for requesting external indices
 // returns -1 on failure.
 static constexpr int kUninitializedIndex = -1;
 
