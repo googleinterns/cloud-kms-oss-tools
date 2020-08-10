@@ -50,7 +50,7 @@ StatusOr<std::string> GrpcClient::AsymmetricSign(
   KMSENGINE_RETURN_IF_ERROR(stub_->AsymmetricSign(context.get(), proto_request,
                                                   &proto_response));
 
-  return std::move(proto_response.signature());
+  return proto_response.signature();
 }
 
 StatusOr<PublicKey> GrpcClient::GetPublicKey(

@@ -89,7 +89,7 @@ TEST_P(AsymmetricSignTest, AsymmetricSignReturnsSignatureInResponse) {
   auto stub = absl::make_unique<MockKeyManagementServiceStub>();
   EXPECT_CALL(*stub, AsymmetricSign)
       .WillOnce(DoAll(SetArgPointee</*response_param_index=*/2>(mock_response),
-                      Return(Status())));
+                      Return(Status::kOk)));
 
   auto context_factory = absl::make_unique<MockClientContextFactory>();
   EXPECT_CALL(*context_factory, MakeContext);
@@ -110,7 +110,7 @@ TEST_P(AsymmetricSignTest, AsymmetricSignSetsCorrectRequestFields) {
   auto stub = absl::make_unique<MockKeyManagementServiceStub>();
   EXPECT_CALL(*stub, AsymmetricSign)
       .WillOnce(DoAll(SaveArg</*request_param_index=*/1>(&actual_request),
-                      Return(Status())));
+                      Return(Status::kOk)));
 
   auto context_factory = absl::make_unique<MockClientContextFactory>();
   EXPECT_CALL(*context_factory, MakeContext);
@@ -162,7 +162,7 @@ TEST_P(GetPublicKeyTest, GetPublicKeyReturnsResponse) {
   auto stub = absl::make_unique<MockKeyManagementServiceStub>();
   EXPECT_CALL(*stub, GetPublicKey)
       .WillOnce(DoAll(SetArgPointee</*response_param_index=*/2>(mock_response),
-                      Return(Status())));
+                      Return(Status::kOk)));
 
   auto context_factory = absl::make_unique<MockClientContextFactory>();
   EXPECT_CALL(*context_factory, MakeContext);
