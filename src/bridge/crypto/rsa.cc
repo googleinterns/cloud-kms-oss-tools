@@ -23,14 +23,32 @@
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/memory_util/openssl_structs.h"
+#include "src/bridge/nid_util/nid_util.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace crypto {
 namespace {
 
-using ::kmsengine::CryptoKeyHandle;
-using ::kmsengine::DigestCase;
+using ::kmsengine::backing::CryptoKeyHandle;
+using ::kmsengine::backing::DigestCase;
+
+// Wrapper around error-checking and `reinterpret_cast` to make a std::string
+// representing a digest passed from OpenSSL as an unsigned char pointer and
+// length.
+StatusOr<std::string> MakeDigestString(const unsigned char *m,
+                                       const unsigned int m_length) {
+  if (m == nullptr) {
+    return Status(StatusCode::kInvalidArgument,
+                  "Message digest pointer cannot be null");
+  }
+  if (m_length == 0) {
+    return Status(StatusCode::kInvalidArgument,
+                  "Message digest length cannot be zero");
+  }
+
+  return std::string(reinterpret_cast<const char *>(m), m_length);
+}
 
 // Called when OpenSSL's `RSA_new_method` is called to initialize a new
 // `RSA` struct using the Cloud KMS engine.
@@ -89,7 +107,7 @@ int Sign(int type, const unsigned char *digest_bytes,
   // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const CryptoKeyHandle *crypto_key_handle,
-      GetCryptoKeyHandleFromEcKey(ec_key), false);
+      GetCryptoKeyHandleFromOpenSslRsa(rsa), false);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const DigestCase digest_type,
       ConvertOpenSslNidToDigestType(type), false);
@@ -202,7 +220,7 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
       !RSA_meth_set_priv_enc(rsa_method.get(), PrivateEncrypt) ||
       !RSA_meth_set_sign(rsa_method.get(), Sign) ||
       // Memory initialization and cleanup functions.
-      !RSA_meth_set_init(rsa_method.get(), RsaInit) ||
+      !RSA_meth_set_init(rsa_method.get(), Init) ||
       !RSA_meth_set_finish(rsa_method.get(), Finish) ||
       // `mod_exp` and `bn_mod_exp` are called by the default OpenSSL RSA
       // method. The OpenSSL man page for RSA_set_method(3) explicitly

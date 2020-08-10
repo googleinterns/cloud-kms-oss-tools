@@ -40,6 +40,7 @@ using ::testing::IsNull;
 using ::testing::NotNull;
 using ::testing::Return;
 using ::testing::StrEq;
+using ::testing::HasSubstr;
 
 // Test fixture for calling initialization functions (normally called by the
 // `EngineBind` function) needed for the RSA callbacks to work.
@@ -48,12 +49,12 @@ class RsaMethodTest : public ::testing::Test {
   RsaMethodTest() : rsa_method_(MakeKmsRsaMethod()) {}
 
   void SetUp() override {
-    ASSERT_THAT(InitExternalIndicies(), IsOk());
-    ASSERT_THAT(rsa_method_, NotNull());
+    ASSERT_THAT(InitExternalIndices(), IsOk());
+    ASSERT_THAT(rsa_method(), NotNull());
   }
 
   void TearDown() override {
-    FreeExternalIndicies();
+    FreeExternalIndices();
   }
 
   // Convenience function for making an RSA struct with the Cloud KMS RSA_METHOD
@@ -107,10 +108,10 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
   // so it cleans itself up before the end of the test. This is important so
   // that it deletes the `MockCryptoKeyHandle` before the test body ends
   // (otherwise a testing error will be raised).
-  OpenSslRsaMethod rsa = MakeRsaWithKmsMethod();
+  OpenSslRsa rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
 
-  auto expected = "my signature";
+  std::string expected = "my signature";
   auto handle = new MockCryptoKeyHandle();
   EXPECT_CALL(*handle, Sign).WillOnce(Return(StatusOr<std::string>(expected)));
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
@@ -127,7 +128,7 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
-  OpenSslRsaMethod rsa = MakeRsaWithKmsMethod();
+  OpenSslRsa rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
 
   auto expected_error_message = "mock CryptoKeyHandle::Sign failed";
@@ -140,11 +141,11 @@ TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
   EXPECT_OPENSSL_FAILURE(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
                digest.length(), nullptr, nullptr, rsa.get()),
-      expected_error_message);
+      HasSubstr(expected_error_message));
 }
 
 TEST_F(RsaMethodTest, SignHandlesMissingCryptoKeyHandle) {
-  OpenSslRsaMethod rsa = MakeRsaWithKmsMethod();
+  OpenSslRsa rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()), IsOk());
 
@@ -152,11 +153,11 @@ TEST_F(RsaMethodTest, SignHandlesMissingCryptoKeyHandle) {
   EXPECT_OPENSSL_FAILURE(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
                digest.length(), nullptr, nullptr, rsa.get()),
-      "RSA instance was not initialized with Cloud KMS data");
+      HasSubstr("RSA instance was not initialized with Cloud KMS data"));
 }
 
 TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
-  OpenSslRsaMethod rsa = MakeRsaWithKmsMethod();
+  OpenSslRsa rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
 
   auto handle = new MockCryptoKeyHandle();
@@ -166,11 +167,12 @@ TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
   // Use MD5 as our "bad digest type" example, since it's not supported by
   // Cloud KMS (and since it's an insecure algorithm, it probably won't be
   // supported in the future).
+  constexpr auto kBadDigestType = NID_md5;
   std::string digest = "sample digest";
   EXPECT_OPENSSL_FAILURE(
-      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+      RSA_sign(kBadDigestType, reinterpret_cast<unsigned char *>(&digest[0]),
                digest.length(), nullptr, nullptr, rsa.get()),
-      "Unsupported digest type");
+      HasSubstr("Unsupported digest type"));
 }
 
 }  // namespace
