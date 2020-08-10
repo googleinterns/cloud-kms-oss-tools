@@ -41,7 +41,7 @@ cc_test(
         ":ex_data_util",
         "//src/bridge/memory_util:openssl_structs",
         "//src/testing_util:mock_client",
-        "//src/testing_util:mock_rsa_key",
+        "//src/testing_util:mock_crypto_key_handle",
         "//src/testing_util:test_matchers",
         "@com_google_googletest//:gtest_main",
     ],

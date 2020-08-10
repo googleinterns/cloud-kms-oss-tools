@@ -20,7 +20,7 @@
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/memory_util/openssl_structs.h"
 #include "src/testing_util/mock_client.h"
-#include "src/testing_util/mock_rsa_key.h"
+#include "src/testing_util/mock_crypto_key_handle.h"
 #include "src/testing_util/test_matchers.h"
 
 namespace kmsengine {
