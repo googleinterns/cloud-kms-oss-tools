@@ -27,31 +27,31 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
-using ::kmsengine::backing::RsaKey;
+using ::kmsengine::backing::CryptoKeyHandle;
 using ::kmsengine::testing_util::IsOk;
-using ::kmsengine::testing_util::MockRsaKey;
+using ::kmsengine::testing_util::MockCryptoKeyHandle;
 using ::testing::Not;
 
-TEST(ExDataUtilTest, RsaKeyRoundtrip) {
+TEST(ExDataUtilTest, CryptoKeyHandleRoundtrip) {
   ASSERT_THAT(InitExternalIndices(), IsOk());
 
   OpenSslRsa rsa = MakeRsa();
-  MockRsaKey rsa_key;
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
+  MockCryptoKeyHandle rsa_key;
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
 
-  StatusOr<RsaKey *> actual = GetRsaKeyFromOpenSslRsa(rsa.get());
+  StatusOr<CryptoKeyHandle *> actual = GetCryptoKeyHandleFromOpenSslRsa(rsa.get());
   EXPECT_THAT(actual, IsOk());
   EXPECT_EQ(actual.value(), &rsa_key);
 
   FreeExternalIndices();
 }
 
-TEST(ExDataUtilTest, HandlesNullRsaKey) {
+TEST(ExDataUtilTest, HandlesNullCryptoKeyHandle) {
   ASSERT_THAT(InitExternalIndices(), IsOk());
 
   OpenSslRsa rsa = MakeRsa();
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), IsOk());
-  EXPECT_THAT(GetRsaKeyFromOpenSslRsa(rsa.get()), Not(IsOk()));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()), IsOk());
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(rsa.get()), Not(IsOk()));
 
   FreeExternalIndices();
 }
@@ -59,10 +59,12 @@ TEST(ExDataUtilTest, HandlesNullRsaKey) {
 TEST(ExDataUtilTest, ReturnsErrorOnNullRsa) {
   ASSERT_THAT(InitExternalIndices(), IsOk());
 
-  MockRsaKey rsa_key;
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, nullptr), Not(IsOk()));
-  ASSERT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, nullptr), Not(IsOk()));
-  EXPECT_THAT(GetRsaKeyFromOpenSslRsa(nullptr), Not(IsOk()));
+  MockCryptoKeyHandle rsa_key;
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&rsa_key, nullptr),
+              Not(IsOk()));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, nullptr),
+              Not(IsOk()));
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(nullptr), Not(IsOk()));
 
   FreeExternalIndices();
 }
@@ -70,12 +72,14 @@ TEST(ExDataUtilTest, ReturnsErrorOnNullRsa) {
 TEST(ExDataUtilTest, ReturnsErrorWhenRsaExternalIndiciesNotInitialized) {
   // Explicitly not calling `InitExternalIndices` here.
   OpenSslRsa rsa = MakeRsa();
-  MockRsaKey rsa_key;
+  MockCryptoKeyHandle rsa_key;
 
-  EXPECT_THAT(AttachRsaKeyToOpenSslRsa(&rsa_key, rsa.get()), Not(IsOk()));
-  EXPECT_THAT(AttachRsaKeyToOpenSslRsa(nullptr, rsa.get()), Not(IsOk()));
+  EXPECT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&rsa_key, rsa.get()),
+              Not(IsOk()));
+  EXPECT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()),
+              Not(IsOk()));
 
-  EXPECT_THAT(GetRsaKeyFromOpenSslRsa(rsa.get()), Not(IsOk()));
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(rsa.get()), Not(IsOk()));
 }
 
 TEST(ExDataUtilTest, EngineDataRoundtrip) {
