@@ -111,6 +111,36 @@ TEST_F(InitializedExDataUtilTest, RsaReturnsErrorOnNullRsa) {
   EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(nullptr), Not(IsOk()));
 }
 
+TEST_F(InitializedExDataUtilTest, RsaUniquePtrCryptoKeyHandleRoundtrip) {
+  OpenSslRsa rsa = MakeRsa();
+  auto handle = absl::make_unique<MockCryptoKeyHandle>();
+  auto expected = handle.get();
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(std::move(handle), rsa.get()),
+              IsOk());
+
+  StatusOr<CryptoKeyHandle *> actual =
+      GetCryptoKeyHandleFromOpenSslRsa(rsa.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), expected);
+}
+
+TEST_F(InitializedExDataUtilTest, RsaUniquePtrHandlesNullCryptoKeyHandle) {
+  OpenSslRsa rsa = MakeRsa();
+  std::unique_ptr<CryptoKeyHandle> handle(nullptr);
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(std::move(handle), rsa.get()),
+              IsOk());
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(rsa.get()), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, RsaUniquePtrReturnsErrorOnNullRsa) {
+  auto handle = absl::make_unique<MockCryptoKeyHandle>();
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(std::move(handle), nullptr),
+              Not(IsOk()));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, nullptr),
+              Not(IsOk()));
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(nullptr), Not(IsOk()));
+}
+
 TEST_F(InitializedExDataUtilTest, EcKeyCryptoKeyHandleRoundtrip) {
   OpenSslEcKey ec_key = MakeEcKey();
   MockCryptoKeyHandle handle;
@@ -138,6 +168,39 @@ TEST_F(InitializedExDataUtilTest, EcKeyReturnsErrorOnNullEcKey) {
               Not(IsOk()));
   EXPECT_THAT(GetCryptoKeyHandleFromOpenSslEcKey(nullptr), Not(IsOk()));
 }
+
+TEST_F(InitializedExDataUtilTest, EcKeyUniquePtrCryptoKeyHandleRoundtrip) {
+  OpenSslEcKey ec_key = MakeEcKey();
+  auto handle = absl::make_unique<MockCryptoKeyHandle>();
+  auto expected = handle.get();
+  ASSERT_THAT(
+      AttachCryptoKeyHandleToOpenSslEcKey(std::move(handle), ec_key.get()),
+      IsOk());
+
+  StatusOr<CryptoKeyHandle *> actual =
+      GetCryptoKeyHandleFromOpenSslEcKey(ec_key.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), expected);
+}
+
+TEST_F(InitializedExDataUtilTest, EcKeyUniquePtrHandlesNullCryptoKeyHandle) {
+  OpenSslEcKey ec_key = MakeEcKey();
+  std::unique_ptr<CryptoKeyHandle> handle(nullptr);
+  ASSERT_THAT(
+      AttachCryptoKeyHandleToOpenSslEcKey(std::move(handle), ec_key.get()),
+      IsOk());
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslEcKey(ec_key.get()), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, EcKeyUniquePtrReturnsErrorOnNullEcKey) {
+  auto handle = absl::make_unique<MockCryptoKeyHandle>();
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(std::move(handle), nullptr),
+              Not(IsOk()));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(nullptr, nullptr),
+              Not(IsOk()));
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslEcKey(nullptr), Not(IsOk()));
+}
+
 
 TEST_F(InitializedExDataUtilTest, EngineDataRoundtrip) {
   OpenSslEngine engine = MakeEngine();
