@@ -15,7 +15,7 @@
 #
 
 load("@rules_cc//cc:defs.bzl", "cc_import", "cc_library")
-load("//:bazel/cc_binary_with_global_copts.bzl", "cc_binary", "transition_rule")
+load("//:bazel/cc_binary_with_global_copts.bzl", "cc_binary")
 
 package(default_visibility = ["//src:__subpackages__"])
 
