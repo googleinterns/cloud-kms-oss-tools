@@ -82,6 +82,7 @@
 //          std::string my_member_variable_;
 //        }
 //
+// See https://gcc.gnu.org/wiki/Visibility for more information.
 
 #if defined _WIN32 || defined __CYGWIN__
   #ifdef BUILDING_DLL
