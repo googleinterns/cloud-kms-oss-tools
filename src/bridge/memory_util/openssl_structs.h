@@ -122,18 +122,6 @@ inline OpenSslEvpPkey MakeEvpPkey() {
   return OpenSslEvpPkey(EVP_PKEY_new(), &EVP_PKEY_free);
 }
 
-<<<<<<< HEAD
-// Constructs a `std::unique_ptr` object which owns a fresh EVP_PKEY_CTX
-// instance. May return `nullptr` if no memory is available.
-//
-// The OpenSSL `EVP_PKEY_CTX_free` function is automatically called to dispose
-// of the underlying EVP_PKEY_CTX instance when the pointer goes out of scope.
-inline OpenSslEvpPkeyContext MakeEvpPkeyContext(EVP_PKEY *pkey, ENGINE *e) {
-  return OpenSslEvpPkeyContext(EVP_PKEY_CTX_new(pkey, e), &EVP_PKEY_CTX_free);
-}
-
-=======
->>>>>>> master
 // Constructs a `std::unique_ptr` object which owns a fresh EVP_MD_CTX
 // instance. May return `nullptr` if no memory is available.
 //
