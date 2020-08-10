@@ -22,7 +22,7 @@
 #include <openssl/rsa.h>
 #include <openssl/x509.h>
 
-#include "src/backing/rsa/rsa_key.h"
+#include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status.h"
 #include "src/backing/status/status_or.h"
 #include "src/bridge/ex_data_util/engine_data.h"
