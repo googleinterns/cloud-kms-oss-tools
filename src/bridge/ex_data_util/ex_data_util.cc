@@ -39,8 +39,8 @@ using ::kmsengine::backing::CryptoKeyHandle;
 static constexpr int kUninitializedIndex = -1;
 
 // External index assigned by OpenSSL on a `RSA` struct. If uninitialized, it
-// has value `kUninitializedIndex`. Used in `AttachCryptoKeyHandleToOpenSslRsa` and
-// `GetRsaKeyFromOpenSslRsa`.
+// has value `kUninitializedIndex`. Used in `AttachCryptoKeyHandleToOpenSslRsa`
+// and `GetCryptoKeyHandleFromOpenSslRsa`.
 static int rsa_index = kUninitializedIndex;
 
 // External index assigned by OpenSSL on a `ENGINE` struct. If uninitialized, it
@@ -109,7 +109,7 @@ Status AttachCryptoKeyHandleToOpenSslRsa(CryptoKeyHandle *rsa_key, RSA *rsa) {
   return Status::kOk;
 }
 
-StatusOr<CryptoKeyHandle *> GetRsaKeyFromOpenSslRsa(const RSA *rsa) {
+StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslRsa(const RSA *rsa) {
   if (rsa == nullptr) {
     return Status(StatusCode::kInvalidArgument, "RSA cannot be null");
   }
