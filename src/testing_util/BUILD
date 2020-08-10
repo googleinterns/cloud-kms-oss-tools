@@ -70,7 +70,18 @@ cc_library(
     srcs = ["openssl_assertions.h"],
     linkopts = ["-lcrypto"],
     deps = [
-        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "openssl_assertions_test",
+    size = "small",
+    srcs = ["openssl_assertions_test.cc"],
+    deps = [
+        ":openssl_assertions",
+        "//src/bridge/error",
         "@com_google_googletest//:gtest_main",
     ],
 )
