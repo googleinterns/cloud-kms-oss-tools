@@ -48,11 +48,12 @@ _copt_transition = transition(
     outputs = ["//command_line_option:copt"],
 )
 
-# Implementation of `transition_rule`. This copies the `cc_binary`'s output to
-# `transition_rule`'s own output, then propogates its runfiles and executable
-# back to Bazel. This makes `transition_rule` as close to a pure wrapper of
-# `cc_binary` as possible.
-def _transition_rule_impl(ctx):
+# Implementation of `cc_binary_with_global_copts_rule`. This copies the
+# `cc_binary`'s output to `cc_binary_with_global_copts_rule`'s own output, then
+# propogates its runfiles and executable back to Bazel. This makes
+# `cc_binary_with_global_copts_rule` as close to a pure wrapper of `cc_binary`
+# as possible.
+def _cc_binary_with_global_copts_rule_impl(ctx):
     actual_binary = ctx.attr.actual_binary[0]
     outfile = ctx.actions.declare_file(ctx.label.name)
     cc_binary_outfile = actual_binary[DefaultInfo].files.to_list()[0]
@@ -69,15 +70,11 @@ def _transition_rule_impl(ctx):
         ),
     ]
 
-# `transition_rule` consumes a `global_copts` attribute and invokes a
-# transition that sets `//command_line_option:copt` to the specified list of
-# strings in `global_copts`.
-#
-# While `transition_rule` could directly be included in a BUILD file, we
-# define a `cc_binary` macro for convenience so the BUILD file can look as close
-# to normal as possible.
-transition_rule = rule(
-    implementation = _transition_rule_impl,
+# `cc_binary_with_global_copts_rule` consumes a `global_copts` attribute and
+# invokes a transition that sets `//command_line_option:copt` to the specified
+# list of strings in `global_copts`.
+cc_binary_with_global_copts_rule = rule(
+    implementation = _cc_binary_with_global_copts_rule_impl,
     attrs = {
         # This is where the user can set the feature they want.
         "global_copts": attr.string_list(default = []),
@@ -99,17 +96,20 @@ transition_rule = rule(
     executable = True,
 )
 
-# Convenience macro: this instantiates a `transition_rule` with the given
-# desired `global_copts`, instantiates a `cc_binary` as a dependency of that
-# rule, and fills out that `cc_binary` rule with all other parameters passed to
-# this macro.
+# Convenience macro: this instantiates a `cc_binary_with_global_copts_rule` with
+# the given desired `global_copts`, instantiates a `cc_binary` as a dependency of
+# that rule, and fills out that `cc_binary` rule with all other parameters
+# passed to this macro.
 #
-# The result is a wrapper over cc_binary that "magically" gives it a new
-# `global_copts` attribute. BUILD users who wish to use this version of
-# `cc_binary` need to `load(...)` this version at the top of their BUILD file.
+# While `cc_binary_with_global_copts_rule` could directly be included in a BUILD
+# file, we define a `cc_binary` macro for convenience so the BUILD file can look
+# as close to normal as possible. The result is a wrapper over cc_binary that
+# "magically" gives it a new `global_copts` attribute. BUILD users who wish to
+# use this version of `cc_binary` need to `load(...)` this version at the top of
+# their BUILD file.
 def cc_binary(name, global_copts = None, **kwargs):
     cc_binary_name = name + "_native_binary"
-    transition_rule(
+    cc_binary_with_global_copts_rule(
         name = name,
         actual_binary = ":%s" % cc_binary_name,
         global_copts = global_copts,
