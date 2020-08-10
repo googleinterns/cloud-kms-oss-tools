@@ -74,8 +74,7 @@ StatusOr<int> GetIndex(int index_type) {
 // Returns `rsa_index` if it is initialized, or an error `Status`.
 inline StatusOr<int> GetRsaIndex() {
   if (rsa_index == kUninitializedIndex) {
-    return Status(StatusCode::kFailedPrecondition,
-                  "rsa_index uninitialized");
+    return Status(StatusCode::kFailedPrecondition, "rsa_index uninitialized");
   }
   return rsa_index;
 }
@@ -117,11 +116,15 @@ void FreeExternalIndices() {
 
 Status AttachCryptoKeyHandleToOpenSslRsa(CryptoKeyHandle *crypto_key_handle,
                                          RSA *rsa) {
+  if (rsa == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "RSA cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
   if (!RSA_set_ex_data(rsa, index, static_cast<void *>(crypto_key_handle))) {
     return Status(StatusCode::kInternal, "RSA_set_ex_data failed");
   }
-  return Status();
+  return Status::kOk;
 }
 
 Status AttachCryptoKeyHandleToOpenSslRsa(
@@ -129,10 +132,14 @@ Status AttachCryptoKeyHandleToOpenSslRsa(
   KMSENGINE_RETURN_IF_ERROR(
       AttachCryptoKeyHandleToOpenSslRsa(crypto_key_handle.get(), rsa));
   crypto_key_handle.release();  // Only release if attach was successful.
-  return Status();
+  return Status::kOk;
 }
 
 StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslRsa(const RSA *rsa) {
+  if (rsa == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "RSA cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
   auto ex_data = RSA_get_ex_data(rsa, index);
   if (ex_data == nullptr) {
@@ -144,12 +151,16 @@ StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslRsa(const RSA *rsa) {
 
 Status AttachCryptoKeyHandleToOpenSslEcKey(CryptoKeyHandle *crypto_key_handle,
                                            EC_KEY *ec_key) {
+  if (ec_key == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "EC_KEY cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEcKeyIndex());
   if (!EC_KEY_set_ex_data(ec_key, index,
                           static_cast<void *>(crypto_key_handle))) {
     return Status(StatusCode::kInternal, "EC_KEY_set_ex_data failed");
   }
-  return Status();
+  return Status::kOk;
 }
 
 Status AttachCryptoKeyHandleToOpenSslEcKey(
@@ -157,11 +168,15 @@ Status AttachCryptoKeyHandleToOpenSslEcKey(
   KMSENGINE_RETURN_IF_ERROR(
       AttachCryptoKeyHandleToOpenSslEcKey(crypto_key_handle.get(), ec_key));
   crypto_key_handle.release();  // Only release if attach was successful.
-  return Status();
+  return Status::kOk;
 }
 
 StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslEcKey(
     const EC_KEY *ec_key) {
+  if (ec_key == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "EC_KEY cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEcKeyIndex());
   auto ex_data = EC_KEY_get_ex_data(ec_key, index);
   if (ex_data == nullptr) {
@@ -172,6 +187,10 @@ StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslEcKey(
 }
 
 Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {
+  if (engine == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "ENGINE cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEngineIndex());
   if (!ENGINE_set_ex_data(engine, index, static_cast<void *>(data))) {
     return Status(StatusCode::kInternal, "ENGINE_set_ex_data failed");
@@ -180,6 +199,10 @@ Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {
 }
 
 StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine) {
+  if (engine == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "ENGINE cannot be null");
+  }
+
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEngineIndex());
   auto ex_data = ENGINE_get_ex_data(engine, index);
   if (ex_data == nullptr) {
