@@ -36,6 +36,8 @@
 
 namespace kmsengine {
 
+const Status Status::kOk = Status(StatusCode::kOk, "");
+
 std::string StatusCodeToString(StatusCode code) {
   switch (code) {
     case StatusCode::kOk:

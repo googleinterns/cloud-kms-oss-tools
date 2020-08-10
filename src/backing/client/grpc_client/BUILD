@@ -31,6 +31,29 @@ filegroup(
 )
 
 cc_library(
+    name = "key_management_service_stub",
+    srcs = ["key_management_service_stub.cc"],
+    hdrs = ["key_management_service_stub.h"],
+    deps = [
+        ":proto_util",
+        "//src/backing/status",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_grpc",
+        "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
+    ],
+)
+
+cc_test(
+    name = "key_management_service_stub_test",
+    size = "small",
+    srcs = ["key_management_service_stub_test.cc"],
+    deps = [
+        ":key_management_service_stub",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "client_context_factory",
     srcs = ["client_context_factory.cc"],
     hdrs = ["client_context_factory.h"],
@@ -62,7 +85,6 @@ cc_library(
         "//src/backing/client:digest_case",
         "//src/backing/status",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/strings",
         "@com_google_googleapis//google/cloud/kms/v1:kms_cc_proto",
     ],
 )
