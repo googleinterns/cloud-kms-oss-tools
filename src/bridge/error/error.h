@@ -19,6 +19,8 @@
 
 #include <stdio.h>
 
+#include <utility>
+
 #include "src/backing/status/status.h"
 
 namespace kmsengine {
@@ -39,6 +41,12 @@ Status UnloadErrorStringsFromOpenSSL();
 // names, file names, etc.).
 void SignalErrorToOpenSSL(Status status, const char *function_name,
                           const char *file_name, int line_number);
+
+// Returns the library code assigned by OpenSSL.
+int GetErrorLibraryId();
+
+}  // namespace bridge
+}  // namespace kmsengine
 
 // Signals to OpenSSL that an error of reason `reason_code` occurred. This does
 // not throw an exception.
@@ -61,10 +69,46 @@ void SignalErrorToOpenSSL(Status status, const char *function_name,
   ::kmsengine::bridge::SignalErrorToOpenSSL(status, __func__, __FILE__, \
                                             __LINE__);
 
-// Returns the library code assigned by OpenSSL.
-int GetErrorLibraryId();
+// Implementation of `KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR` that uses
+// a unique temporary identifier for avoiding collision in the enclosing scope.
+#define __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(__lhs, __rhs, __return, \
+                                                     __name)                 \
+  auto __name = (__rhs);                                                     \
+  if (!__name.ok()) {                                                        \
+    KMSENGINE_SIGNAL_ERROR(__name.status());                                 \
+    return __return;                                                         \
+  }                                                                          \
+  __lhs = std::move(__name.value());
 
-}  // namespace bridge
-}  // namespace kmsengine
+// Convenience wrapper around `KMSENGINE_SIGNAL_ERROR` that emulates the
+// `KMSENGINE_ASSIGN_OR_RETURN` macro, but for OpenSSL callbacks.
+//
+// Signals an engine error to OpenSSL using the given StatusOr<T> and returns
+// `__return` if it is an error status; otherwise, assigns the underlying
+// StatusOr<T> value to the left-hand-side expression.
+//
+// `__return` is not hard-coded since the OpenSSL callbacks that the engine
+// needs to implement have different failure return values.
+//
+// The right-hand-side expression is guaranteed to be evaluated exactly once.
+//
+// Note: KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR expands into multiple
+// statements; it cannot be used in a single statement (for example, within an
+// `if` statement).
+//
+// Example:
+//
+//    // Returns 0 (false) on failure.
+//    int RsaSign(...) {
+//      KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+//        auto some_var, FunctionReturnsAStatusOr(), false);
+//
+//      // use some_var here
+//    }
+//
+#define KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(__lhs, __rhs, __return) \
+  __KMSENGINE_ASSIGN_OR_RETURN_WITH_ERROR_IMPL(                               \
+    __lhs, __rhs, __return,                                                   \
+    __KMSENGINE_MACRO_CONCAT(__status_or_value, __COUNTER__))
 
 #endif  // KMSENGINE_BRIDGE_ERROR_ERROR_H_

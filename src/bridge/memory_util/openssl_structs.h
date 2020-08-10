@@ -19,7 +19,9 @@
 
 #include <memory>
 
+#include <openssl/ec.h>
 #include <openssl/engine.h>
+#include <openssl/evp.h>
 #include <openssl/rsa.h>
 
 namespace kmsengine {
@@ -50,6 +52,15 @@ namespace bridge {
 // convenience.
 using OpenSslBio = std::unique_ptr<BIO, decltype(&BIO_free)>;
 
+// Smart pointer wrapper around OpenSSL's EC_KEY struct. Just an alias for
+// convenience.
+using OpenSslEcKey = std::unique_ptr<EC_KEY, decltype(&EC_KEY_free)>;
+
+// Smart pointer wrapper around OpenSSL's EC_KEY_METHOD struct. Just an alias
+// for convenience.
+using OpenSslEcKeyMethod = std::unique_ptr<EC_KEY_METHOD,
+                                           decltype(&EC_KEY_METHOD_free)>;
+
 // Smart pointer wrapper around OpenSSL's ENGINE struct. Just an alias for
 // convenience.
 using OpenSslEngine = std::unique_ptr<ENGINE, decltype(&ENGINE_free)>;
@@ -58,6 +69,11 @@ using OpenSslEngine = std::unique_ptr<ENGINE, decltype(&ENGINE_free)>;
 // convenience.
 using OpenSslEvpPkey = std::unique_ptr<EVP_PKEY, decltype(&EVP_PKEY_free)>;
 
+// Smart pointer wrapper around OpenSSL's EVP_MD_CTX struct. Just an alias for
+// convenience.
+using OpenSslEvpDigestContext = std::unique_ptr<EVP_MD_CTX,
+                                              decltype(&EVP_MD_CTX_free)>;
+
 // Smart pointer wrapper around OpenSSL's RSA struct. Just an alias for
 // convenience.
 using OpenSslRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
@@ -65,6 +81,32 @@ using OpenSslRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
 // Smart pointer wrapper around OpenSSL's RSA_METHOD struct. Just an alias for
 // convenience.
 using OpenSslRsaMethod = std::unique_ptr<RSA_METHOD, decltype(&RSA_meth_free)>;
+
+// Constructs a `std::unique_ptr` object which owns a fresh ENGINE instance.
+// May return `nullptr` if no memory is available.
+//
+// The OpenSSL `ENGINE_free` function is automatically called to dispose
+// of the underlying ENGINE instance when the pointer goes out of scope.
+inline OpenSslEcKey MakeEcKey() {
+  return OpenSslEcKey(EC_KEY_new(), &EC_KEY_free);
+}
+
+// Constructs a `std::unique_ptr` object which contains a `EC_KEY_METHOD`
+// instance that is a shallow copy of the input `method`. May return `nullptr`
+// if no memory is available.
+//
+// If `method` == nullptr, then returns a fresh `EC_KEY_METHOD` instance.
+//
+// The OpenSSL `EC_KEY_METHOD_free` function is automatically called to dispose
+// of the underlying EC_KEY_METHOD instance when the pointer goes out of scope.
+inline OpenSslEcKeyMethod MakeEcKeyMethod(const EC_KEY_METHOD *method) {
+  return OpenSslEcKeyMethod(EC_KEY_METHOD_new(method), &EC_KEY_METHOD_free);
+}
+
+// Alias for `MakeEcKeyMethod(nullptr)`.
+inline OpenSslEcKeyMethod MakeEcKeyMethod() {
+  return MakeEcKeyMethod(nullptr);
+}
 
 // Constructs a `std::unique_ptr` object which owns a fresh ENGINE instance.
 // May return `nullptr` if no memory is available.
@@ -82,6 +124,15 @@ inline OpenSslEngine MakeEngine() {
 // of the underlying EVP_PKEY instance when the pointer goes out of scope.
 inline OpenSslEvpPkey MakeEvpPkey() {
   return OpenSslEvpPkey(EVP_PKEY_new(), &EVP_PKEY_free);
+}
+
+// Constructs a `std::unique_ptr` object which owns a fresh EVP_MD_CTX
+// instance. May return `nullptr` if no memory is available.
+//
+// The OpenSSL `EVP_MD_CTX_free` function is automatically called to dispose
+// of the underlying EVP_MD_CTX instance when the pointer goes out of scope.
+inline OpenSslEvpDigestContext MakeEvpDigestContext() {
+  return OpenSslEvpDigestContext(EVP_MD_CTX_new(), &EVP_MD_CTX_free);
 }
 
 // Constructs a `std::unique_ptr` object which owns a fresh RSA instance.
