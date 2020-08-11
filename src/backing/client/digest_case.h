@@ -20,6 +20,8 @@
 #include <string>
 #include <type_traits>
 
+#include "src/backing/export_macros.h"
+
 namespace kmsengine {
 namespace backing {
 
@@ -34,7 +36,7 @@ namespace backing {
 // cases in `google::cloud::kms::v1::Digest::DigestCase`; this allows for
 // simple conversions between `DigestCase` and its protobuf counterpart by
 // using `static_cast`.
-enum class DigestCase : int {
+enum class KMSENGINE_EXPORT DigestCase : int {
   kSha256 = 1,
   kSha384 = 2,
   kSha512 = 3,
@@ -46,8 +48,9 @@ constexpr int DigestCaseToInt(DigestCase digest) {
 }
 
 // Converts a `DigestCase` to a human-readable string.
-std::string DigestCaseToString(DigestCase digest_case);
-std::ostream& operator<<(std::ostream& os, DigestCase digest_case);
+KMSENGINE_EXPORT std::string DigestCaseToString(DigestCase digest_case);
+KMSENGINE_EXPORT std::ostream& operator<<(std::ostream& os,
+                                          DigestCase digest_case);
 
 }  // namespace backing
 }  // namespace kmsengine
