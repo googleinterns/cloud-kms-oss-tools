@@ -49,6 +49,7 @@ using ::testing::Return;
 using ::testing::AtLeast;
 using ::testing::ValuesIn;
 using ::testing::Combine;
+using ::testing::HasSubstr;
 
 // List of `CryptoKeyVersionAlgorithm`s valid for use in a RSA sign operation.
 constexpr CryptoKeyVersionAlgorithm kRsaSignAlgorithms[] = {
@@ -140,7 +141,7 @@ constexpr char kEcdsaPublicKey[] =
 constexpr int kExpectedKeySize = 256;
 
 TEST(KeyLoaderTest, HandlesBadEngineData) {
-  EXPECT_THAT(InitExternalIndicies(), IsOk());
+  EXPECT_THAT(InitExternalIndices(), IsOk());
 
   // Should fail since no `EngineData` is attached to `ENGINE`.
   auto engine = MakeEngine();
@@ -149,7 +150,7 @@ TEST(KeyLoaderTest, HandlesBadEngineData) {
       LoadPrivateKey(engine.get(), "resource_id", nullptr, nullptr),
       "ENGINE instance was not initialized with Cloud KMS data");
 
-  FreeExternalIndicies();
+  FreeExternalIndices();
 }
 
 class KeyLoaderTest : public ::testing::TestWithParam<
@@ -160,11 +161,11 @@ class KeyLoaderTest : public ::testing::TestWithParam<
         expected_signature_(std::get<1>(GetParam())) {}
 
   void SetUp() override {
-    ASSERT_THAT(InitExternalIndicies(), IsOk());
+    ASSERT_THAT(InitExternalIndices(), IsOk());
   }
 
   void TearDown() override {
-    FreeExternalIndicies();
+    FreeExternalIndices();
   }
 
   // Returns a pointer to the `ENGINE` to use in the test case.
@@ -186,7 +187,6 @@ class RsaKeyLoaderTest : public KeyLoaderTest {
   RsaKeyLoaderTest()
       : public_key_(PublicKey(kRsaPublicKey, std::get<0>(GetParam()))),
         engine_data_(absl::make_unique<MockClient>(),
-                     {nullptr, nullptr},
                      {nullptr, nullptr}) {}
 
   // Initializes a `EngineData` struct and attaches it to `engine()` prior to
@@ -388,13 +388,13 @@ TEST_P(EcKeyLoaderTest, DISABLED_LoadPrivateKey) {
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
 
   auto engine_data = absl::make_unique<EngineData>(
-      std::move(client), {nullptr, nullptr}, {nullptr, nullptr});
+      std::move(client), OpenSslRsaMethod(nullptr, nullptr));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data.get(), engine()),
               IsOk());
 
   EXPECT_OPENSSL_FAILURE(
       LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr),
-      "ECDSA not yet implemented");
+      HasSubstr("ECDSA not yet implemented"));
 }
 
 // Fixture that sets up useful mocks and test variables in preparation for a
@@ -413,13 +413,13 @@ TEST_P(UnsupportedKeyLoaderTest, LoadPrivateKey) {
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(PublicKey("", algorithm)));
 
   auto engine_data = absl::make_unique<EngineData>(
-      std::move(client), {nullptr, nullptr}, {nullptr, nullptr});
+      std::move(client), OpenSslRsaMethod(nullptr, nullptr));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data.get(), engine()),
               IsOk());
 
   EXPECT_OPENSSL_FAILURE(
       LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr),
-      "Cloud KMS key had type");
+      HasSubstr("Cloud KMS key had type"));
 }
 
 }  // namespace

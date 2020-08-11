@@ -22,7 +22,6 @@
 #include "src/backing/status/status_or.h"
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
-#include "src/bridge/key_loader/ec_key_loader.h"
 #include "src/bridge/key_loader/rsa_key_loader.h"
 #include "src/bridge/memory_util/openssl_bio.h"
 #include "src/bridge/memory_util/openssl_structs.h"
@@ -73,12 +72,18 @@ EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
     case CryptoKeyVersionAlgorithm::kEcSignP256Sha256:
     case CryptoKeyVersionAlgorithm::kEcSignP384Sha384:
       {
-        KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-            evp_pkey,
-            key_loader::MakeKmsEcEvpPkey(std::move(public_key_pem_bio),
-                                         std::move(crypto_key_handle),
-                                         engine_data->ec_key_method()),
-            nullptr);
+        // TODO: uncomment when #113 is merged in.
+        // KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+        //     evp_pkey,
+        //     key_loader::MakeKmsEcEvpPkey(std::move(public_key_pem_bio),
+        //                                  std::move(crypto_key_handle),
+        //                                  engine_data->ec_key_method()),
+        //     nullptr);
+        // break;
+        KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
+            "Cloud KMS key had type " +
+            CryptoKeyVersionAlgorithmToString(public_key.algorithm()) +
+            ", which is unsupported by the Cloud KMS engine"));
         break;
       }
     default:
