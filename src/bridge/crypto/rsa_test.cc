@@ -255,6 +255,30 @@ TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
       HasSubstr("Unsupported digest type"));
 }
 
+TEST_F(RsaMethodTest, SignHandlesSignatureLongerThanRsaSize) {
+  StatusOr<OpenSslRsa> rsa_or = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa_or, IsOk());
+  OpenSslRsa rsa = std::move(rsa_or.value());
+
+  // Generate a signature that is 1 byte longer than `RSA_size(rsa)`, and have
+  // mock return that signature to test that `RSA_sign` handles the case where
+  // the signature returned by the API is unexpectedly longer than `RSA_size`.
+  std::string kTooLongSignature("a", RSA_size(rsa.get()) + 1);
+  MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
+  EXPECT_CALL(*handle, Sign).WillOnce(
+      Return(StatusOr<std::string>(kTooLongSignature)));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
+
+  std::string digest = "my digest";
+  unsigned char signature[kTooLongSignature.length()];
+  unsigned int signature_length;
+  EXPECT_OPENSSL_FAILURE(
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(), signature, &signature_length,
+               rsa.get()),
+      HasSubstr("Generated signature length was larger than RSA_size(rsa)"));
+}
+
 }  // namespace
 }  // namespace crypto
 }  // namespace bridge
