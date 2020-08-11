@@ -144,7 +144,9 @@ int Verify(int type, const unsigned char *m, unsigned int m_len,
            const unsigned char *sigbuf, unsigned int siglen, const RSA *rsa) {
   // TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/101):
   // This method is currently purposely left unimplemented, but it may need to
-  // be implemented at some point in the future.
+  // be implemented at some point in the future. The OpenSSL CLI seems to use
+  // RSA_public_decrypt over RSA_verify, so this never really gets called at the
+  // moment.
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
   return false;
@@ -226,8 +228,8 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
       // method. The OpenSSL man page for RSA_set_method(3) explicitly
       // permits these callbacks to be set to null in an engine implementation.
       // However, we are defining them here to be the OpenSSL defaults since
-      // the OpenSSL command-line utilities apparently require them to be
-      // defined in order for verification operations to work.
+      // the OpenSSL command-line utilities apparently use them for verification
+      // operations.
       !RSA_meth_set_mod_exp(rsa_method.get(),
                             RSA_meth_get_mod_exp(openssl_rsa_method)) ||
       !RSA_meth_set_bn_mod_exp(rsa_method.get(),
