@@ -148,7 +148,7 @@ TEST(KeyLoaderTest, HandlesBadEngineData) {
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());
   EXPECT_OPENSSL_FAILURE(
       LoadPrivateKey(engine.get(), "resource_id", nullptr, nullptr),
-      "ENGINE instance was not initialized with Cloud KMS data");
+      HasSubstr("ENGINE instance was not initialized with Cloud KMS data"));
 
   FreeExternalIndices();
 }
@@ -187,7 +187,7 @@ class RsaKeyLoaderTest : public KeyLoaderTest {
   RsaKeyLoaderTest()
       : public_key_(PublicKey(kRsaPublicKey, std::get<0>(GetParam()))),
         engine_data_(absl::make_unique<MockClient>(),
-                     {nullptr, nullptr}) {}
+                     OpenSslRsaMethod(const_cast<RSA_METHOD *>(RSA_PKCS1_OpenSSL()), nullptr)) {}
 
   // Initializes a `EngineData` struct and attaches it to `engine()` prior to
   // the `RsaKeyLoaderTest`. The `EngineData` struct is initialized with a
