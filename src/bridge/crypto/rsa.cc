@@ -20,6 +20,7 @@
 
 #include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status.h"
+#include "src/backing/status/status_or.h"
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/memory_util/openssl_structs.h"
@@ -32,6 +33,34 @@ namespace {
 
 using ::kmsengine::backing::CryptoKeyHandle;
 using ::kmsengine::backing::DigestCase;
+
+// A human-readable name associated with the Cloud KMS engine's RSA_METHOD.
+//
+// Used by some OpenSSL-backed applications.
+static constexpr char kRsaMethodName[] = "Google Cloud KMS RSA Method";
+
+// Bitwise mask of OpenSSL flags to associate with the Cloud KMS engine's
+// RSA_METHOD. See `rsa.h` from OpenSSL for flag definitions.
+//
+// The flags that are currently set are:
+//
+//  - RSA_FLAG_EXT_PKEY: This flag means that the private key material
+//    normally stored within an OpenSSL RSA struct does not exist. Our
+//    engine operates on Cloud KMS keys, so this flag is set. See
+//    RSA_new_method(3) for more information.
+//
+//  - RSA_METHOD_FLAG_NO_CHECK: Tells OpenSSL that the key material stored in
+//    the RSA struct may not contain both private and public key information
+//    (this is the case due to the fact that the engine does not have access to
+//    Cloud KMS private key material) and thus it should not check that the
+//    private and public key form a valid pair.
+//
+//    RSA_new_method(3) documents the existence of the RSA_METHOD_FLAG_NO_CHECK
+//    flag, but see https://github.com/openssl/openssl/pull/2243 for a more
+//    detailed explanation.
+//
+static constexpr int kRsaMethodFlags = RSA_FLAG_EXT_PKEY |
+                                       RSA_METHOD_FLAG_NO_CHECK;
 
 // Wrapper around error-checking and `reinterpret_cast` to make a std::string
 // representing a digest passed from OpenSSL as an unsigned char pointer and
@@ -61,7 +90,7 @@ StatusOr<std::string> MakeDigestString(const unsigned char *m,
 //
 // Returns 1 on success; otherwise, returns 0.
 int Init(RSA *rsa) {
-  return true;
+  return 1;
 }
 
 // Cleans up any internal structures associated with the input `rsa` struct
@@ -77,14 +106,12 @@ int Finish(RSA *rsa) {
   // external data struct was null, an error status would be returned).
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const CryptoKeyHandle *crypto_key_handle,
-      GetCryptoKeyHandleFromOpenSslRsa(rsa), false);
+      GetCryptoKeyHandleFromOpenSslRsa(rsa), 0);
   delete crypto_key_handle;
 
-  Status status = AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa);
-  if (!status.ok()) {
-    KMSENGINE_SIGNAL_ERROR(status);
-  }
-  return status.ok();
+  KMSENGINE_RETURN_IF_OPENSSL_ERROR(
+      AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa), 0);
+  return 1;
 }
 
 // Signs the message digest `digest_bytes` of length `digest_length` using the
@@ -107,18 +134,18 @@ int Sign(int type, const unsigned char *digest_bytes,
   // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const CryptoKeyHandle *crypto_key_handle,
-      GetCryptoKeyHandleFromOpenSslRsa(rsa), false);
+      GetCryptoKeyHandleFromOpenSslRsa(rsa), 0);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const DigestCase digest_type,
-      ConvertOpenSslNidToDigestType(type), false);
+      ConvertOpenSslNidToDigestType(type), 0);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const std::string digest_string,
-      MakeDigestString(digest_bytes, digest_length), false);
+      MakeDigestString(digest_bytes, digest_length), 0);
 
   // Delegate handling of the signing operation to the backing layer.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const std::string signature,
-      crypto_key_handle->Sign(digest_type, digest_string), false);
+      crypto_key_handle->Sign(digest_type, digest_string), 0);
 
   // Copy results into the return pointers.
   if (signature_return != nullptr) {
@@ -128,7 +155,7 @@ int Sign(int type, const unsigned char *digest_bytes,
   if (signature_length != nullptr) {
     *signature_length = signature.length();
   }
-  return true;
+  return 1;
 }
 
 // Verifies that the signature `sigbuf` of size `siglen` matches the given
@@ -149,7 +176,7 @@ int Verify(int type, const unsigned char *m, unsigned int m_len,
   // moment.
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
-  return false;
+  return 0;
 }
 
 // Signs the `from_length` bytes in `from` using the RSA key `rsa` and stores
@@ -196,10 +223,10 @@ int PrivateDecrypt(int from_length, const unsigned char *from,
 
 }  // namespace
 
-OpenSslRsaMethod MakeKmsRsaMethod() {
+StatusOr<OpenSslRsaMethod> MakeKmsRsaMethod() {
   OpenSslRsaMethod rsa_method = MakeRsaMethod(kRsaMethodName, kRsaMethodFlags);
   if (rsa_method == nullptr) {
-    return OpenSslRsaMethod(nullptr, nullptr);
+    return Status(StatusCode::kResourceExhausted, "No memory available");
   }
 
   // `RSA_PKCS1_OpenSSL` returns the default OpenSSL `RSA_METHOD`
@@ -239,7 +266,7 @@ OpenSslRsaMethod MakeKmsRsaMethod() {
       // explicitly permits this callback to be set to null in an engine
       // implementation.
       !RSA_meth_set_keygen(rsa_method.get(), nullptr)) {
-    return OpenSslRsaMethod(nullptr, nullptr);
+    return Status(StatusCode::kInternal, "RSA_meth_set_* failed");
   }
 
   return rsa_method;

@@ -48,9 +48,13 @@ const std::string kSampleSignature = "my signature";
 // `EngineBind` function) needed for the RSA callbacks to work.
 class RsaMethodTest : public ::testing::Test {
  protected:
-  RsaMethodTest() : rsa_method_(MakeKmsRsaMethod()) {}
+  RsaMethodTest() : rsa_method_(nullptr, nullptr) {}
 
   void SetUp() override {
+    StatusOr<OpenSslRsaMethod> kms_rsa_method_or = MakeKmsRsaMethod();
+    ASSERT_THAT(kms_rsa_method_or, IsOk());
+    rsa_method_ = std::move(kms_rsa_method_or.value());
+
     ASSERT_THAT(InitExternalIndices(), IsOk());
     ASSERT_THAT(rsa_method(), NotNull());
   }

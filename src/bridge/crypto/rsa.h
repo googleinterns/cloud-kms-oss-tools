@@ -20,41 +20,15 @@
 #include <openssl/rsa.h>
 
 #include "src/bridge/memory_util/openssl_structs.h"
+#include "src/backing/status/status_or.h"
 
 namespace kmsengine {
 namespace bridge {
 namespace crypto {
 
-// A human-readable name associated with the Cloud KMS engine's RSA_METHOD.
-//
-// Used by some OpenSSL-backed applications.
-constexpr char kRsaMethodName[] = "Google Cloud KMS RSA Method";
-
-// Bitwise mask of OpenSSL flags to associate with the Cloud KMS engine's
-// RSA_METHOD. See `rsa.h` from OpenSSL for flag definitions.
-//
-// The flags that are currently set are:
-//
-//  - RSA_FLAG_EXT_PKEY: This flag means that the private key material
-//    normally stored within an OpenSSL RSA struct does not exist. Our
-//    engine operates on Cloud KMS keys, so this flag is set. See
-//    RSA_new_method(3) for more information.
-//
-//  - RSA_METHOD_FLAG_NO_CHECK: Tells OpenSSL that the key material stored in
-//    the RSA struct may not contain both private and public key information
-//    (this is the case due to the fact that the engine does not have access to
-//    Cloud KMS private key material) and thus it should not check that the
-//    private and public key form a valid pair.
-//
-//    RSA_new_method(3) documents the existence of the RSA_METHOD_FLAG_NO_CHECK
-//    flag, but see https://github.com/openssl/openssl/pull/2243 for a more
-//    detailed explanation.
-//
-constexpr int kRsaMethodFlags = RSA_FLAG_EXT_PKEY | RSA_METHOD_FLAG_NO_CHECK;
-
 // Allocates memory for and initializes an OpenSSL `RSA_METHOD` struct with
 // pointers to the Cloud KMS engine RSA implementations.
-OpenSslRsaMethod MakeKmsRsaMethod();
+StatusOr<OpenSslRsaMethod> MakeKmsRsaMethod();
 
 }  // namespace crypto
 }  // namespace bridge

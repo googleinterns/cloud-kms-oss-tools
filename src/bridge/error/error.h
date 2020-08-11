@@ -111,4 +111,23 @@ int GetErrorLibraryId();
     __lhs, __rhs, __return,                                                   \
     __KMSENGINE_MACRO_CONCAT(__status_or_value, __COUNTER__))
 
+// Convenience wrapper around `KMSENGINE_SIGNAL_ERROR` that emulates the
+// `KMSENGINE_RETURN_IF_ERROR` macro, but for OpenSSL callbacks.
+//
+// Early-returns `__return` if `__status` is an error `Status`; otherwise,
+// proceeds.
+//
+// `__return` is not hard-coded since the OpenSSL callbacks that the engine
+// needs to implement have different failure return values.
+//
+// The argument expression is guaranteed to be evaluated exactly once.
+#define KMSENGINE_RETURN_IF_OPENSSL_ERROR(__status, __return) \
+  do {                                                        \
+    auto status = __status;                                   \
+    if (!status.ok()) {                                       \
+      KMSENGINE_SIGNAL_ERROR(status);                         \
+      return __return;                                        \
+    }                                                         \
+  } while (false)
+
 #endif  // KMSENGINE_BRIDGE_ERROR_ERROR_H_
