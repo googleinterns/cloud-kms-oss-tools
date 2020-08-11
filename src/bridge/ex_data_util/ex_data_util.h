@@ -40,16 +40,21 @@ Status InitExternalIndices();
 // Frees the ex_data indices requested from OpenSSL.
 void FreeExternalIndices();
 
-// Attaches an `CryptoKeyHandle` instance to the OpenSSL `RSA` instance. Returns an
-// error `Status` if an error occurred.
+// Attaches an `CryptoKeyHandle` instance to the OpenSSL `RSA` instance. Returns
+// an error `Status` if an error occurred.
 //
-// `rsa_key` may be null (for example, to reset attached data when freeing
-// a previously-attached `CryptoKeyHandle` to avoid use-after-free errors). `rsa` may
-// not be null.
-Status AttachCryptoKeyHandleToOpenSslRsa(backing::CryptoKeyHandle *rsa_key,
-                                         RSA *rsa);
+// `crypto_key_handle` may be null (for example, to reset attached data when
+// freeing a previously-attached `CryptoKeyHandle` to avoid use-after-free
+// errors). `rsa` may not be null.
+//
+// When possible, use the `unique_ptr` version to make ownership semantics
+// clearer and to simplify cleanup in error cases.
+Status AttachCryptoKeyHandleToOpenSslRsa(
+    backing::CryptoKeyHandle *crypto_key_handle, RSA *rsa);
+Status AttachCryptoKeyHandleToOpenSslRsa(
+    std::unique_ptr<backing::CryptoKeyHandle> crypto_key_handle, RSA *rsa);
 
-// Returns a raw pointer to the `CryptoKeyHandle` instance attacked to the given
+// Returns a raw pointer to the `CryptoKeyHandle` instance attached to the given
 // OpenSSL `RSA` struct. Raw pointer will never be null (if the underlying
 // external data is null, then an error `Status` is returned.)
 //
@@ -58,11 +63,35 @@ Status AttachCryptoKeyHandleToOpenSslRsa(backing::CryptoKeyHandle *rsa_key,
 StatusOr<backing::CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslRsa(
     const RSA *rsa);
 
+// Attaches an `CryptoKeyHandle` instance to the OpenSSL `EC_KEY` instance.
+// Returns an error `Status` if an error occurred.
+//
+// `crypto_key_handle` may be null (for example, to reset attached data when
+// freeing a previously-attached `CryptoKeyHandle` to avoid use-after-free
+// errors). `ec_key` may not be null.
+//
+// When possible, use the `unique_ptr` version to make ownership semantics
+// clearer and to simplify cleanup in error cases.
+Status AttachCryptoKeyHandleToOpenSslEcKey(
+    backing::CryptoKeyHandle *crypto_key_handle, EC_KEY *ec_key);
+Status AttachCryptoKeyHandleToOpenSslEcKey(
+    std::unique_ptr<backing::CryptoKeyHandle> crypto_key_handle,
+    EC_KEY *ec_key);
+
+// Returns a raw pointer to the `CryptoKeyHandle` instance attached to the given
+// OpenSSL `EC_KEY` struct. Raw pointer will never be null (if the underlying
+// external data is null, then an error `Status` is returned.)
+//
+// Attached data is only defined by a previous call to
+// `AttachCryptoKeyHandleToOpenSslEcKey`. `ec_key` may not be null.
+StatusOr<backing::CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslEcKey(
+    const EC_KEY *ec_key);
+
 // Attaches an `Client` instance to the OpenSSL `RSA` instance. Returns an
 // error `Status` if an error occurred.
 //
-// `data` may be null (for example, to reset attached data when freeing
-// a previously-attached `EngineData` to avoid use-after-free errors). `engine`
+// `data` may be null (for example, to reset attached data when freeing a
+// previously-attached `EngineData` to avoid use-after-free errors). `engine`
 // may not be null.
 Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine);
 
