@@ -36,12 +36,9 @@ cc_test(
     name = "rsa_test",
     size = "small",
     srcs = ["rsa_test.cc"],
-    # Statically link in libcrypto in test environment only to avoid symbol
-    # issues with BoringSSL which only appear in the test environment.
-    linkstatic = True,
-    linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":rsa",
+        "//src/bridge/memory_util:openssl_bio",
         "//src/testing_util:mock_crypto_key_handle",
         "//src/testing_util:openssl_assertions",
         "//src/testing_util:test_matchers",

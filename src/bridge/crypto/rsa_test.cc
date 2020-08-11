@@ -24,6 +24,7 @@
 
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/memory_util/openssl_structs.h"
+#include "src/bridge/memory_util/openssl_bio.h"
 #include "src/bridge/crypto/rsa.h"
 #include "src/testing_util/mock_crypto_key_handle.h"
 #include "src/testing_util/openssl_assertions.h"
@@ -43,6 +44,32 @@ using ::testing::StrEq;
 using ::testing::HasSubstr;
 
 const std::string kSampleSignature = "my signature";
+
+// A random 2048-bit / 256-byte RSA public key, encoded in PEM format.
+constexpr char kRsaPublicKey[] =
+  "-----BEGIN PUBLIC KEY-----\n"
+  "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy8Dbv8prpJ/0kKhlGeJY\n"
+  "ozo2t60EG8L0561g13R29LvMR5hyvGZlGJpmn65+A4xHXInJYiPuKzrKUnApeLZ+\n"
+  "vw1HocOAZtWK0z3r26uA8kQYOKX9Qt/DbCdvsF9wF8gRK0ptx9M6R13NvBxvVQAp\n"
+  "fc9jB9nTzphOgM4JiEYvlV8FLhg9yZovMYd6Wwf3aoXK891VQxTr/kQYoq1Yp+68\n"
+  "i6T4nNq7NWC+UNVjQHxNQMQMzU6lWCX8zyg3yH88OAQkUXIXKfQ+NkvYQ1cxaMoV\n"
+  "PpY72+eVthKzpMeyHkBn7ciumk5qgLTEJAfWZpe4f4eFZj/Rc8Y8Jj2IS5kVPjUy\n"
+  "wQIDAQAB\n"
+  "-----END PUBLIC KEY-----\n";
+
+// Creates an `OpenSslRsa` from the PEM-encoded public key data loaded in
+// `public_key_bio`. Returns an error `Status` if unsuccessful.
+//
+// The `RSA` struct contained within the returned `OpenSslRsa` will have its
+// public key parameters set to the values from the input PEM.
+StatusOr<OpenSslRsa> MakeRsaFromPublicKeyPemBio(OpenSslBio public_key_bio) {
+  RSA *rsa = PEM_read_bio_RSA_PUBKEY(public_key_bio.get(), nullptr,
+                                     nullptr, nullptr);
+  if (rsa == nullptr) {
+    return Status(StatusCode::kInternal, "PEM_read_bio_RSA_PUBKEY failed");
+  }
+  return OpenSslRsa(rsa, &RSA_free);
+}
 
 // Test fixture for calling initialization functions (normally called by the
 // `EngineBind` function) needed for the RSA callbacks to work.
@@ -65,9 +92,13 @@ class RsaMethodTest : public ::testing::Test {
 
   // Convenience function for making an RSA struct with the Cloud KMS RSA_METHOD
   // implementation already attached.
-  OpenSslRsa MakeRsaWithKmsMethod() {
-    auto rsa = MakeRsa();
-    if (rsa) RSA_set_method(rsa.get(), rsa_method());
+  StatusOr<OpenSslRsa> MakeRsaWithKmsMethod() {
+    KMSENGINE_ASSIGN_OR_RETURN(
+        OpenSslBio pem_bio,
+        MakeOpenSslMemoryBufferBio(kRsaPublicKey, sizeof(kRsaPublicKey)));
+    KMSENGINE_ASSIGN_OR_RETURN(
+        OpenSslRsa rsa, MakeRsaFromPublicKeyPemBio(std::move(pem_bio)));
+    RSA_set_method(rsa.get(), rsa_method());
     return rsa;
   }
 
@@ -114,8 +145,9 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
   // so it cleans itself up before the end of the test. This is important so
   // that it deletes the `MockCryptoKeyHandle` before the test body ends
   // (otherwise a testing error will be raised).
-  OpenSslRsa rsa = MakeRsaWithKmsMethod();
-  ASSERT_THAT(rsa, NotNull());
+  StatusOr<OpenSslRsa> rsa_or = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa_or, IsOk());
+  OpenSslRsa rsa = std::move(rsa_or.value());
 
   MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
   EXPECT_CALL(*handle, Sign).WillOnce(
@@ -135,8 +167,9 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesNullSignaturePointer) {
-  OpenSslRsa rsa = MakeRsaWithKmsMethod();
-  ASSERT_THAT(rsa, NotNull());
+  StatusOr<OpenSslRsa> rsa_or = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa_or, IsOk());
+  OpenSslRsa rsa = std::move(rsa_or.value());
 
   std::string kSampleSignature = "my signature";
   MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
@@ -154,8 +187,9 @@ TEST_F(RsaMethodTest, SignHandlesNullSignaturePointer) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesNullSignatureLengthPointer) {
-  OpenSslRsa rsa = MakeRsaWithKmsMethod();
-  ASSERT_THAT(rsa, NotNull());
+  StatusOr<OpenSslRsa> rsa_or = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa_or, IsOk());
+  OpenSslRsa rsa = std::move(rsa_or.value());
 
   std::string kSampleSignature = "my signature";
   MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
@@ -171,8 +205,9 @@ TEST_F(RsaMethodTest, SignHandlesNullSignatureLengthPointer) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
-  OpenSslRsa rsa = MakeRsaWithKmsMethod();
-  ASSERT_THAT(rsa, NotNull());
+  StatusOr<OpenSslRsa> rsa_or = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa_or, IsOk());
+  OpenSslRsa rsa = std::move(rsa_or.value());
 
   auto expected_error_message = "mock CryptoKeyHandle::Sign failed";
   MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
@@ -188,8 +223,9 @@ TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesMissingCryptoKeyHandle) {
-  OpenSslRsa rsa = MakeRsaWithKmsMethod();
-  ASSERT_THAT(rsa, NotNull());
+  StatusOr<OpenSslRsa> rsa_or = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa_or, IsOk());
+  OpenSslRsa rsa = std::move(rsa_or.value());
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()), IsOk());
 
   std::string digest = "my digest";
@@ -200,8 +236,9 @@ TEST_F(RsaMethodTest, SignHandlesMissingCryptoKeyHandle) {
 }
 
 TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
-  OpenSslRsa rsa = MakeRsaWithKmsMethod();
-  ASSERT_THAT(rsa, NotNull());
+  StatusOr<OpenSslRsa> rsa_or = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa_or, IsOk());
+  OpenSslRsa rsa = std::move(rsa_or.value());
 
   MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
   EXPECT_CALL(*handle, Sign).Times(0);
