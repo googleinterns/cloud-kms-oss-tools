@@ -36,7 +36,7 @@ using ::testing::NotNull;
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockCryptoKeyHandle;
 
-// A random 2048-bit / 256-byte ECDSA public key, encoded in PEM format..
+// A random 2048-bit / 256-byte ECDSA public key, encoded in PEM format.
 constexpr char kEcdsaPublicKey[] =
   "-----BEGIN PUBLIC KEY-----\n"
   "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE8xOUetsCa8EfOlDEBAfREhJqspDo\n"
