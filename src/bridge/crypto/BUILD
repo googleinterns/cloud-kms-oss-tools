@@ -36,6 +36,10 @@ cc_test(
     name = "ec_test",
     size = "small",
     srcs = ["ec_test.cc"],
+    # Statically link in libcrypto in test environment only to avoid symbol
+    # issues with BoringSSL which only appear in the test environment.
+    linkstatic = True,
+    linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":ec",
         "//src/testing_util:mock_crypto_key_handle",
