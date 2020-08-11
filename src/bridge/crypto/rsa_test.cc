@@ -42,6 +42,8 @@ using ::testing::Return;
 using ::testing::StrEq;
 using ::testing::HasSubstr;
 
+const std::string kSampleSignature = "my signature";
+
 // Test fixture for calling initialization functions (normally called by the
 // `EngineBind` function) needed for the RSA callbacks to work.
 class RsaMethodTest : public ::testing::Test {
@@ -97,7 +99,7 @@ TEST_F(RsaMethodTest, FinishCleansUpCryptoKeyHandle) {
   // If mocks aren't deleted before the end of a test, an error is raised.
   // Thus, if `RSA_free` doesn't delete the underlying `CryptoKeyHandle`, then
   // this test will fail.
-  auto handle = new MockCryptoKeyHandle();
+  MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa), IsOk());
 
   RSA_free(rsa);
@@ -111,20 +113,57 @@ TEST_F(RsaMethodTest, SignReturnsSignature) {
   OpenSslRsa rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
 
-  std::string expected = "my signature";
-  auto handle = new MockCryptoKeyHandle();
-  EXPECT_CALL(*handle, Sign).WillOnce(Return(StatusOr<std::string>(expected)));
+  MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
+  EXPECT_CALL(*handle, Sign).WillOnce(
+      Return(StatusOr<std::string>(kSampleSignature)));
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
 
-  std::string digest = "sample digest";
-  unsigned char signature[expected.length()];
+  std::string digest = "my digest";
+  unsigned char signature[kSampleSignature.length()];
   unsigned int signature_length;
   ASSERT_OPENSSL_SUCCESS(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
-               digest.length(), signature, &signature_length, rsa.get()));
+               digest.length(), signature, &signature_length,
+               rsa.get()));
 
   std::string actual(reinterpret_cast<char *>(signature), signature_length);
-  EXPECT_THAT(actual, StrEq(expected));
+  EXPECT_THAT(actual, StrEq(kSampleSignature));
+}
+
+TEST_F(RsaMethodTest, SignHandlesNullSignaturePointer) {
+  OpenSslRsa rsa = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa, NotNull());
+
+  std::string kSampleSignature = "my signature";
+  MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
+  EXPECT_CALL(*handle, Sign).WillOnce(
+      Return(StatusOr<std::string>(kSampleSignature)));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
+
+  std::string digest = "my digest";
+  unsigned int signature_length;
+  ASSERT_OPENSSL_SUCCESS(
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(), nullptr, &signature_length, rsa.get()));
+
+  EXPECT_EQ(signature_length, kSampleSignature.length());
+}
+
+TEST_F(RsaMethodTest, SignHandlesNullSignatureLengthPointer) {
+  OpenSslRsa rsa = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa, NotNull());
+
+  std::string kSampleSignature = "my signature";
+  MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
+  EXPECT_CALL(*handle, Sign).WillOnce(
+      Return(StatusOr<std::string>(kSampleSignature)));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
+
+  std::string digest = "my digest";
+  unsigned char signature[kSampleSignature.length()];
+  ASSERT_OPENSSL_SUCCESS(
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(), signature, nullptr, rsa.get()));
 }
 
 TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
@@ -132,12 +171,12 @@ TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
   ASSERT_THAT(rsa, NotNull());
 
   auto expected_error_message = "mock CryptoKeyHandle::Sign failed";
-  auto handle = new MockCryptoKeyHandle();
+  MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
   EXPECT_CALL(*handle, Sign).WillOnce(Return(StatusOr<std::string>(
       Status(StatusCode::kInternal, expected_error_message))));
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
 
-  std::string digest = "sample digest";
+  std::string digest = "my digest";
   EXPECT_OPENSSL_FAILURE(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
                digest.length(), nullptr, nullptr, rsa.get()),
@@ -149,7 +188,7 @@ TEST_F(RsaMethodTest, SignHandlesMissingCryptoKeyHandle) {
   ASSERT_THAT(rsa, NotNull());
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()), IsOk());
 
-  std::string digest = "sample digest";
+  std::string digest = "my digest";
   EXPECT_OPENSSL_FAILURE(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
                digest.length(), nullptr, nullptr, rsa.get()),
@@ -160,7 +199,7 @@ TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
   OpenSslRsa rsa = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa, NotNull());
 
-  auto handle = new MockCryptoKeyHandle();
+  MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
   EXPECT_CALL(*handle, Sign).Times(0);
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
 
@@ -168,7 +207,7 @@ TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
   // Cloud KMS (and since it's an insecure algorithm, it probably won't be
   // supported in the future).
   constexpr auto kBadDigestType = NID_md5;
-  std::string digest = "sample digest";
+  std::string digest = "my digest";
   EXPECT_OPENSSL_FAILURE(
       RSA_sign(kBadDigestType, reinterpret_cast<unsigned char *>(&digest[0]),
                digest.length(), nullptr, nullptr, rsa.get()),
