@@ -42,6 +42,10 @@ namespace kmsengine {
 namespace testing_util {
 namespace {
 
+using ::testing::HasSubstr;
+using ::testing::StartsWith;
+using ::testing::StrEq;
+
 // Returns falsy value on error.
 int ExpectedToError() {
   KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kInternal,
@@ -68,25 +72,90 @@ TEST(OpenSslSuccessTest, FailsOnFailure) {
       "unexpectedly returned false");
 }
 
-TEST(OpenSslFailureTest, MatchesErrorMessage) {
-  EXPECT_OPENSSL_FAILURE(ExpectedToError(), "a unique error message");
-  ASSERT_OPENSSL_FAILURE(ExpectedToError(), "a unique error message");
+TEST(OpenSslFailureTest, WorksWithHasSubstrMatcher) {
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(),
+                         HasSubstr("a unique error message"));
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("a unique error"));
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("error message"));
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr(""));
+
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(),
+                         HasSubstr("a unique error message"));
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("a unique error"));
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr("error message"));
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), HasSubstr(""));
+
+  EXPECT_NONFATAL_FAILURE(
+      EXPECT_OPENSSL_FAILURE(ExpectedToError(),
+                             HasSubstr("not a substring")),
+      "did not match");
+  EXPECT_FATAL_FAILURE(
+      ASSERT_OPENSSL_FAILURE(ExpectedToError(),
+                             HasSubstr("not a substring")),
+      "did not match");
 }
 
-TEST(OpenSslFailureTest, MatchesSubstringErrorMessage) {
-  EXPECT_OPENSSL_FAILURE(ExpectedToError(), "error message");
-  ASSERT_OPENSSL_FAILURE(ExpectedToError(), "error message");
+TEST(OpenSslFailureTest, WorksWithStartsWithMatcher) {
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(),
+                         StartsWith("Error occurred in ExpectedToError"));
+  EXPECT_OPENSSL_FAILURE(ExpectedToError(), StartsWith(""));
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(),
+                         StartsWith("Error occurred in ExpectedToError"));
+  ASSERT_OPENSSL_FAILURE(ExpectedToError(), StartsWith(""));
 
-  EXPECT_OPENSSL_FAILURE(ExpectedToError(), "");
-  ASSERT_OPENSSL_FAILURE(ExpectedToError(), "");
+  EXPECT_NONFATAL_FAILURE(
+      EXPECT_OPENSSL_FAILURE(ExpectedToError(),
+                             StartsWith("occurred in ExpectedToError")),
+      "did not match");
+  EXPECT_FATAL_FAILURE(
+      ASSERT_OPENSSL_FAILURE(ExpectedToError(),
+                             StartsWith("occurred in ExpectedToError")),
+      "did not match");
+
+  EXPECT_NONFATAL_FAILURE(
+      EXPECT_OPENSSL_FAILURE(ExpectedToError(),
+                             StartsWith("error message")),
+      "did not match");
+  EXPECT_FATAL_FAILURE(
+      ASSERT_OPENSSL_FAILURE(ExpectedToError(),
+                             StartsWith("error message")),
+      "did not match");
+}
+
+TEST(OpenSslFailureTest, WorksWithStrEqMatcher) {
+  EXPECT_OPENSSL_FAILURE(
+      ExpectedToError(),
+      StrEq("Error occurred in ExpectedToError: a unique error message"));
+  ASSERT_OPENSSL_FAILURE(
+      ExpectedToError(),
+      StrEq("Error occurred in ExpectedToError: a unique error message"));
+
+  EXPECT_NONFATAL_FAILURE(
+      EXPECT_OPENSSL_FAILURE(ExpectedToError(),
+                             StrEq("non-matching error message")),
+      "did not match");
+  EXPECT_FATAL_FAILURE(
+      ASSERT_OPENSSL_FAILURE(ExpectedToError(),
+                             StrEq("non-matching error message")),
+      "did not match");
+
+  // Partial substring match should still fail with `StrEq`.
+  EXPECT_NONFATAL_FAILURE(
+      EXPECT_OPENSSL_FAILURE(ExpectedToError(),
+                             StrEq("Error occurred in ExpectedToError")),
+      "did not match");
+  EXPECT_FATAL_FAILURE(
+      ASSERT_OPENSSL_FAILURE(ExpectedToError(),
+                             StrEq("Error occurred in ExpectedToError")),
+      "did not match");
 }
 
 TEST(OpenSslFailureTest, FailsOnSuccess) {
   EXPECT_NONFATAL_FAILURE(
-      EXPECT_OPENSSL_FAILURE(ExpectedToSucceed(), ""),
+      EXPECT_OPENSSL_FAILURE(ExpectedToSucceed(), HasSubstr("")),
       "unexpectedly returned true");
   EXPECT_FATAL_FAILURE(
-      ASSERT_OPENSSL_FAILURE(ExpectedToSucceed(), ""),
+      ASSERT_OPENSSL_FAILURE(ExpectedToSucceed(), HasSubstr("")),
       "unexpectedly returned true");
 }
 
