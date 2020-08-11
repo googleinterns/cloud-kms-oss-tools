@@ -41,12 +41,11 @@ constexpr char kDefaultApiEndpoint[] = "cloudkms.googleapis.com";
 
 std::unique_ptr<Client> MakeDefaultClient(
     absl::optional<std::chrono::milliseconds> timeout) {
-  auto credentials = grpc::GoogleDefaultCredentials();
-  auto stub = grpc_client::CreateKeyManagementServiceStub(kDefaultApiEndpoint,
-                                                          credentials);
-
-  auto clock = std::make_shared<client::SystemClock>();
-  auto factory = grpc_client::CreateClientContextFactory(timeout, clock);
+  auto stub = grpc_client::CreateKeyManagementServiceStub(
+      kDefaultApiEndpoint,
+      grpc::GoogleDefaultCredentials());
+  auto factory = grpc_client::CreateClientContextFactory(
+      timeout, std::make_shared<client::SystemClock>());
 
   return absl::make_unique<GrpcClient>(std::move(stub), std::move(factory));
 }
