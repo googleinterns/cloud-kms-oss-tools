@@ -23,6 +23,7 @@
 #include "src/backing/status/status.h"
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
+#include "src/bridge/nid_util/nid_util.h"
 #include "src/bridge/memory_util/openssl_structs.h"
 
 namespace kmsengine {
@@ -31,6 +32,7 @@ namespace crypto {
 namespace {
 
 using ::kmsengine::backing::CryptoKeyHandle;
+using ::kmsengine::backing::DigestCase;
 
 // Wrapper around error-checking and `reinterpret_cast` to make a std::string
 // representing a digest passed from OpenSSL as an unsigned char pointer and
@@ -54,21 +56,19 @@ StatusOr<std::string> MakeDigestString(const unsigned char *m,
 // OpenSSL library).
 //
 // Called when OpenSSL's `EC_KEY_free` is called on `ec_key`.
-//
-// Returns 1 on success; otherwise, returns 0.
-int Finish(EC_KEY *ec_key) {
+void Finish(EC_KEY *ec_key) {
   // `crypto_key_handle` is guaranteed to be non-null here (if the underlying
   // external data struct was null, an error status would be returned).
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const CryptoKeyHandle *crypto_key_handle,
-      GetCryptoKeyHandleFromOpenSslEcKey(ec_key), false);
-  delete crypto_key_handle;
+  StatusOr<CryptoKeyHandle *> crypto_key_handle_or =
+      GetCryptoKeyHandleFromOpenSslEcKey(ec_key);
+  if (crypto_key_handle_or.ok()) {
+    delete crypto_key_handle_or.value();
+  }
 
   Status status = AttachCryptoKeyHandleToOpenSslEcKey(nullptr, ec_key);
   if (!status.ok()) {
     KMSENGINE_SIGNAL_ERROR(status);
   }
-  return status.ok();
 }
 
 // Called at the end of `EC_KEY_copy`, which copies the contents of `src` into
@@ -81,12 +81,13 @@ int Copy(EC_KEY *dest, const EC_KEY *src) {
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const CryptoKeyHandle *src_handle,
       GetCryptoKeyHandleFromOpenSslEcKey(src), false);
+  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+      std::unique_ptr<CryptoKeyHandle> dest_handle,
+      backing::CopyCryptoKeyHandle(*src_handle), false);
 
-  const CryptoKeyHandle *dest_handle = new CryptoKeyHandle(*src_handle);
-
-  Status status = AttachCryptoKeyHandleToOpenSslEcKey(dest_handle, dest);
+  Status status = AttachCryptoKeyHandleToOpenSslEcKey(
+      std::move(dest_handle), dest);
   if (!status.ok()) {
-    delete dest_handle;
     KMSENGINE_SIGNAL_ERROR(status);
   }
   return status.ok();
@@ -112,10 +113,10 @@ int SignEx(int type, const unsigned char *digest_bytes, int digest_length,
   // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const CryptoKeyHandle *crypto_key_handle,
-      GetCryptoKeyHandleFromEcKey(ec_key), false);
+      GetCryptoKeyHandleFromOpenSslEcKey(ec_key), false);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const DigestCase digest_type,
-      ConvertOpenSslNidToDigestType(type));
+      ConvertOpenSslNidToDigestType(type), false);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const std::string digest_string,
       MakeDigestString(digest_bytes, digest_length), false);
@@ -174,7 +175,7 @@ ECDSA_SIG *DoSignEx(const unsigned char *digest_bytes, int digest_length,
   if (ecdsa_signature == nullptr) {
     KMSENGINE_SIGNAL_ERROR(
         Status(StatusCode::kResourceExhausted, "No memory available"));
-    return false;
+    return nullptr;
   }
 
   // We reuse the engine's implementation for `ECDSA_sign_ex` to compute the
@@ -191,7 +192,7 @@ ECDSA_SIG *DoSignEx(const unsigned char *digest_bytes, int digest_length,
 
   // BN_bin2bn(&signature[0], signature_length, nullptr);
 
-  return 0;
+  return nullptr;
 }
 
 // Engine implementation for `EC_KEY_generate_key`.
@@ -213,8 +214,8 @@ int GenerateKey(EC_KEY *ec_key) {
 // Currently unimplemented, and should not be implemented. This operation is
 // specifically for ECDH keys, which are currently not supported by the Cloud
 // KMS API.
-int ComputeKey(void */*out*/, size_t /*outlen*/, const EC_POINT *, EC_KEY *,
-               void *(*/*KDF*/) (const void *, size_t, void *, size_t *)) {
+int ComputeKey(unsigned char **/*out*/, size_t */*outlen*/, const EC_POINT *,
+               const EC_KEY *) {
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
   return -1;
@@ -233,44 +234,49 @@ OpenSslEcKeyMethod MakeKmsEcKeyMethod() {
     return OpenSslEcKeyMethod(nullptr, nullptr);
   }
 
+  // Unlike their `RSA_meth_set*` counterparts, the `EC_KEY_METHOD_set_*`
+  // functions do not return a boolean value.
+
   // Implementations for `ECDSA_verify` and `ECDSA_do_verify` are not explicitly
   // set here, since the engine will just reuse the default implementation for
   // `ECDSA_verify` and `ECDSA_do_verify` from `EC_KEY_OpenSSL()` (which
   // have already been copied into `ec_key_method`).
-  if (// `EC_KEY_METHOD_set_init` sets multiple callback functions that are used
-      // for `EC_KEY`-related memory management. (As stated in
-      // EC_KEY_METHOD_set_init(3), all of the `EC_KEY_METHOD_set_init`
-      // callbacks are null in the default OpenSSL implementation, so they are
-      // optional callbacks.)
-      //
-      // See https://man.openbsd.org/EC_KEY_METHOD_new.3#EC_KEY_METHOD_set_init
-      // for explanations of each callback and where the callbacks are called.
-      //
-      // The `init` callback is set to null since the key loader is responsible
-      // for initializing `EC_KEY` structs to have meaningful engine-specific
-      // data. Thus, we don't need to do any initialization work in the
-      // `EC_KEY_METHOD` `init` callback.
-      //
-      // The callbacks for `set_group`, `set_private`, and `set_public` are
-      // set to null since the engine does not need them for its implementation.
-      !EC_KEY_METHOD_set_init(ec_key_method.get(), /*init=*/nullptr,
-                              Finish, Copy,
-                              /*set_group=*/nullptr,
-                              /*set_private=*/nullptr,
-                              /*set_public=*/nullptr) ||
-      // `EC_KEY_METHOD_set_sign` consumes three functions: the first function
-      // is the implementation for `ECDSA_sign_ex`, the second function is for
-      // `ECDSA_sign_setup`, and the third function is for `ECDSA_do_sign_ex`.
-      !EC_KEY_METHOD_set_sign(ec_key_method.get(),
-                              SignEx, SignSetup, DoSignEx) ||
-      // `EC_KEY_METHOD_set_keygen` sets the function that implements
-      // `EC_KEY_generate_key`.
-      !EC_KEY_METHOD_set_keygen(ec_key_method.get(), GenerateKey) ||
-      // `EC_KEY_METHOD_set_compute_key` sets the function that implements
-      // `ECDH_compute_key`.
-      !EC_KEY_METHOD_set_compute_key(ec_key_method.get(), ComputeKey)) {
-    return OpenSslEcKeyMethod(nullptr, nullptr);
-  }
+
+  // `EC_KEY_METHOD_set_init` sets multiple callback functions that are used
+  // for `EC_KEY`-related memory management. (As stated in
+  // EC_KEY_METHOD_set_init(3), all of the `EC_KEY_METHOD_set_init`
+  // callbacks are null in the default OpenSSL implementation, so they are
+  // optional callbacks.)
+  //
+  // See https://man.openbsd.org/EC_KEY_METHOD_new.3#EC_KEY_METHOD_set_init
+  // for explanations of each callback and where the callbacks are called.
+  //
+  // The `init` callback is set to null since the key loader is responsible
+  // for initializing `EC_KEY` structs to have meaningful engine-specific
+  // data. Thus, we don't need to do any initialization work in the
+  // `EC_KEY_METHOD` `init` callback.
+  //
+  // The callbacks for `set_group`, `set_private`, and `set_public` are
+  // set to null since the engine does not need them for its implementation.
+  EC_KEY_METHOD_set_init(ec_key_method.get(), /*init=*/nullptr,
+                         Finish, Copy,
+                         /*set_group=*/nullptr,
+                         /*set_private=*/nullptr,
+                         /*set_public=*/nullptr);
+
+  // `EC_KEY_METHOD_set_sign` consumes three functions: the first function
+  // is the implementation for `ECDSA_sign_ex`, the second function is for
+  // `ECDSA_sign_setup`, and the third function is for `ECDSA_do_sign_ex`.
+  EC_KEY_METHOD_set_sign(ec_key_method.get(),
+                          SignEx, SignSetup, DoSignEx);
+
+  // `EC_KEY_METHOD_set_keygen` sets the function that implements
+  // `EC_KEY_generate_key`.
+  EC_KEY_METHOD_set_keygen(ec_key_method.get(), GenerateKey);
+
+  // `EC_KEY_METHOD_set_compute_key` sets the function that implements
+  // `ECDH_compute_key`.
+  EC_KEY_METHOD_set_compute_key(ec_key_method.get(), ComputeKey);
 
   return ec_key_method;
 }
