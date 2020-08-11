@@ -23,7 +23,17 @@ namespace backing {
 namespace {
 
 TEST(ClientFactoryTest, MakeDefaultClientWithoutTimeout) {
+  // We can't make calls with an authenticated client here, so for now just
+  // check that the factory function is callable and returns a success
+  // `Status`.
   (void)MakeDefaultClientWithoutTimeout();
+}
+
+TEST(ClientFactoryTest, MakeDefaultClientWithTimeout) {
+  // We can't make calls with an authenticated client here, so for now just
+  // check that the factory function is callable and returns a success
+  // `Status`.
+  (void)MakeDefaultClientWithTimeout(std::chrono::milliseconds(50));
 }
 
 }  // namespace
