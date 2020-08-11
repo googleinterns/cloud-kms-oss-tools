@@ -48,6 +48,10 @@ namespace bridge {
 // be converted to smart pointers since the engine does not "own" that
 // pointer.
 
+// Smart pointer wrapper around OpenSSL's BIO struct. Just an alias for
+// convenience.
+using OpenSslBio = std::unique_ptr<BIO, decltype(&BIO_free)>;
+
 // Smart pointer wrapper around OpenSSL's EC_KEY struct. Just an alias for
 // convenience.
 using OpenSslEcKey = std::unique_ptr<EC_KEY, decltype(&EC_KEY_free)>;
