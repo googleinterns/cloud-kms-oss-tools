@@ -32,49 +32,12 @@ using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockCryptoKeyHandle;
 using ::testing::Not;
 
-TEST(ExDataUtilTest, CryptoKeyHandleRoundtrip) {
-  ASSERT_THAT(InitExternalIndices(), IsOk());
-
+TEST(UninitializedExDataUtilTest, RsaReturnsError) {
+  // Explicitly not using TEST_F here so we do not call `InitExternalIndices`.
   OpenSslRsa rsa = MakeRsa();
-  MockCryptoKeyHandle rsa_key;
-  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&rsa_key, rsa.get()), IsOk());
+  MockCryptoKeyHandle handle;
 
-  StatusOr<CryptoKeyHandle *> actual = GetCryptoKeyHandleFromOpenSslRsa(rsa.get());
-  EXPECT_THAT(actual, IsOk());
-  EXPECT_EQ(actual.value(), &rsa_key);
-
-  FreeExternalIndices();
-}
-
-TEST(ExDataUtilTest, HandlesNullCryptoKeyHandle) {
-  ASSERT_THAT(InitExternalIndices(), IsOk());
-
-  OpenSslRsa rsa = MakeRsa();
-  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()), IsOk());
-  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(rsa.get()), Not(IsOk()));
-
-  FreeExternalIndices();
-}
-
-TEST(ExDataUtilTest, ReturnsErrorOnNullRsa) {
-  ASSERT_THAT(InitExternalIndices(), IsOk());
-
-  MockCryptoKeyHandle rsa_key;
-  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&rsa_key, nullptr),
-              Not(IsOk()));
-  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, nullptr),
-              Not(IsOk()));
-  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(nullptr), Not(IsOk()));
-
-  FreeExternalIndices();
-}
-
-TEST(ExDataUtilTest, ReturnsErrorWhenRsaExternalIndiciesNotInitialized) {
-  // Explicitly not calling `InitExternalIndices` here.
-  OpenSslRsa rsa = MakeRsa();
-  MockCryptoKeyHandle rsa_key;
-
-  EXPECT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&rsa_key, rsa.get()),
+  EXPECT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&handle, rsa.get()),
               Not(IsOk()));
   EXPECT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()),
               Not(IsOk()));
@@ -82,45 +45,21 @@ TEST(ExDataUtilTest, ReturnsErrorWhenRsaExternalIndiciesNotInitialized) {
   EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(rsa.get()), Not(IsOk()));
 }
 
-TEST(ExDataUtilTest, EngineDataRoundtrip) {
-  ASSERT_THAT(InitExternalIndices(), IsOk());
+TEST(UninitializedExDataUtilTest, EcKeyReturnsError) {
+  // Explicitly not using TEST_F here so we do not call `InitExternalIndices`.
+  OpenSslEcKey ec_key = MakeEcKey();
+  MockCryptoKeyHandle handle;
 
-  OpenSslEngine engine = MakeEngine();
-  EngineData engine_data(nullptr, {nullptr, nullptr});
-  ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
-              IsOk());
-
-  StatusOr<EngineData *> actual = GetEngineDataFromOpenSslEngine(engine.get());
-  EXPECT_THAT(actual, IsOk());
-  EXPECT_EQ(actual.value(), &engine_data);
-
-  FreeExternalIndices();
-}
-
-TEST(ExDataUtilTest, HandlesNullEngineData) {
-  ASSERT_THAT(InitExternalIndices(), IsOk());
-
-  OpenSslEngine engine = MakeEngine();
-  ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());
-  EXPECT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), Not(IsOk()));
-
-  FreeExternalIndices();
-}
-
-TEST(ExDataUtilTest, ReturnsErrorOnNullEngine) {
-  ASSERT_THAT(InitExternalIndices(), IsOk());
-
-  EngineData engine_data(nullptr, {nullptr, nullptr});
-  ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, nullptr),
+  EXPECT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(&handle, ec_key.get()),
               Not(IsOk()));
-  ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, nullptr), Not(IsOk()));
-  EXPECT_THAT(GetEngineDataFromOpenSslEngine(nullptr), Not(IsOk()));
+  EXPECT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(nullptr, ec_key.get()),
+              Not(IsOk()));
 
-  FreeExternalIndices();
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslEcKey(ec_key.get()), Not(IsOk()));
 }
 
-TEST(ExDataUtilTest, ReturnsErrorWhenEngineExternalIndiciesNotInitialized) {
-  // Explicitly not calling `InitExternalIndices` here.
+TEST(UninitializedExDataUtilTest, EngineReturnsError) {
+  // Explicitly not using TEST_F here so we do not call `InitExternalIndices`.
   OpenSslEngine engine = MakeEngine();
   EngineData engine_data(nullptr, {nullptr, nullptr});
 
@@ -130,6 +69,162 @@ TEST(ExDataUtilTest, ReturnsErrorWhenEngineExternalIndiciesNotInitialized) {
               Not(IsOk()));
 
   EXPECT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), Not(IsOk()));
+}
+
+// Test fixture for ex_data_util functions which calls `InitExternalIndices` at
+// the top of the test case and frees the external index system at the end of
+// the test case.
+class InitializedExDataUtilTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    ASSERT_THAT(InitExternalIndices(), IsOk());
+  }
+
+  void TearDown() override {
+    FreeExternalIndices();
+  }
+};
+
+TEST_F(InitializedExDataUtilTest, RsaCryptoKeyHandleRoundtrip) {
+  OpenSslRsa rsa = MakeRsa();
+  MockCryptoKeyHandle handle;
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&handle, rsa.get()), IsOk());
+
+  StatusOr<CryptoKeyHandle *> actual =
+      GetCryptoKeyHandleFromOpenSslRsa(rsa.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), &handle);
+}
+
+TEST_F(InitializedExDataUtilTest, RsaHandlesNullCryptoKeyHandle) {
+  OpenSslRsa rsa = MakeRsa();
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()), IsOk());
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(rsa.get()), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, RsaReturnsErrorOnNullRsa) {
+  MockCryptoKeyHandle handle;
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(&handle, nullptr),
+              Not(IsOk()));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, nullptr),
+              Not(IsOk()));
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(nullptr), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, RsaUniquePtrCryptoKeyHandleRoundtrip) {
+  OpenSslRsa rsa = MakeRsa();
+  auto handle = absl::make_unique<MockCryptoKeyHandle>();
+  auto expected = handle.get();
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(std::move(handle), rsa.get()),
+              IsOk());
+
+  StatusOr<CryptoKeyHandle *> actual =
+      GetCryptoKeyHandleFromOpenSslRsa(rsa.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), expected);
+}
+
+TEST_F(InitializedExDataUtilTest, RsaUniquePtrHandlesNullCryptoKeyHandle) {
+  OpenSslRsa rsa = MakeRsa();
+  std::unique_ptr<CryptoKeyHandle> handle(nullptr);
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(std::move(handle), rsa.get()),
+              IsOk());
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(rsa.get()), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, RsaUniquePtrReturnsErrorOnNullRsa) {
+  auto handle = absl::make_unique<MockCryptoKeyHandle>();
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(std::move(handle), nullptr),
+              Not(IsOk()));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, nullptr),
+              Not(IsOk()));
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslRsa(nullptr), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, EcKeyCryptoKeyHandleRoundtrip) {
+  OpenSslEcKey ec_key = MakeEcKey();
+  MockCryptoKeyHandle handle;
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(&handle, ec_key.get()),
+              IsOk());
+
+  StatusOr<CryptoKeyHandle *> actual =
+      GetCryptoKeyHandleFromOpenSslEcKey(ec_key.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), &handle);
+}
+
+TEST_F(InitializedExDataUtilTest, EcKeyHandlesNullCryptoKeyHandle) {
+  OpenSslEcKey ec_key = MakeEcKey();
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(nullptr, ec_key.get()),
+              IsOk());
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslEcKey(ec_key.get()), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, EcKeyReturnsErrorOnNullEcKey) {
+  MockCryptoKeyHandle handle;
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(&handle, nullptr),
+              Not(IsOk()));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(nullptr, nullptr),
+              Not(IsOk()));
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslEcKey(nullptr), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, EcKeyUniquePtrCryptoKeyHandleRoundtrip) {
+  OpenSslEcKey ec_key = MakeEcKey();
+  auto handle = absl::make_unique<MockCryptoKeyHandle>();
+  auto expected = handle.get();
+  ASSERT_THAT(
+      AttachCryptoKeyHandleToOpenSslEcKey(std::move(handle), ec_key.get()),
+      IsOk());
+
+  StatusOr<CryptoKeyHandle *> actual =
+      GetCryptoKeyHandleFromOpenSslEcKey(ec_key.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), expected);
+}
+
+TEST_F(InitializedExDataUtilTest, EcKeyUniquePtrHandlesNullCryptoKeyHandle) {
+  OpenSslEcKey ec_key = MakeEcKey();
+  std::unique_ptr<CryptoKeyHandle> handle(nullptr);
+  ASSERT_THAT(
+      AttachCryptoKeyHandleToOpenSslEcKey(std::move(handle), ec_key.get()),
+      IsOk());
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslEcKey(ec_key.get()), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, EcKeyUniquePtrReturnsErrorOnNullEcKey) {
+  auto handle = absl::make_unique<MockCryptoKeyHandle>();
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(std::move(handle), nullptr),
+              Not(IsOk()));
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslEcKey(nullptr, nullptr),
+              Not(IsOk()));
+  EXPECT_THAT(GetCryptoKeyHandleFromOpenSslEcKey(nullptr), Not(IsOk()));
+}
+
+
+TEST_F(InitializedExDataUtilTest, EngineDataRoundtrip) {
+  OpenSslEngine engine = MakeEngine();
+  EngineData engine_data(nullptr, {nullptr, nullptr});
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
+              IsOk());
+
+  StatusOr<EngineData *> actual = GetEngineDataFromOpenSslEngine(engine.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), &engine_data);
+}
+
+TEST_F(InitializedExDataUtilTest, EngineHandlesNullEngineData) {
+  OpenSslEngine engine = MakeEngine();
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());
+  EXPECT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), Not(IsOk()));
+}
+
+TEST_F(InitializedExDataUtilTest, EngineReturnsErrorOnNullEngine) {
+  EngineData engine_data(nullptr, {nullptr, nullptr});
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, nullptr),
+              Not(IsOk()));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, nullptr), Not(IsOk()));
+  EXPECT_THAT(GetEngineDataFromOpenSslEngine(nullptr), Not(IsOk()));
 }
 
 }  // namespace
