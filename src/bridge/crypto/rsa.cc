@@ -148,12 +148,22 @@ int Sign(int type, const unsigned char *digest_bytes,
       crypto_key_handle->Sign(digest_type, digest_string), 0);
 
   // Copy results into the return pointers.
-  if (signature_return != nullptr) {
-    signature.copy(reinterpret_cast<char *>(signature_return),
-                   signature.length());
-  }
   if (signature_length != nullptr) {
     *signature_length = signature.length();
+  }
+  if (signature_return != nullptr) {
+    // Sanity check on `RSA_size` and the length of the signature.
+    if (static_cast<int>(signature.length()) > RSA_size(rsa)) {
+      KMSENGINE_SIGNAL_ERROR(
+          Status(StatusCode::kFailedPrecondition,
+                 "Generated signature length was larger than RSA_size(rsa), "
+                 "so could not store signature in buffer (signature "
+                 "length: " + std::to_string(signature.length()) +
+                 "; RSA_size(rsa): " + std::to_string(RSA_size(rsa)) + ")"));
+      return 0;
+    }
+    signature.copy(reinterpret_cast<char *>(signature_return),
+                   signature.length());
   }
   return 1;
 }
