@@ -37,7 +37,18 @@ constexpr char kRsaMethodName[] = "Google Cloud KMS RSA Method";
 //
 //  - RSA_FLAG_EXT_PKEY: This flag means that the private key material
 //    normally stored within an OpenSSL RSA struct does not exist. Our
-//    engine operates on Cloud KMS keys, so this flag is set.
+//    engine operates on Cloud KMS keys, so this flag is set. See
+//    RSA_new_method(3) for more information.
+//
+//  - RSA_METHOD_FLAG_NO_CHECK: Tells OpenSSL that the key material stored in
+//    the RSA struct may not contain both private and public key information
+//    (this is the case due to the fact that the engine does not have access to
+//    Cloud KMS private key material) and thus it should not check that the
+//    private and public key form a valid pair.
+//
+//    RSA_new_method(3) documents the existence of the RSA_METHOD_FLAG_NO_CHECK
+//    flag, but see https://github.com/openssl/openssl/pull/2243 for a more
+//    detailed explanation.
 //
 constexpr int kRsaMethodFlags = RSA_FLAG_EXT_PKEY | RSA_METHOD_FLAG_NO_CHECK;
 
