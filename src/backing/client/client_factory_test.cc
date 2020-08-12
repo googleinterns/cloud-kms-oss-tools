@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include "src/backing/client/client_factory.h"
@@ -22,18 +23,21 @@ namespace kmsengine {
 namespace backing {
 namespace {
 
+using ::testing::NotNull;
+
 TEST(ClientFactoryTest, MakeDefaultClientWithoutTimeout) {
   // We can't make calls with an authenticated client here, so for now just
-  // check that the factory function is callable and returns a success
-  // `Status`.
-  (void)MakeDefaultClientWithoutTimeout();
+  // check that the factory function is callable and returns a non-null
+  // `Client`.
+  EXPECT_THAT(MakeDefaultClientWithoutTimeout(), NotNull());
 }
 
 TEST(ClientFactoryTest, MakeDefaultClientWithTimeout) {
   // We can't make calls with an authenticated client here, so for now just
-  // check that the factory function is callable and returns a success
-  // `Status`.
-  (void)MakeDefaultClientWithTimeout(std::chrono::milliseconds(50));
+  // check that the factory function is callable and returns a non-null
+  // `Client`.
+  EXPECT_THAT(MakeDefaultClientWithTimeout(std::chrono::milliseconds(50)),
+              NotNull());
 }
 
 }  // namespace

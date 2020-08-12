@@ -26,14 +26,14 @@ namespace kmsengine {
 namespace backing {
 
 // Makes the default client with the given timeout.
-std::unique_ptr<Client> MakeDefaultClientWithTimeout(
+KMSENGINE_EXPORT std::unique_ptr<Client> MakeDefaultClientWithTimeout(
     std::chrono::milliseconds timeout);
 
 // Makes the default client, except without a timeout.
 //
 // Separate function is defined as opposed to using `absl::optional` since
 // the bridge layer is unable to have Abseil as a dependency.
-std::unique_ptr<Client> MakeDefaultClientWithoutTimeout();
+KMSENGINE_EXPORT std::unique_ptr<Client> MakeDefaultClientWithoutTimeout();
 
 }  // namespace backing
 }  // namespace kmsengine
