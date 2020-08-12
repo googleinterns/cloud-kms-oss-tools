@@ -188,9 +188,18 @@ class RsaKeyLoaderTest : public KeyLoaderTest {
   RsaKeyLoaderTest()
       : public_key_(PublicKey(kRsaPublicKey, std::get<0>(GetParam()))),
         engine_data_(absl::make_unique<MockClient>(),
-                     OpenSslRsaMethod(const_cast<RSA_METHOD *>(RSA_PKCS1_OpenSSL()),
-                                      [](RSA_METHOD *method) {}),
-                     OpenSslEcKeyMethod(const_cast<EC_KEY_METHOD *>(EC_KEY_OpenSSL()), EC_KEY_METHOD_free)) {}
+                     // `RSA_PKCS1_OpenSSL` returns the default OpenSSL
+                     // `RSA_METHOD`. We use a no-op deleter here since
+                     // `RSA_meth_free` does not support the pointer returned
+                     // by `RSA_PKCS1_OpenSSL`.
+                     OpenSslRsaMethod(
+                        const_cast<RSA_METHOD *>(RSA_PKCS1_OpenSSL()),
+                        [](RSA_METHOD *method) {}),
+                     // `EC_KEY_OpenSSL` returns the default OpenSSL
+                     // `EC_KEY_METHOD`.
+                     OpenSslEcKeyMethod(
+                        const_cast<EC_KEY_METHOD *>(EC_KEY_OpenSSL()),
+                        EC_KEY_METHOD_free)) {}
 
   // Initializes a `EngineData` struct and attaches it to `engine()` prior to
   // the `RsaKeyLoaderTest`. The `EngineData` struct is initialized with a
@@ -239,17 +248,6 @@ TEST_P(RsaKeyLoaderTest, GeneratedKeyContainsHasTypeRsa) {
   EXPECT_EQ(EVP_PKEY_size(evp_pkey), kExpectedKeySize);
   EXPECT_EQ(EVP_PKEY_id(evp_pkey), EVP_PKEY_RSA)
       << "Object ID of EVP_PKEY should be EVP_PKEY_RSA";
-
-  EVP_PKEY_free(evp_pkey);
-}
-
-TEST_P(RsaKeyLoaderTest, ReturnedEvpPkeyHasAttachedRsaStruct) {
-  EXPECT_CALL(mock_client(), GetPublicKey);
-
-  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
-                                      nullptr);
-  ASSERT_THAT(evp_pkey, Not(IsNull()));
-
   EXPECT_THAT(EVP_PKEY_get0_RSA(evp_pkey), Not(IsNull()));
 
   EVP_PKEY_free(evp_pkey);
@@ -320,7 +318,7 @@ INSTANTIATE_TEST_SUITE_P(
     Combine(ValuesIn(kUnsupportedAlgorithms), ValuesIn(kSampleSignatures)));
 
 TEST_P(UnsupportedKeyLoaderTest, LoadPrivateKey) {
-  const auto algorithm = std::get<0>(GetParam());
+  const CryptoKeyVersionAlgorithm algorithm = std::get<0>(GetParam());
 
   auto client = absl::make_unique<MockClient>();
   EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(PublicKey("", algorithm)));
