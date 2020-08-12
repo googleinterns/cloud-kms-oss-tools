@@ -86,7 +86,7 @@ TEST(ExDataUtilTest, EngineDataRoundtrip) {
   ASSERT_THAT(InitExternalIndices(), IsOk());
 
   OpenSslEngine engine = MakeEngine();
-  EngineData engine_data(nullptr, {nullptr, nullptr});
+  EngineData engine_data(nullptr, {nullptr, nullptr}, {nullptr, nullptr});
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
               IsOk());
 
@@ -110,7 +110,7 @@ TEST(ExDataUtilTest, HandlesNullEngineData) {
 TEST(ExDataUtilTest, ReturnsErrorOnNullEngine) {
   ASSERT_THAT(InitExternalIndices(), IsOk());
 
-  EngineData engine_data(nullptr, {nullptr, nullptr});
+  EngineData engine_data(nullptr, {nullptr, nullptr}, {nullptr, nullptr});
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, nullptr),
               Not(IsOk()));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, nullptr), Not(IsOk()));
@@ -122,7 +122,7 @@ TEST(ExDataUtilTest, ReturnsErrorOnNullEngine) {
 TEST(ExDataUtilTest, ReturnsErrorWhenEngineExternalIndiciesNotInitialized) {
   // Explicitly not calling `InitExternalIndices` here.
   OpenSslEngine engine = MakeEngine();
-  EngineData engine_data(nullptr, {nullptr, nullptr});
+  EngineData engine_data(nullptr, {nullptr, nullptr}, {nullptr, nullptr});
 
   EXPECT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
               Not(IsOk()));

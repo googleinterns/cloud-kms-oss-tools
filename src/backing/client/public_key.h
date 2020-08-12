@@ -19,6 +19,7 @@
 
 #include <string>
 
+#include "src/backing/export_macros.h"
 #include "src/backing/client/crypto_key_version_algorithm.h"
 
 namespace kmsengine {
@@ -30,7 +31,7 @@ namespace backing {
 // protobuf definitions since the bridge layer needs to refer to this resource
 // directly and the bridge layer is not able to include external dependencies
 // (such as the generated protobuf definitions).
-class PublicKey {
+class KMSENGINE_EXPORT PublicKey {
  public:
   explicit PublicKey(std::string pem, CryptoKeyVersionAlgorithm algorithm)
       : pem_(pem), algorithm_(algorithm) {}
