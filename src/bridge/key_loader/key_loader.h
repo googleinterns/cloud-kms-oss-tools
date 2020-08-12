@@ -31,9 +31,11 @@ namespace bridge {
 //
 // The `ui_method` and `callback_data` parameters are ignored.
 //
-// TODO(zesp): This is currently just treating the `key_id` path as the Cloud
-// KMS key resource ID itself. It may be useful to let the user instead specify
-// a real file that contains the key resource ID in it instead.
+// TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/118): This
+// is currently just treating the `key_id` path as the Cloud KMS key resource ID
+// itself. However, Apache seems to require that the `key_id` exists as a real
+// file, so we'll need to make this function read the key resource ID from
+// a real file instead.
 EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
                          UI_METHOD *ui_method, void *callback_data);
 
