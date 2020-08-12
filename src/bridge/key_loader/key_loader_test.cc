@@ -313,10 +313,12 @@ INSTANTIATE_TEST_SUITE_P(
 // EC_KEY loader tests in
 // https://github.com/googleinterns/cloud-kms-oss-tools/pull/113.
 
-// Fixture that sets up useful mocks and test variables in preparation for a
-// `LoadPrivateKey` test with a key of a particular `CryptoKeyVersionAlgorithm`
-// type that corresponds to an unsupported sign operation.
-class UnsupportedKeyLoaderTest : public KeyLoaderTest {};
+// Fixture for a `LoadPrivateKey` test with a key of a particular
+// `CryptoKeyVersionAlgorithm` type that corresponds to an unsupported sign
+// operation.
+class UnsupportedKeyLoaderTest : public KeyLoaderTest {
+  // Purposely empty; no fixtures to instantiate.
+};
 
 INSTANTIATE_TEST_SUITE_P(
     UnsupportedAlgorithmParameters, UnsupportedKeyLoaderTest,
