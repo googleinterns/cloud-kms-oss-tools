@@ -42,6 +42,7 @@ cc_test(
     linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":ec",
+        "//src/bridge/memory_util:openssl_bio",
         "//src/testing_util:mock_crypto_key_handle",
         "//src/testing_util:openssl_assertions",
         "//src/testing_util:test_matchers",

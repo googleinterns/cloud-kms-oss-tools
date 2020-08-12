@@ -17,6 +17,7 @@
 #ifndef KMSENGINE_BRIDGE_CRYPTO_EC_H_
 #define KMSENGINE_BRIDGE_CRYPTO_EC_H_
 
+#include "src/backing/status/status_or.h"
 #include "src/bridge/memory_util/openssl_structs.h"
 
 namespace kmsengine {
@@ -25,7 +26,7 @@ namespace crypto {
 
 // Allocates memory for and initializes an OpenSSL `EC_KEY_METHOD` struct with
 // pointers to the Cloud KMS engine EC implementations.
-OpenSslEcKeyMethod MakeKmsEcKeyMethod();
+StatusOr<OpenSslEcKeyMethod> MakeKmsEcKeyMethod();
 
 }  // namespace crypto
 }  // namespace bridge

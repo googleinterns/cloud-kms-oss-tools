@@ -21,6 +21,7 @@
 
 #include "src/backing/crypto_key_handle/crypto_key_handle.h"
 #include "src/backing/status/status.h"
+#include "src/backing/status/status_or.h"
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
 #include "src/bridge/nid_util/nid_util.h"
@@ -73,8 +74,6 @@ void Finish(EC_KEY *ec_key) {
 
 // Called at the end of `EC_KEY_copy`, which copies the contents of `src` into
 // `dest`.
-//
-// This function is intended
 int Copy(EC_KEY *dest, const EC_KEY *src) {
   // `crypto_key_handle` is guaranteed to be non-null here (if the underlying
   // external data struct was null, an error status would be returned).
@@ -223,7 +222,7 @@ int ComputeKey(unsigned char **/*out*/, size_t */*outlen*/, const EC_POINT *,
 
 }  // namespace
 
-OpenSslEcKeyMethod MakeKmsEcKeyMethod() {
+StatusOr<OpenSslEcKeyMethod> MakeKmsEcKeyMethod() {
   // `MakeEcKeyMethod` performs a shallow copy of the given `EC_KEY_METHOD`.
   // Here, we set it to `EC_KEY_OpenSsl()`, which returns the default OpenSSL
   // `EC_KEY_METHOD` implementation. This allows us to immediately "borrow"
@@ -231,11 +230,11 @@ OpenSslEcKeyMethod MakeKmsEcKeyMethod() {
   // engine has direct access to public key material.
   OpenSslEcKeyMethod ec_key_method = MakeEcKeyMethod(EC_KEY_OpenSSL());
   if (ec_key_method == nullptr) {
-    return OpenSslEcKeyMethod(nullptr, nullptr);
+    return Status(StatusCode::kResourceExhausted, "No memory available");
   }
 
   // Unlike their `RSA_meth_set*` counterparts, the `EC_KEY_METHOD_set_*`
-  // functions do not return a boolean value.
+  // functions have return type `void` and thus do not need to be error-checked.
 
   // Implementations for `ECDSA_verify` and `ECDSA_do_verify` are not explicitly
   // set here, since the engine will just reuse the default implementation for
@@ -258,7 +257,8 @@ OpenSslEcKeyMethod MakeKmsEcKeyMethod() {
   //
   // The callbacks for `set_group`, `set_private`, and `set_public` are
   // set to null since the engine does not need them for its implementation.
-  EC_KEY_METHOD_set_init(ec_key_method.get(), /*init=*/nullptr,
+  EC_KEY_METHOD_set_init(ec_key_method.get(),
+                         /*init=*/nullptr,
                          Finish, Copy,
                          /*set_group=*/nullptr,
                          /*set_private=*/nullptr,
@@ -268,7 +268,7 @@ OpenSslEcKeyMethod MakeKmsEcKeyMethod() {
   // is the implementation for `ECDSA_sign_ex`, the second function is for
   // `ECDSA_sign_setup`, and the third function is for `ECDSA_do_sign_ex`.
   EC_KEY_METHOD_set_sign(ec_key_method.get(),
-                          SignEx, SignSetup, DoSignEx);
+                         SignEx, SignSetup, DoSignEx);
 
   // `EC_KEY_METHOD_set_keygen` sets the function that implements
   // `EC_KEY_generate_key`.
