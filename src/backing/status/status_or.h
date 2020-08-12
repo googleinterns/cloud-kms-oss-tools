@@ -33,10 +33,11 @@
 #ifndef KMSENGINE_BACKING_STATUS_STATUS_OR_H_
 #define KMSENGINE_BACKING_STATUS_STATUS_OR_H_
 
-#include "src/backing/status/status.h"
-
 #include <type_traits>
 #include <utility>
+
+#include "src/backing/export_macros.h"
+#include "src/backing/status/status.h"
 
 namespace kmsengine {
 /**
@@ -99,7 +100,7 @@ namespace kmsengine {
  * @tparam T the type of the value.
  */
 template <typename T>
-class StatusOr final {
+class KMSENGINE_EXPORT StatusOr final {
  public:
   /**
    * Initializes with an error status (UNKNOWN).
@@ -306,14 +307,14 @@ class StatusOr final {
   //@}
 
  private:
-  void CheckHasValue() const& {
+  KMSENGINE_LOCAL void CheckHasValue() const& {
     if (!ok()) {
       std::abort();
     }
   }
 
   // When possible, do not copy the status.
-  void CheckHasValue() && {
+  KMSENGINE_LOCAL void CheckHasValue() && {
     if (!ok()) {
       std::abort();
     }

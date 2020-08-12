@@ -19,6 +19,24 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
+    name = "mock_key_management_service_stub",
+    hdrs = ["mock_key_management_service_stub.h"],
+    deps = [
+        "//src/backing/client/grpc_client:key_management_service_stub",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "mock_client_context_factory",
+    hdrs = ["mock_client_context_factory.h"],
+    deps = [
+        "//src/backing/client/grpc_client:client_context_factory",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "mock_client",
     hdrs = ["mock_client.h"],
     deps = [
@@ -62,5 +80,26 @@ cc_test(
         "//src/backing",
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "openssl_assertions",
+    srcs = ["openssl_assertions.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "openssl_assertions_test",
+    size = "small",
+    srcs = ["openssl_assertions_test.cc"],
+    deps = [
+        ":openssl_assertions",
+        "//src/bridge/error",
+        "@com_google_googletest//:gtest_main",
     ],
 )

@@ -201,10 +201,9 @@ TEST_F(InitializedExDataUtilTest, EcKeyUniquePtrReturnsErrorOnNullEcKey) {
   EXPECT_THAT(GetCryptoKeyHandleFromOpenSslEcKey(nullptr), Not(IsOk()));
 }
 
-
 TEST_F(InitializedExDataUtilTest, EngineDataRoundtrip) {
   OpenSslEngine engine = MakeEngine();
-  EngineData engine_data(nullptr, {nullptr, nullptr});
+  EngineData engine_data(nullptr, {nullptr, nullptr}, {nullptr, nullptr});
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
               IsOk());
 
@@ -220,11 +219,24 @@ TEST_F(InitializedExDataUtilTest, EngineHandlesNullEngineData) {
 }
 
 TEST_F(InitializedExDataUtilTest, EngineReturnsErrorOnNullEngine) {
-  EngineData engine_data(nullptr, {nullptr, nullptr});
+  EngineData engine_data(nullptr, {nullptr, nullptr}, {nullptr, nullptr});
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, nullptr),
               Not(IsOk()));
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, nullptr), Not(IsOk()));
   EXPECT_THAT(GetEngineDataFromOpenSslEngine(nullptr), Not(IsOk()));
+}
+
+TEST(ExDataUtilTest, ReturnsErrorWhenEngineExternalIndiciesNotInitialized) {
+  // Explicitly not calling `InitExternalIndices` here.
+  OpenSslEngine engine = MakeEngine();
+  EngineData engine_data(nullptr, {nullptr, nullptr}, {nullptr, nullptr});
+
+  EXPECT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
+              Not(IsOk()));
+  EXPECT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()),
+              Not(IsOk()));
+
+  EXPECT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), Not(IsOk()));
 }
 
 }  // namespace
