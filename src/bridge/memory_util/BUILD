@@ -33,3 +33,26 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "openssl_bio",
+    srcs = ["openssl_bio.cc"],
+    hdrs = ["openssl_bio.h"],
+    linkopts = ["-lcrypto"],
+    deps = [
+        ":openssl_structs",
+        "//src/backing",
+        "//src/testing_util:openssl_assertions",
+        "//src/testing_util:test_matchers",
+    ],
+)
+
+cc_test(
+    name = "openssl_bio_test",
+    size = "small",
+    srcs = ["openssl_bio_test.cc"],
+    deps = [
+        ":openssl_bio",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

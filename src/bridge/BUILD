@@ -14,15 +14,22 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 
-package(default_visibility = ["//src:__subpackages__"])
+package(default_visibility = ["//src/bridge:__subpackages__"])
 
-cc_library(
-    name = "bridge",
+cc_binary(
+    name = "libengine.so",
     srcs = ["main.c"],
     linkopts = ["-lcrypto"],
-    deps = ["//src/bridge:engine_bind"],
+    linkshared = 1,
+    linkstatic = 1,
+    visibility = ["//test:__subpackages__"],
+    deps = [
+        "//src/bridge:engine_bind",
+        "//src/bridge:engine_name",
+        "//src/bridge:engine_setup",
+    ],
 )
 
 cc_library(
@@ -41,10 +48,6 @@ cc_test(
     name = "engine_bind_test",
     size = "small",
     srcs = ["engine_bind_test.cc"],
-    # Statically link in libcrypto in test environment only to avoid symbol
-    # issues with BoringSSL which only appear in the test environment.
-    linkstatic = True,
-    linkopts = ["-l:libcrypto.a", "-ldl"],
     deps = [
         ":engine_bind",
         "@com_google_googletest//:gtest_main",

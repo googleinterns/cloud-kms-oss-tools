@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "src/backing/export_macros.h"
 #include "src/backing/client/client.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
@@ -47,7 +48,7 @@ namespace backing {
 // associated `CryptoKeyHandle` methods. This is because some conversions
 // require knowledge of symbols from the OpenSSL library (which are not
 // visible to the backing layer).
-class CryptoKeyHandle {
+class KMSENGINE_EXPORT CryptoKeyHandle {
  public:
   virtual ~CryptoKeyHandle() = default;
 
@@ -67,7 +68,7 @@ class CryptoKeyHandle {
 };
 
 // Creates a `unique_ptr` containing a `CryptoKeyHandle` implementation.
-StatusOr<std::unique_ptr<CryptoKeyHandle>> MakeCryptoKeyHandle(
+KMSENGINE_EXPORT StatusOr<std::unique_ptr<CryptoKeyHandle>> MakeCryptoKeyHandle(
     std::string const& key_resource_id, Client const& client);
 
 StatusOr<std::unique_ptr<CryptoKeyHandle>> CopyCryptoKeyHandle(
