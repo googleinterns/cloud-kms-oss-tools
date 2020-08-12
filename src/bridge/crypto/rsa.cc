@@ -153,13 +153,17 @@ int Sign(int type, const unsigned char *digest_bytes,
   }
   if (signature_return != nullptr) {
     // Sanity check on `RSA_size` and the length of the signature.
-    if (static_cast<int>(signature.length()) > RSA_size(rsa)) {
+    auto rsa_size = RSA_size(rsa);
+    if (rsa_size < 0) {
+      KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
+                                    "RSA_size(rsa) was < 0"));
+      return 0;
+    }
+    if (signature.length() > static_cast<std::string::size_type>(rsa_size)) {
       KMSENGINE_SIGNAL_ERROR(
           Status(StatusCode::kFailedPrecondition,
-                 "Generated signature length was larger than RSA_size(rsa), "
-                 "so could not store signature in buffer (signature "
-                 "length: " + std::to_string(signature.length()) +
-                 "; RSA_size(rsa): " + std::to_string(RSA_size(rsa)) + ")"));
+                 "Generated signature length was unexpectedly larger than "
+                 "RSA_size(rsa)"));
       return 0;
     }
     signature.copy(reinterpret_cast<char *>(signature_return),

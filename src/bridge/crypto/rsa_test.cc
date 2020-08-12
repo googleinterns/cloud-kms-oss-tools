@@ -276,7 +276,8 @@ TEST_F(RsaMethodTest, SignHandlesSignatureLongerThanRsaSize) {
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
                digest.length(), signature, &signature_length,
                rsa.get()),
-      HasSubstr("Generated signature length was larger than RSA_size(rsa)"));
+      HasSubstr("Generated signature length was unexpectedly larger than "
+                "RSA_size(rsa)"));
 }
 
 }  // namespace
