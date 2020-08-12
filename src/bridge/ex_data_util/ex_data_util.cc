@@ -43,6 +43,12 @@ static constexpr int kUninitializedIndex = -1;
 // and `GetCryptoKeyHandleFromOpenSslRsa`.
 static int rsa_index = kUninitializedIndex;
 
+// External index assigned by OpenSSL on a `EC_KEY` struct. If uninitialized, it
+// has value `kUninitializedIndex`. Used in
+// `AttachCryptoKeyHandleToOpenSslEcKey` and
+// `GetCryptoKeyHandleFromOpenSslEcKey`.
+static int ec_key_index = kUninitializedIndex;
+
 // External index assigned by OpenSSL on a `ENGINE` struct. If uninitialized, it
 // has value `kUninitializedIndex`. Used in `AttachEngineDataToOpenSslEngine`
 // and `GetEngineDataFromOpenSslEngine`.
@@ -73,6 +79,15 @@ inline StatusOr<int> GetRsaIndex() {
   return rsa_index;
 }
 
+// Returns `ec_key_index` if it is initialized, or an error `Status`.
+inline StatusOr<int> GetEcKeyIndex() {
+  if (ec_key_index == kUninitializedIndex) {
+    return Status(StatusCode::kFailedPrecondition,
+                  "ec_key_index uninitialized");
+  }
+  return ec_key_index;
+}
+
 // Returns `engine_index` if it is initialized, or an error `Status`.
 inline StatusOr<int> GetEngineIndex() {
   if (engine_index == kUninitializedIndex) {
@@ -86,26 +101,37 @@ inline StatusOr<int> GetEngineIndex() {
 
 Status InitExternalIndices() {
   KMSENGINE_ASSIGN_OR_RETURN(rsa_index, GetIndex(CRYPTO_EX_INDEX_RSA));
+  KMSENGINE_ASSIGN_OR_RETURN(ec_key_index, GetIndex(CRYPTO_EX_INDEX_EC_KEY));
   KMSENGINE_ASSIGN_OR_RETURN(engine_index, GetIndex(CRYPTO_EX_INDEX_ENGINE));
   return Status::kOk;
 }
 
 void FreeExternalIndices() {
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_RSA, rsa_index);
+  CRYPTO_free_ex_index(CRYPTO_EX_INDEX_EC_KEY, ec_key_index);
   CRYPTO_free_ex_index(CRYPTO_EX_INDEX_ENGINE, engine_index);
   rsa_index = kUninitializedIndex;
   engine_index = kUninitializedIndex;
 }
 
-Status AttachCryptoKeyHandleToOpenSslRsa(CryptoKeyHandle *rsa_key, RSA *rsa) {
+Status AttachCryptoKeyHandleToOpenSslRsa(CryptoKeyHandle *crypto_key_handle,
+                                         RSA *rsa) {
   if (rsa == nullptr) {
     return Status(StatusCode::kInvalidArgument, "RSA cannot be null");
   }
 
   KMSENGINE_ASSIGN_OR_RETURN(auto index, GetRsaIndex());
-  if (!RSA_set_ex_data(rsa, index, static_cast<void *>(rsa_key))) {
+  if (!RSA_set_ex_data(rsa, index, static_cast<void *>(crypto_key_handle))) {
     return Status(StatusCode::kInternal, "RSA_set_ex_data failed");
   }
+  return Status::kOk;
+}
+
+Status AttachCryptoKeyHandleToOpenSslRsa(
+    std::unique_ptr<CryptoKeyHandle> crypto_key_handle, RSA *rsa) {
+  KMSENGINE_RETURN_IF_ERROR(
+      AttachCryptoKeyHandleToOpenSslRsa(crypto_key_handle.get(), rsa));
+  crypto_key_handle.release();  // Only release if attach was successful.
   return Status::kOk;
 }
 
@@ -119,6 +145,43 @@ StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslRsa(const RSA *rsa) {
   if (ex_data == nullptr) {
     return Status(StatusCode::kNotFound,
                   "RSA instance was not initialized with Cloud KMS data");
+  }
+  return static_cast<CryptoKeyHandle *>(ex_data);
+}
+
+Status AttachCryptoKeyHandleToOpenSslEcKey(CryptoKeyHandle *crypto_key_handle,
+                                           EC_KEY *ec_key) {
+  if (ec_key == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "EC_KEY cannot be null");
+  }
+
+  KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEcKeyIndex());
+  if (!EC_KEY_set_ex_data(ec_key, index,
+                          static_cast<void *>(crypto_key_handle))) {
+    return Status(StatusCode::kInternal, "EC_KEY_set_ex_data failed");
+  }
+  return Status::kOk;
+}
+
+Status AttachCryptoKeyHandleToOpenSslEcKey(
+    std::unique_ptr<CryptoKeyHandle> crypto_key_handle, EC_KEY *ec_key) {
+  KMSENGINE_RETURN_IF_ERROR(
+      AttachCryptoKeyHandleToOpenSslEcKey(crypto_key_handle.get(), ec_key));
+  crypto_key_handle.release();  // Only release if attach was successful.
+  return Status::kOk;
+}
+
+StatusOr<CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslEcKey(
+    const EC_KEY *ec_key) {
+  if (ec_key == nullptr) {
+    return Status(StatusCode::kInvalidArgument, "EC_KEY cannot be null");
+  }
+
+  KMSENGINE_ASSIGN_OR_RETURN(auto index, GetEcKeyIndex());
+  void *ex_data = EC_KEY_get_ex_data(ec_key, index);
+  if (ex_data == nullptr) {
+    return Status(StatusCode::kNotFound,
+                  "EC_KEY instance was not initialized with Cloud KMS data");
   }
   return static_cast<CryptoKeyHandle *>(ex_data);
 }
