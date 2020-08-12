@@ -38,19 +38,18 @@ namespace kmsengine {
 namespace bridge {
 namespace {
 
+using ::kmsengine::backing::CryptoKeyHandle;
 using ::kmsengine::backing::CryptoKeyVersionAlgorithm;
 using ::kmsengine::backing::PublicKey;
-using ::kmsengine::backing::CryptoKeyHandle;
 using ::kmsengine::testing_util::IsOk;
 using ::kmsengine::testing_util::MockClient;
-using ::testing::IsNull;
-using ::testing::Not;
-using ::testing::StrEq;
-using ::testing::Return;
 using ::testing::AtLeast;
-using ::testing::ValuesIn;
 using ::testing::Combine;
 using ::testing::HasSubstr;
+using ::testing::NotNull;
+using ::testing::Return;
+using ::testing::StrEq;
+using ::testing::ValuesIn;
 
 // List of `CryptoKeyVersionAlgorithm`s valid for use in a RSA sign operation.
 constexpr CryptoKeyVersionAlgorithm kRsaSignAlgorithms[] = {
@@ -71,7 +70,8 @@ constexpr CryptoKeyVersionAlgorithm kEcSignAlgorithms[] = {
   CryptoKeyVersionAlgorithm::kEcSignP384Sha384,
 };
 
-// List of `CryptoKeyVersionAlgorithm`s that are unsupported by the engine.
+// List of `CryptoKeyVersionAlgorithm`s that are currently unsupported by the
+// engine.
 constexpr CryptoKeyVersionAlgorithm kUnsupportedAlgorithms[] = {
   CryptoKeyVersionAlgorithm::kAlgorithmUnspecified,
   CryptoKeyVersionAlgorithm::kGoogleSymmetricEncryption,
@@ -154,15 +154,19 @@ TEST(KeyLoaderTest, HandlesBadEngineData) {
   FreeExternalIndices();
 }
 
+// Fixture for testing `LoadPrivateKey`. The fixture initializes (and cleans
+// up) the `ex_data_util` system, which is necessary since `LoadPrivateKey`
+// invokes `ex_data_util` functions. (This initialization is normally done by
+// the engine when it is initialized in `EngineBind`.) The fixture also
+// instantiates a new `ENGINE` struct.
 class KeyLoaderTest : public ::testing::TestWithParam<
     std::tuple<CryptoKeyVersionAlgorithm, std::string>> {
  protected:
-  KeyLoaderTest()
-      : engine_(MakeEngine()),
-        expected_signature_(std::get<1>(GetParam())) {}
+  KeyLoaderTest() : engine_(MakeEngine()) {}
 
   void SetUp() override {
     ASSERT_THAT(InitExternalIndices(), IsOk());
+    ASSERT_THAT(engine(), NotNull());
   }
 
   void TearDown() override {
@@ -172,13 +176,8 @@ class KeyLoaderTest : public ::testing::TestWithParam<
   // Returns a pointer to the `ENGINE` to use in the test case.
   ENGINE *engine() { return engine_.get(); }
 
-  // Returns a pointer to the parameterized string to use as the signature in
-  // the test case.
-  std::string expected_signature() { return expected_signature_; }
-
  private:
   const OpenSslEngine engine_;
-  const std::string expected_signature_;
 };
 
 // Fixture that sets up useful mocks and test variables in preparation for a
@@ -186,7 +185,8 @@ class KeyLoaderTest : public ::testing::TestWithParam<
 class RsaKeyLoaderTest : public KeyLoaderTest {
  protected:
   RsaKeyLoaderTest()
-      : public_key_(PublicKey(kRsaPublicKey, std::get<0>(GetParam()))),
+      : expected_signature_(std::get<1>(GetParam())),
+        public_key_(PublicKey(kRsaPublicKey, std::get<0>(GetParam()))),
         engine_data_(absl::make_unique<MockClient>(),
                      // `RSA_PKCS1_OpenSSL` returns the default OpenSSL
                      // `RSA_METHOD`. We use a no-op deleter here since
@@ -217,8 +217,12 @@ class RsaKeyLoaderTest : public KeyLoaderTest {
         IsOk());
   }
 
+  // Returns a pointer to the parameterized string to use as the signature in
+  // the test case.
+  std::string const& expected_signature() { return expected_signature_; }
+
   // Returns a fake public key to use in the test case.
-  PublicKey public_key() { return public_key_; }
+  PublicKey const& public_key() { return public_key_; }
 
   // Returns a pointer to the `EngineData` to use in the test case.
   EngineData const& engine_data() { return engine_data_; }
@@ -230,6 +234,7 @@ class RsaKeyLoaderTest : public KeyLoaderTest {
   }
 
  private:
+  const std::string expected_signature_;
   const PublicKey public_key_;
   const EngineData engine_data_;
 };
@@ -243,12 +248,12 @@ TEST_P(RsaKeyLoaderTest, GeneratedKeyContainsHasTypeRsa) {
 
   EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
                                       nullptr);
-  ASSERT_THAT(evp_pkey, Not(IsNull()));
+  ASSERT_THAT(evp_pkey, NotNull());
 
   EXPECT_EQ(EVP_PKEY_size(evp_pkey), kExpectedKeySize);
   EXPECT_EQ(EVP_PKEY_id(evp_pkey), EVP_PKEY_RSA)
       << "Object ID of EVP_PKEY should be EVP_PKEY_RSA";
-  EXPECT_THAT(EVP_PKEY_get0_RSA(evp_pkey), Not(IsNull()));
+  EXPECT_THAT(EVP_PKEY_get0_RSA(evp_pkey), NotNull());
 
   EVP_PKEY_free(evp_pkey);
 }
@@ -258,7 +263,7 @@ TEST_P(RsaKeyLoaderTest, AttachedRsaStructHasCryptoKeyHandleWithCorrectKeyId) {
 
   EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
                                       nullptr);
-  ASSERT_THAT(evp_pkey, Not(IsNull()));
+  ASSERT_THAT(evp_pkey, NotNull());
 
   auto handle = GetCryptoKeyHandleFromOpenSslRsa(EVP_PKEY_get0_RSA(evp_pkey));
   ASSERT_THAT(handle, IsOk());
@@ -273,7 +278,7 @@ TEST_P(RsaKeyLoaderTest, AttachedRsaStructHasCorrectRsaMethodImplementation) {
 
   EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
                                       nullptr);
-  ASSERT_THAT(evp_pkey, Not(IsNull()));
+  ASSERT_THAT(evp_pkey, NotNull());
 
   EXPECT_EQ(RSA_get_method(EVP_PKEY_get0_RSA(evp_pkey)),
             engine_data().rsa_method())
