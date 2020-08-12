@@ -67,7 +67,7 @@ enum class KMSENGINE_EXPORT StatusCode {
   kDataLoss = 15,
 };
 
-inline int StatusCodeToInt(StatusCode code) {
+constexpr int StatusCodeToInt(StatusCode code) {
   return static_cast<std::underlying_type<StatusCode>::type>(code);
 }
 
