@@ -51,12 +51,12 @@ constexpr char kEcdsaPublicKey[] =
 // The `EC_KEY` struct contained within the returned `OpenSslEcKey` will have
 // its public key parameters set to the values from the input PEM.
 StatusOr<OpenSslEcKey> MakeEcKeyFromPublicKeyPemBio(OpenSslBio public_key_bio) {
-  RSA *rsa = PEM_read_bio_EC_PUBKEY(public_key_bio.get(), nullptr,
-                                     nullptr, nullptr);
-  if (rsa == nullptr) {
+  EC_KEY *ec_key = PEM_read_bio_EC_PUBKEY(public_key_bio.get(), nullptr,
+                                          nullptr, nullptr);
+  if (ec_key == nullptr) {
     return Status(StatusCode::kInternal, "PEM_read_bio_EC_PUBKEY failed");
   }
-  return OpenSslEcKey(rsa, &RSA_free);
+  return OpenSslEcKey(ec_key, &EC_KEY_free);
 }
 
 // Test fixture for calling initialization functions (normally called by the
@@ -99,9 +99,10 @@ class EcKeyMethodTest : public ::testing::Test {
 TEST_F(EcKeyMethodTest, EcKeyMethodInitCallbacksAreInitialized) {
   // Our implementation sets the `finish` and `copy` callbacks, so we check that
   // they're defined here.
-  int (*finish)(EC_KEY *);
+  void (*finish)(EC_KEY *);
   int (*copy)(EC_KEY *, const EC_KEY *);
-  EC_KEY_METHOD_get_init(/*init=*/nullptr, &finish, &copy,
+  EC_KEY_METHOD_get_init(ec_key_method(),
+                         /*init=*/nullptr, &finish, &copy,
                          /*set_group=*/nullptr, /*set_private=*/nullptr,
                          /*set_public=*/nullptr);
 
@@ -115,7 +116,7 @@ TEST_F(EcKeyMethodTest, EcKeyMethodSignCallbacksAreInitialized) {
   int (*sign_setup)(EC_KEY *, BN_CTX *, BIGNUM **, BIGNUM **);
   ECDSA_SIG *(*sign_sig)(const unsigned char *, int, const BIGNUM *,
                          const BIGNUM *, EC_KEY *);
-  EC_KEY_METHOD_get_sign(&sign, &sign_setup, &sign_sig);
+  EC_KEY_METHOD_get_sign(ec_key_method(), &sign, &sign_setup, &sign_sig);
 
   EXPECT_THAT(sign, NotNull());
   EXPECT_THAT(sign_setup, NotNull());
@@ -126,23 +127,23 @@ TEST_F(EcKeyMethodTest, EcKeyMethodVerifyCallbacksAreInitialized) {
   int (*verify)(int, const unsigned char *, int, const unsigned char *, int,
                 EC_KEY *);
   int (*verify_sig)(const unsigned char *, int, const ECDSA_SIG *, EC_KEY *);
-  EC_KEY_METHOD_get_verify(&verify, &verify_sig);
+  EC_KEY_METHOD_get_verify(ec_key_method(), &verify, &verify_sig);
 
   EXPECT_THAT(verify, NotNull());
   EXPECT_THAT(verify_sig, NotNull());
 }
 
 TEST_F(EcKeyMethodTest, EcKeyMethodKeygenCallbacksAreInitialized) {
-  int (*pkeygen)(EC_KEY *)
-  EC_KEY_METHOD_get_keygen(&pkeygen);
+  int (*pkeygen)(EC_KEY *);
+  EC_KEY_METHOD_get_keygen(ec_key_method(), &pkeygen);
 
   EXPECT_THAT(pkeygen, NotNull());
 }
 
-TEST_F(EcKeyMethodTest, EcKeyMethodKeygenCallbacksAreInitialized) {
-  int (*compute_key)(void *, size_t, const EC_POINT *, EC_KEY *,
-                     void *(*KDF) (const void *, size_t , void *, size_t *));
-  EC_KEY_METHOD_get_compute_key(&compute_key);
+TEST_F(EcKeyMethodTest, EcKeyMethodComputeKeyCallbacksAreInitialized) {
+  int (*compute_key)(unsigned char **, size_t *, const EC_POINT *,
+                     const EC_KEY *);
+  EC_KEY_METHOD_get_compute_key(ec_key_method(), &compute_key);
 
   EXPECT_THAT(compute_key, NotNull());
 }
