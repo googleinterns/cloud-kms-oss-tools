@@ -74,22 +74,25 @@ void Finish(EC_KEY *ec_key) {
 
 // Called at the end of `EC_KEY_copy`, which copies the contents of `src` into
 // `dest`.
+//
+// Returns 1 on success; otherwise, returns 0.
 int Copy(EC_KEY *dest, const EC_KEY *src) {
   // `crypto_key_handle` is guaranteed to be non-null here (if the underlying
   // external data struct was null, an error status would be returned).
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const CryptoKeyHandle *src_handle,
-      GetCryptoKeyHandleFromOpenSslEcKey(src), false);
+      GetCryptoKeyHandleFromOpenSslEcKey(src), 0);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       std::unique_ptr<CryptoKeyHandle> dest_handle,
-      backing::CopyCryptoKeyHandle(*src_handle), false);
+      backing::CopyCryptoKeyHandle(*src_handle), 0);
 
   Status status = AttachCryptoKeyHandleToOpenSslEcKey(
       std::move(dest_handle), dest);
   if (!status.ok()) {
     KMSENGINE_SIGNAL_ERROR(status);
+    return 0;
   }
-  return status.ok();
+  return 1;
 }
 
 // Engine implementation for `ECDSA_sign_ex`.
@@ -112,18 +115,18 @@ int SignEx(int type, const unsigned char *digest_bytes, int digest_length,
   // conversion functions refer to some OpenSSL API functions.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const CryptoKeyHandle *crypto_key_handle,
-      GetCryptoKeyHandleFromOpenSslEcKey(ec_key), false);
+      GetCryptoKeyHandleFromOpenSslEcKey(ec_key), 0);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const DigestCase digest_type,
-      ConvertOpenSslNidToDigestType(type), false);
+      ConvertOpenSslNidToDigestType(type), 0);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const std::string digest_string,
-      MakeDigestString(digest_bytes, digest_length), false);
+      MakeDigestString(digest_bytes, digest_length), 0);
 
   // Delegate handling of the signing operation to the backing layer.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       const std::string signature,
-      crypto_key_handle->Sign(digest_type, digest_string), false);
+      crypto_key_handle->Sign(digest_type, digest_string), 0);
 
   // Copy results into the return pointers.
   if (signature_return != nullptr) {
@@ -133,7 +136,7 @@ int SignEx(int type, const unsigned char *digest_bytes, int digest_length,
   if (signature_length != nullptr) {
     *signature_length = signature.length();
   }
-  return true;
+  return 1;
 }
 
 // Engine implementation for `ECDSA_sign_setup`.
@@ -156,7 +159,7 @@ int SignSetup(EC_KEY */*ec_key*/, BN_CTX */*context*/, BIGNUM **kinv,
   *kinv = nullptr;
   *rp = nullptr;
 
-  return true;
+  return 1;
 }
 
 // Engine implementation for `ECDSA_do_sign_ex`.
@@ -194,12 +197,12 @@ ECDSA_SIG *DoSignEx(const unsigned char *digest_bytes, int digest_length,
   return nullptr;
 }
 
-// Engine implementation for `EC_KEY_generate_key`.
-//
-// Generates a new `EC_KEY`. Returns 1 on success and 0 on error.
+// Engine implementation for `EC_KEY_generate_key` to generate a new `EC_KEY`.
 //
 // Currently unimplemented; may be implemented in the future if key generation
 // support for ECDSA keys is needed.
+//
+// Returns 1 on success and 0 on error.
 int GenerateKey(EC_KEY *ec_key) {
   KMSENGINE_SIGNAL_ERROR(
       Status(StatusCode::kUnimplemented, "Unsupported operation"));
@@ -208,11 +211,11 @@ int GenerateKey(EC_KEY *ec_key) {
 
 // Engine implementation for `ECDH_compute_key`.
 //
-// Returns the length of the computed key in bytes or -1 on error.
-//
 // Currently unimplemented, and should not be implemented. This operation is
 // specifically for ECDH keys, which are currently not supported by the Cloud
 // KMS API.
+//
+// Returns the length of the computed key in bytes or -1 on error.
 int ComputeKey(unsigned char **/*out*/, size_t */*outlen*/, const EC_POINT *,
                const EC_KEY *) {
   KMSENGINE_SIGNAL_ERROR(
