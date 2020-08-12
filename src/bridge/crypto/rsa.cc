@@ -153,7 +153,7 @@ int Sign(int type, const unsigned char *digest_bytes,
   }
   if (signature_return != nullptr) {
     // Sanity check on `RSA_size` and the length of the signature.
-    auto rsa_size = RSA_size(rsa);
+    int rsa_size = RSA_size(rsa);
     if (rsa_size < 0) {
       KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
                                     "RSA_size(rsa) was < 0"));
