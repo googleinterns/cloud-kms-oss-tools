@@ -199,6 +199,21 @@ TEST_F(RsaMethodTest, SignHandlesNullSignatureLengthPointer) {
       HasSubstr("Signature length parameter may not be null"));
 }
 
+TEST_F(RsaMethodTest, SignHandlesNullSignatureAndNullLengthPointer) {
+  StatusOr<OpenSslRsa> rsa_or = MakeRsaWithKmsMethod();
+  ASSERT_THAT(rsa_or, IsOk());
+  OpenSslRsa rsa = std::move(rsa_or.value());
+
+  MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
+  ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
+
+  std::string digest = "my digest";
+  EXPECT_OPENSSL_FAILURE(
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(), nullptr, nullptr, rsa.get()),
+      HasSubstr("Signature length parameter may not be null"));
+}
+
 TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
   StatusOr<OpenSslRsa> rsa_or = MakeRsaWithKmsMethod();
   ASSERT_THAT(rsa_or, IsOk());
