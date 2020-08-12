@@ -128,37 +128,47 @@ int Finish(RSA *rsa) {
 int Sign(int type, const unsigned char *digest_bytes,
          unsigned int digest_length, unsigned char *signature_return,
          unsigned int *signature_length, const RSA *rsa) {
-  // Convert arguments to engine-native structures for convenience. These
-  // conversions need to take place within the bridge layer (as opposed to
-  // letting the `RsaKey::Sign` method handling the conversions) since the
-  // conversion functions refer to some OpenSSL API functions.
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const CryptoKeyHandle *crypto_key_handle,
-      GetCryptoKeyHandleFromOpenSslRsa(rsa), 0);
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const DigestCase digest_type,
-      ConvertOpenSslNidToDigestType(type), 0);
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const std::string digest_string,
-      MakeDigestString(digest_bytes, digest_length), 0);
-
-  // Delegate handling of the signing operation to the backing layer.
-  KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      const std::string signature,
-      crypto_key_handle->Sign(digest_type, digest_string), 0);
-
-  // Copy results into the return pointers.
-  if (signature_length != nullptr) {
-    *signature_length = signature.length();
+  // Sanity check on `RSA_size` and the length of the signature.
+  int rsa_size = RSA_size(rsa);
+  if (RSA_size(rsa) < 0) {
+    KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
+                                  "RSA_size(rsa) was < 0"));
+    return 0;
   }
+
+  // We populate `signature_length` with an initial "max length" that the
+  // signature could be (which is `RSA_size(rsa)`) so the caller knows how much
+  // memory to allocate for `signature_return`, if they haven't done so already.
+  if (signature_length == nullptr) {
+    KMSENGINE_SIGNAL_ERROR(
+        Status(StatusCode::kInvalidArgument,
+               "Signature length parameter may not be null"));
+    return 0;
+  }
+  *signature_length = rsa_size;
+
+  // If `signature_return` is defined, then we actually perform the signing
+  // operation.
   if (signature_return != nullptr) {
-    // Sanity check on `RSA_size` and the length of the signature.
-    int rsa_size = RSA_size(rsa);
-    if (rsa_size < 0) {
-      KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
-                                    "RSA_size(rsa) was < 0"));
-      return 0;
-    }
+    // Convert arguments to engine-native structures for convenience. These
+    // conversions need to take place within the bridge layer (as opposed to
+    // letting the `RsaKey::Sign` method handling the conversions) since the
+    // conversion functions refer to some OpenSSL API functions.
+    KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+        const CryptoKeyHandle *crypto_key_handle,
+        GetCryptoKeyHandleFromOpenSslRsa(rsa), 0);
+    KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+        const DigestCase digest_type,
+        ConvertOpenSslNidToDigestType(type), 0);
+    KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+        const std::string digest_string,
+        MakeDigestString(digest_bytes, digest_length), 0);
+
+    // Delegate handling of the signing operation to the backing layer.
+    KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+        const std::string signature,
+        crypto_key_handle->Sign(digest_type, digest_string), 0);
+
     if (signature.length() > static_cast<std::string::size_type>(rsa_size)) {
       KMSENGINE_SIGNAL_ERROR(
           Status(StatusCode::kFailedPrecondition,
@@ -166,9 +176,14 @@ int Sign(int type, const unsigned char *digest_bytes,
                  "RSA_size(rsa)"));
       return 0;
     }
+
+    // Copy resulting signature into result pointers and update
+    // `signature_length` if needed.
     signature.copy(reinterpret_cast<char *>(signature_return),
                    signature.length());
+    *signature_length = signature.length();
   }
+
   return 1;
 }
 

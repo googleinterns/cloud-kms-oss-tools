@@ -171,10 +171,7 @@ TEST_F(RsaMethodTest, SignHandlesNullSignaturePointer) {
   ASSERT_THAT(rsa_or, IsOk());
   OpenSslRsa rsa = std::move(rsa_or.value());
 
-  std::string kSampleSignature = "my signature";
   MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
-  EXPECT_CALL(*handle, Sign).WillOnce(
-      Return(StatusOr<std::string>(kSampleSignature)));
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
 
   std::string digest = "my digest";
@@ -183,7 +180,7 @@ TEST_F(RsaMethodTest, SignHandlesNullSignaturePointer) {
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
                digest.length(), nullptr, &signature_length, rsa.get()));
 
-  EXPECT_EQ(signature_length, kSampleSignature.length());
+  EXPECT_EQ(signature_length, RSA_size(rsa.get()));
 }
 
 TEST_F(RsaMethodTest, SignHandlesNullSignatureLengthPointer) {
@@ -191,17 +188,15 @@ TEST_F(RsaMethodTest, SignHandlesNullSignatureLengthPointer) {
   ASSERT_THAT(rsa_or, IsOk());
   OpenSslRsa rsa = std::move(rsa_or.value());
 
-  std::string kSampleSignature = "my signature";
   MockCryptoKeyHandle *handle = new MockCryptoKeyHandle();
-  EXPECT_CALL(*handle, Sign).WillOnce(
-      Return(StatusOr<std::string>(kSampleSignature)));
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
 
   std::string digest = "my digest";
   unsigned char signature[kSampleSignature.length()];
-  ASSERT_OPENSSL_SUCCESS(
+  EXPECT_OPENSSL_FAILURE(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
-               digest.length(), signature, nullptr, rsa.get()));
+               digest.length(), signature, nullptr, rsa.get()),
+      HasSubstr("Signature length parameter may not be null"));
 }
 
 TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
@@ -216,9 +211,11 @@ TEST_F(RsaMethodTest, SignHandlesCryptoKeyHandleSignMethodErrors) {
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(handle, rsa.get()), IsOk());
 
   std::string digest = "my digest";
+  unsigned char signature[kSampleSignature.length()];
+  unsigned int signature_length;
   EXPECT_OPENSSL_FAILURE(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
-               digest.length(), nullptr, nullptr, rsa.get()),
+               digest.length(), signature, &signature_length, rsa.get()),
       HasSubstr(expected_error_message));
 }
 
@@ -229,9 +226,11 @@ TEST_F(RsaMethodTest, SignHandlesMissingCryptoKeyHandle) {
   ASSERT_THAT(AttachCryptoKeyHandleToOpenSslRsa(nullptr, rsa.get()), IsOk());
 
   std::string digest = "my digest";
+  unsigned char signature[kSampleSignature.length()];
+  unsigned int signature_length;
   EXPECT_OPENSSL_FAILURE(
       RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
-               digest.length(), nullptr, nullptr, rsa.get()),
+               digest.length(), signature, &signature_length, rsa.get()),
       HasSubstr("RSA instance was not initialized with Cloud KMS data"));
 }
 
@@ -249,9 +248,11 @@ TEST_F(RsaMethodTest, SignHandlesBadNidDigestTypes) {
   // supported in the future).
   constexpr auto kBadDigestType = NID_md5;
   std::string digest = "my digest";
+  unsigned char signature[kSampleSignature.length()];
+  unsigned int signature_length;
   EXPECT_OPENSSL_FAILURE(
       RSA_sign(kBadDigestType, reinterpret_cast<unsigned char *>(&digest[0]),
-               digest.length(), nullptr, nullptr, rsa.get()),
+               digest.length(), signature, &signature_length, rsa.get()),
       HasSubstr("Unsupported digest type"));
 }
 
