@@ -288,8 +288,88 @@ TEST_P(RsaKeyLoaderTest, AttachedRsaStructHasCorrectRsaMethodImplementation) {
   EVP_PKEY_free(evp_pkey);
 }
 
-// TODO(https://github.com/googleinterns/cloud-kms-oss-tools/pull/114): Add
-// more integrated RSA_METHOD tests once RSA_METHOD implementation is in.
+TEST_P(RsaKeyLoaderTest, AttachedRsaStructDelegatesSignOperationsToClient) {
+  EXPECT_CALL(mock_client(), GetPublicKey);
+  EXPECT_CALL(mock_client(), AsymmetricSign).Times(AtLeast(1));
+
+  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
+                                      nullptr);
+  ASSERT_THAT(evp_pkey, Not(IsNull()));
+
+  // OpenSSL recommends calling `RSA_sign` twice; once to get the
+  // `signature_length` so the caller knows how much memory to allocate, and
+  // the second time to get the actual signature. This test case reflects this
+  // standard usage of the API.
+  std::string digest = "digest";
+  unsigned int signature_length;
+  ASSERT_OPENSSL_SUCCESS(
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(), nullptr, &signature_length,
+               EVP_PKEY_get0_RSA(evp_pkey)));
+
+  std::string signature(signature_length, '\0');
+  ASSERT_OPENSSL_SUCCESS(
+      RSA_sign(NID_sha256, reinterpret_cast<unsigned char *>(&digest[0]),
+               digest.length(),
+               reinterpret_cast<unsigned char *>(&signature[0]),
+               &signature_length, EVP_PKEY_get0_RSA(evp_pkey)));
+
+  // We reconstruct the string here because `signature.length()` is not
+  // guaranteed to equal `signature_length`, and so this prevents us from
+  // accidentally comparing against uninitialized bytes.
+  std::string actual(signature, /*substring_start_index=*/0, signature_length);
+  EXPECT_THAT(actual, StrEq(expected_signature()));
+  EXPECT_EQ(signature_length, expected_signature().length());
+
+  EVP_PKEY_free(evp_pkey);
+}
+
+TEST_P(RsaKeyLoaderTest, GeneratedKeyWorksWithEvpDigestSignFunctions) {
+  EXPECT_CALL(mock_client(), GetPublicKey);
+  // At least one call to `AsymmetricSign` should occur, but it's not
+  // guaranteed that there will be two even though this test calls
+  // `EVP_DigestSignFinal` twice---this is because `EVP_DigestSignFinal` can
+  // cache the result.
+  EXPECT_CALL(mock_client(), AsymmetricSign).Times(AtLeast(1));
+
+  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
+                                      nullptr);
+  ASSERT_THAT(evp_pkey, Not(IsNull()));
+
+  OpenSslEvpDigestContext digest_context = MakeEvpDigestContext();
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSignInit(digest_context.get(), nullptr, EVP_sha256(), nullptr,
+                         evp_pkey));
+
+  std::string digest = "digest";
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSignUpdate(digest_context.get(),
+                           reinterpret_cast<unsigned char *>(&digest[0]),
+                           digest.length()));
+
+  // OpenSSL recommends calling `EVP_DigestSignFinal` twice; once to get the
+  // `signature_length` so the caller knows how much memory to allocate, and
+  // the second time to get the actual signature. This test case reflects this
+  // standard usage of the API.
+  size_t signature_length;
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSignFinal(digest_context.get(), nullptr, &signature_length));
+
+  std::string signature(signature_length, '\0');
+  ASSERT_OPENSSL_SUCCESS(
+      EVP_DigestSignFinal(digest_context.get(),
+                          reinterpret_cast<unsigned char *>(&signature[0]),
+                          &signature_length));
+
+  // We reconstruct the string here because `signature.length()` is not
+  // guaranteed to equal `signature_length`, and so this prevents us from
+  // accidentally comparing against uninitialized bytes.
+  std::string actual(signature, /*substring_start_index=*/0, signature_length);
+  EXPECT_THAT(actual, StrEq(expected_signature()));
+  EXPECT_EQ(signature_length, expected_signature().length());
+
+  EVP_PKEY_free(evp_pkey);
+}
 
 // Fixture that sets up useful mocks and test variables in preparation for a
 // `LoadPrivateKey` test with an ECDSA key.
@@ -309,9 +389,21 @@ INSTANTIATE_TEST_SUITE_P(
     EcAlgorithmParameters, EcKeyLoaderTest,
     Combine(ValuesIn(kEcSignAlgorithms), ValuesIn(kSampleSignatures)));
 
-// TODO(https://github.com/googleinterns/cloud-kms-oss-tools/pull/113): Add
-// EC_KEY loader tests in
-// https://github.com/googleinterns/cloud-kms-oss-tools/pull/113.
+TEST_P(EcKeyLoaderTest, DISABLED_LoadPrivateKey) {
+  auto client = absl::make_unique<MockClient>();
+  EXPECT_CALL(*client, GetPublicKey).WillOnce(Return(public_key()));
+
+  auto engine_data = absl::make_unique<EngineData>(
+      std::move(client),
+      OpenSslRsaMethod(nullptr, nullptr),
+      OpenSslEcKeyMethod(nullptr, nullptr));
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(engine_data.get(), engine()),
+              IsOk());
+
+  EXPECT_OPENSSL_FAILURE(
+      LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr),
+      HasSubstr("ECDSA not yet implemented"));
+}
 
 // Fixture for a `LoadPrivateKey` test with a key of a particular
 // `CryptoKeyVersionAlgorithm` type that corresponds to an unsupported sign
