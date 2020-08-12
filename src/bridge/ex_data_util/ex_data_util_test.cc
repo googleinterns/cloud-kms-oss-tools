@@ -61,7 +61,7 @@ TEST(UninitializedExDataUtilTest, EcKeyReturnsError) {
 TEST(UninitializedExDataUtilTest, EngineReturnsError) {
   // Explicitly not using TEST_F here so we do not call `InitExternalIndices`.
   OpenSslEngine engine = MakeEngine();
-  EngineData engine_data(nullptr, {nullptr, nullptr});
+  EngineData engine_data(nullptr, {nullptr, nullptr}, {nullptr, nullptr});
 
   EXPECT_THAT(AttachEngineDataToOpenSslEngine(&engine_data, engine.get()),
               Not(IsOk()));
