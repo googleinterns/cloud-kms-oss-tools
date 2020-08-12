@@ -81,8 +81,7 @@ StatusOr<std::unique_ptr<CryptoKeyHandle>> CopyCryptoKeyHandle(
           static_cast<KmsCryptoKeyHandle const&>(crypto_key_handle));
   if (handle == nullptr) {
     return Status(StatusCode::kResourceExhausted,
-                  absl::StrFormat("Unable to allocate memory for "
-                                  "CryptoKeyHandle"));
+                  "Unable to allocate memory for CryptoKeyHandle");
   }
   return handle;
 }

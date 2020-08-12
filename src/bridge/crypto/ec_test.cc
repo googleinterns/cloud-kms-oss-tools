@@ -78,9 +78,9 @@ class EcKeyMethodTest : public ::testing::Test {
     FreeExternalIndices();
   }
 
-  // Convenience function for making an RSA struct with the Cloud KMS
-  // EC_KEY_METHOD implementation already attached.
-  StatusOr<OpenSslEcKey> MakeRsaWithKmsMethod() {
+  // Convenience function for making an `EC_KEY` struct with the Cloud KMS
+  // `EC_KEY_METHOD` implementation already attached.
+  StatusOr<OpenSslEcKey> MakeEcKeyWithKmsMethod() {
     KMSENGINE_ASSIGN_OR_RETURN(
         OpenSslBio pem_bio,
         MakeOpenSslMemoryBufferBio(kEcdsaPublicKey, sizeof(kEcdsaPublicKey)));
