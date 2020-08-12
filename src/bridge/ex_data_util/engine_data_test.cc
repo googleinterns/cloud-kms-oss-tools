@@ -35,20 +35,42 @@ TEST(EngineDataTest, ClientRoundtrip) {
   auto client = absl::make_unique<MockClient>();
   EXPECT_CALL(*client, GetPublicKey("hello world"));
 
-  auto rsa_method = MakeRsaMethod("", 0);
-  EngineData engine_data(std::move(client), std::move(rsa_method));
+  EngineData engine_data(std::move(client),
+                         OpenSslRsaMethod(nullptr, nullptr),
+                         OpenSslEcKeyMethod(nullptr, nullptr));
 
   // Check that we got the same client back using a mock call.
   (void)engine_data.client().GetPublicKey("hello world");
 }
 
 TEST(EngineDataTest, RsaMethodRoundtrip) {
-  auto client = absl::make_unique<MockClient>();
-  auto rsa_method = MakeRsaMethod("my RSA method", 0);
-  EngineData engine_data(std::move(client), std::move(rsa_method));
+  constexpr auto kRsaMethodName = "my RSA method";
+  EngineData engine_data(nullptr,
+                         MakeRsaMethod(kRsaMethodName, /*rsa_flags=*/0),
+                         OpenSslEcKeyMethod(nullptr, nullptr));
 
+  // Check that we got the same `RSA_METHOD` back by checking the name of
+  // the returned `RSA_METHOD`.
   EXPECT_THAT(RSA_meth_get0_name(engine_data.rsa_method()),
-              StrEq("my RSA method"));
+              StrEq(kRsaMethodName));
+}
+
+TEST(EngineDataTest, EcKeyMethodRoundtrip) {
+  const EC_KEY_METHOD *default_ec_key_method = EC_KEY_OpenSSL();
+  EngineData engine_data(nullptr,
+                         OpenSslRsaMethod(nullptr, nullptr),
+                         MakeEcKeyMethod(default_ec_key_method));
+
+  // Check that we got the same `EC_KEY_METHOD` back by checking that function
+  // pointers match.
+  int (*actual_keygen_function)(EC_KEY *key) = nullptr;
+  EC_KEY_METHOD_get_keygen(engine_data.ec_key_method(),
+                           &actual_keygen_function);
+
+  int (*expected_keygen_function)(EC_KEY *key) = nullptr;
+  EC_KEY_METHOD_get_keygen(default_ec_key_method, &expected_keygen_function);
+
+  EXPECT_EQ(actual_keygen_function, expected_keygen_function);
 }
 
 }  // namespace

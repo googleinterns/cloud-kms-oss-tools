@@ -30,31 +30,45 @@ namespace {
 using ::testing::StrEq;
 using ::kmsengine::testing_util::IsOk;
 
-constexpr char kRsaPublicKey[] = "-----BEGIN PUBLIC KEY-----\n"
-  "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy8Dbv8prpJ/0kKhlGeJY\n"
-  "ozo2t60EG8L0561g13R29LvMR5hyvGZlGJpmn65+A4xHXInJYiPuKzrKUnApeLZ+\n"
-  "vw1HocOAZtWK0z3r26uA8kQYOKX9Qt/DbCdvsF9wF8gRK0ptx9M6R13NvBxvVQAp\n"
-  "fc9jB9nTzphOgM4JiEYvlV8FLhg9yZovMYd6Wwf3aoXK891VQxTr/kQYoq1Yp+68\n"
-  "i6T4nNq7NWC+UNVjQHxNQMQMzU6lWCX8zyg3yH88OAQkUXIXKfQ+NkvYQ1cxaMoV\n"
-  "PpY72+eVthKzpMeyHkBn7ciumk5qgLTEJAfWZpe4f4eFZj/Rc8Y8Jj2IS5kVPjUy\n"
-  "wQIDAQAB\n"
-  "-----END PUBLIC KEY-----\n";
-
 TEST(OpenSslBioTest, MakeOpenSslMemoryBufferBioContainsExpectedBytes) {
-  auto public_key_bio_or = MakeOpenSslMemoryBufferBio(kRsaPublicKey,
-                                                      sizeof(kRsaPublicKey));
+  constexpr char kSampleBuffer[] = "hello world!";
+
+  StatusOr<OpenSslBio> public_key_bio_or = MakeOpenSslMemoryBufferBio(
+      kSampleBuffer, sizeof(kSampleBuffer));
   ASSERT_THAT(public_key_bio_or, IsOk());
   auto public_key_bio = std::move(public_key_bio_or.value());
 
-  char read_buffer[sizeof(kRsaPublicKey)];
+  char read_buffer[sizeof(kSampleBuffer)];
   EXPECT_OPENSSL_SUCCESS(BIO_read(public_key_bio.get(), read_buffer,
-                                  /*num_bytes_to_read=*/sizeof(kRsaPublicKey)));
-  EXPECT_THAT(read_buffer, StrEq(kRsaPublicKey));
+                                  /*num_bytes_to_read=*/sizeof(kSampleBuffer)));
+  EXPECT_THAT(read_buffer, StrEq(kSampleBuffer));
+}
+
+TEST(OpenSslBioTest, MakeOpenSslMemoryBufferBioSetsDeleter) {
+  constexpr char kSampleBuffer[] = "hello world!";
+
+  StatusOr<OpenSslBio> public_key_bio_or = MakeOpenSslMemoryBufferBio(
+      kSampleBuffer, sizeof(kSampleBuffer));
+  ASSERT_THAT(public_key_bio_or, IsOk());
+  auto public_key_bio = std::move(public_key_bio_or.value());
+
+  EXPECT_EQ(public_key_bio.get_deleter(), &BIO_free);
 }
 
 TEST(OpenSslBioTest, MakeOpenSslMemoryBufferBioWorksWithRsaPemRead) {
-  auto public_key_bio_or = MakeOpenSslMemoryBufferBio(kRsaPublicKey,
-                                                      sizeof(kRsaPublicKey));
+  // Just a random 2048-bit RSA public key.
+  constexpr char kRsaPublicKey[] = "-----BEGIN PUBLIC KEY-----\n"
+    "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAy8Dbv8prpJ/0kKhlGeJY\n"
+    "ozo2t60EG8L0561g13R29LvMR5hyvGZlGJpmn65+A4xHXInJYiPuKzrKUnApeLZ+\n"
+    "vw1HocOAZtWK0z3r26uA8kQYOKX9Qt/DbCdvsF9wF8gRK0ptx9M6R13NvBxvVQAp\n"
+    "fc9jB9nTzphOgM4JiEYvlV8FLhg9yZovMYd6Wwf3aoXK891VQxTr/kQYoq1Yp+68\n"
+    "i6T4nNq7NWC+UNVjQHxNQMQMzU6lWCX8zyg3yH88OAQkUXIXKfQ+NkvYQ1cxaMoV\n"
+    "PpY72+eVthKzpMeyHkBn7ciumk5qgLTEJAfWZpe4f4eFZj/Rc8Y8Jj2IS5kVPjUy\n"
+    "wQIDAQAB\n"
+    "-----END PUBLIC KEY-----\n";
+
+  StatusOr<OpenSslBio> public_key_bio_or = MakeOpenSslMemoryBufferBio(
+      kRsaPublicKey, sizeof(kRsaPublicKey));
   ASSERT_THAT(public_key_bio_or, IsOk());
   auto public_key_bio = std::move(public_key_bio_or.value());
 

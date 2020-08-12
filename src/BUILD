@@ -14,16 +14,4 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_binary")
-
-package(default_visibility = ["//test:__subpackages__"])
-
-cc_binary(
-    name = "libengine.so",
-    linkopts = ["-lcrypto"],
-    linkshared = 1,  # Build as a shared object.
-    linkstatic = 0,
-    deps = [
-        "//src/bridge",
-    ],
-)
+# File is purposely blank to allow for `bazel build //src:...` to work.
