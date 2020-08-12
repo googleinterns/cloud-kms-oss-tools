@@ -129,12 +129,26 @@ int SignEx(int type, const unsigned char *digest_bytes, int digest_length,
       crypto_key_handle->Sign(digest_type, digest_string), 0);
 
   // Copy results into the return pointers.
-  if (signature_return != nullptr) {
-    signature.copy(reinterpret_cast<char *>(signature_return),
-                   signature.length());
-  }
   if (signature_length != nullptr) {
     *signature_length = signature.length();
+  }
+  if (signature_return != nullptr) {
+    // Sanity check on `ECDSA_size` and the length of the signature.
+    int ec_size = ECDSA_size(ec_key);
+    if (ec_size < 0) {
+      KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
+                                    "ECDSA_size(ec_key) was < 0"));
+      return 0;
+    }
+    if (signature.length() > static_cast<std::string::size_type>(ec_size)) {
+      KMSENGINE_SIGNAL_ERROR(
+          Status(StatusCode::kFailedPrecondition,
+                 "Generated signature length was unexpectedly larger than "
+                 "ECDSA_size(ec_key)"));
+      return 0;
+    }
+    signature.copy(reinterpret_cast<char *>(signature_return),
+                   signature.length());
   }
   return 1;
 }
