@@ -32,8 +32,8 @@ namespace bridge {
 using ::kmsengine::backing::CryptoKeyHandle;
 using ::kmsengine::backing::PublicKey;
 
-EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
-                         UI_METHOD */*ui_method*/, void */*callback_data*/) {
+EVP_PKEY *LoadCloudKmsKey(ENGINE *engine, const char *key_id,
+                          UI_METHOD */*ui_method*/, void */*callback_data*/) {
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
       EngineData *engine_data, GetEngineDataFromOpenSslEngine(engine), nullptr);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(

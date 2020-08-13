@@ -148,14 +148,14 @@ TEST(KeyLoaderTest, HandlesBadEngineData) {
   auto engine = MakeEngine();
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());
   EXPECT_OPENSSL_FAILURE(
-      LoadPrivateKey(engine.get(), "resource_id", nullptr, nullptr),
+      LoadCloudKmsKey(engine.get(), "resource_id", nullptr, nullptr),
       HasSubstr("ENGINE instance was not initialized with Cloud KMS data"));
 
   FreeExternalIndices();
 }
 
-// Fixture for testing `LoadPrivateKey`. The fixture initializes (and cleans
-// up) the `ex_data_util` system, which is necessary since `LoadPrivateKey`
+// Fixture for testing `LoadCloudKmsKey`. The fixture initializes (and cleans
+// up) the `ex_data_util` system, which is necessary since `LoadCloudKmsKey`
 // invokes `ex_data_util` functions. (This initialization is normally done by
 // the engine when it is initialized in `EngineBind`.) The fixture also
 // instantiates a new `ENGINE` struct.
@@ -181,7 +181,7 @@ class KeyLoaderTest : public ::testing::TestWithParam<
 };
 
 // Fixture that sets up useful mocks and test variables in preparation for a
-// `LoadPrivateKey` test with an RSA key.
+// `LoadCloudKmsKey` test with an RSA key.
 class RsaKeyLoaderTest : public KeyLoaderTest {
  protected:
   RsaKeyLoaderTest()
@@ -246,8 +246,8 @@ INSTANTIATE_TEST_SUITE_P(
 TEST_P(RsaKeyLoaderTest, GeneratedKeyContainsHasTypeRsa) {
   EXPECT_CALL(mock_client(), GetPublicKey);
 
-  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
-                                      nullptr);
+  EVP_PKEY *evp_pkey = LoadCloudKmsKey(engine(), kKeyResourceId, nullptr,
+                                       nullptr);
   ASSERT_THAT(evp_pkey, NotNull());
 
   EXPECT_EQ(EVP_PKEY_size(evp_pkey), kExpectedKeySize);
@@ -261,14 +261,14 @@ TEST_P(RsaKeyLoaderTest, GeneratedKeyContainsHasTypeRsa) {
 TEST_P(RsaKeyLoaderTest, AttachedRsaStructHasCryptoKeyHandleWithCorrectKeyId) {
   EXPECT_CALL(mock_client(), GetPublicKey);
 
-  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
-                                      nullptr);
+  EVP_PKEY *evp_pkey = LoadCloudKmsKey(engine(), kKeyResourceId, nullptr,
+                                       nullptr);
   ASSERT_THAT(evp_pkey, NotNull());
 
   auto handle = GetCryptoKeyHandleFromOpenSslRsa(EVP_PKEY_get0_RSA(evp_pkey));
   ASSERT_THAT(handle, IsOk());
   EXPECT_THAT(handle.value()->key_resource_id(), StrEq(kKeyResourceId))
-      << "RsaKey should contain the key resource ID loaded in LoadPrivateKey";
+      << "RsaKey should contain the key resource ID loaded in LoadCloudKmsKey";
 
   EVP_PKEY_free(evp_pkey);
 }
@@ -276,8 +276,8 @@ TEST_P(RsaKeyLoaderTest, AttachedRsaStructHasCryptoKeyHandleWithCorrectKeyId) {
 TEST_P(RsaKeyLoaderTest, AttachedRsaStructHasCorrectRsaMethodImplementation) {
   EXPECT_CALL(mock_client(), GetPublicKey);
 
-  EVP_PKEY *evp_pkey = LoadPrivateKey(engine(), kKeyResourceId, nullptr,
-                                      nullptr);
+  EVP_PKEY *evp_pkey = LoadCloudKmsKey(engine(), kKeyResourceId, nullptr,
+                                       nullptr);
   ASSERT_THAT(evp_pkey, NotNull());
 
   EXPECT_EQ(RSA_get_method(EVP_PKEY_get0_RSA(evp_pkey)),
@@ -292,7 +292,7 @@ TEST_P(RsaKeyLoaderTest, AttachedRsaStructHasCorrectRsaMethodImplementation) {
 // more integrated RSA_METHOD tests once RSA_METHOD implementation is in.
 
 // Fixture that sets up useful mocks and test variables in preparation for a
-// `LoadPrivateKey` test with an ECDSA key.
+// `LoadCloudKmsKey` test with an ECDSA key.
 class EcKeyLoaderTest : public KeyLoaderTest {
  protected:
   EcKeyLoaderTest()
@@ -313,7 +313,7 @@ INSTANTIATE_TEST_SUITE_P(
 // EC_KEY loader tests in
 // https://github.com/googleinterns/cloud-kms-oss-tools/pull/113.
 
-// Fixture for a `LoadPrivateKey` test with a key of a particular
+// Fixture for a `LoadCloudKmsKey` test with a key of a particular
 // `CryptoKeyVersionAlgorithm` type that corresponds to an unsupported sign
 // operation.
 class UnsupportedKeyLoaderTest : public KeyLoaderTest {
@@ -324,7 +324,7 @@ INSTANTIATE_TEST_SUITE_P(
     UnsupportedAlgorithmParameters, UnsupportedKeyLoaderTest,
     Combine(ValuesIn(kUnsupportedAlgorithms), ValuesIn(kSampleSignatures)));
 
-TEST_P(UnsupportedKeyLoaderTest, LoadPrivateKey) {
+TEST_P(UnsupportedKeyLoaderTest, LoadCloudKmsKey) {
   const CryptoKeyVersionAlgorithm algorithm = std::get<0>(GetParam());
 
   auto client = absl::make_unique<MockClient>();
@@ -338,7 +338,7 @@ TEST_P(UnsupportedKeyLoaderTest, LoadPrivateKey) {
               IsOk());
 
   EXPECT_OPENSSL_FAILURE(
-      LoadPrivateKey(engine(), kKeyResourceId, nullptr, nullptr),
+      LoadCloudKmsKey(engine(), kKeyResourceId, nullptr, nullptr),
       HasSubstr(
           absl::StrFormat("Cloud KMS key had unsupported type %s",
                           CryptoKeyVersionAlgorithmToString(algorithm))));
