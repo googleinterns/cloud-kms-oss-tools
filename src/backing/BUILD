@@ -56,6 +56,7 @@ cc_binary(
     deps = [
         ":export_macros",
         "//src/backing/client",
+        "//src/backing/client:client_factory",
         "//src/backing/client:crypto_key_version_algorithm",
         "//src/backing/client:digest_case",
         "//src/backing/client:public_key",
