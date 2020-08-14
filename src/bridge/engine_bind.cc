@@ -18,10 +18,12 @@
 
 #include <openssl/engine.h>
 
+#include "src/bridge/crypto/rsa.h"
 #include "src/bridge/engine_name.h"
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/engine_data.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
+#include "src/bridge/key_loader/key_loader.h"
 #include "src/backing/client/client_factory.h"
 #include "src/backing/client/client.h"
 
@@ -36,27 +38,15 @@ namespace {
 // This function returns a unique pointer instead of a raw pointer to simplify
 // cleanup in caller error cases.
 StatusOr<std::unique_ptr<EngineData>> MakeDefaultEngineData() {
-  // TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/79): Add
-  // support for setting a timeout duration in the OpenSSL configuration file.
-
-  // `MakeDefaultClientWithoutTimeout` will automatically authenticate the
-  // client using the Google Application Default Credentials strategy. See
-  // https://cloud.google.com/docs/authentication/production#automatically for
-  // more information.
-  std::unique_ptr<::kmsengine::backing::Client> client =
-      backing::MakeDefaultClientWithoutTimeout();
-
-  // TODO: Add when RSA_METHOD is merged in.
-  // https://github.com/googleinterns/cloud-kms-oss-tools/pull/114
-  OpenSslRsaMethod rsa_method(nullptr, nullptr);
-
-  // TODO: Add when EC_KEY_METHOD is merged in.
-  // https://github.com/googleinterns/cloud-kms-oss-tools/pull/115
-  OpenSslEcKeyMethod ec_key_method(nullptr, nullptr);
+  KMSENGINE_ASSIGN_OR_RETURN(
+      OpenSslRsaMethod rsa_method, crypto::MakeKmsRsaMethod());
 
   auto engine_data = std::unique_ptr<EngineData>(
-      new EngineData(std::move(client), std::move(rsa_method),
-                     std::move(ec_key_method)));
+      new EngineData(backing::MakeDefaultClientWithoutTimeout(),
+                     std::move(rsa_method),
+                     // TODO (https://github.com/googleinterns/cloud-kms-oss-tools/pull/115):
+                     // Add crypto::MakeKmsEcKeyMethod when #115 is merged in.
+                     OpenSslEcKeyMethod(nullptr, nullptr)));
   if (engine_data == nullptr) {
     return Status(StatusCode::kResourceExhausted, "no memory available");
   }
@@ -133,6 +123,8 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
       !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
       !ENGINE_set_init_function(e, EngineInit) ||
       !ENGINE_set_finish_function(e, EngineFinish) ||
+      !ENGINE_set_load_pubkey_function(e, LoadCloudKmsKey) ||
+      !ENGINE_set_load_privkey_function(e, LoadCloudKmsKey) ||
       !ENGINE_set_destroy_function(e, EngineDestroy)) {
     return 0;
   }

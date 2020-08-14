@@ -49,6 +49,8 @@ TEST(EngineBindTest, InitializesExpectedEngineStructFields) {
   EXPECT_THAT(ENGINE_get_name(engine.get()), Not(IsNull()));
   EXPECT_THAT(ENGINE_get_init_function(engine.get()), Not(IsNull()));
   EXPECT_THAT(ENGINE_get_finish_function(engine.get()), Not(IsNull()));
+  EXPECT_THAT(ENGINE_get_load_pubkey_function(engine.get()), Not(IsNull()));
+  EXPECT_THAT(ENGINE_get_load_privkey_function(engine.get()), Not(IsNull()));
   EXPECT_THAT(ENGINE_get_destroy_function(engine.get()), Not(IsNull()));
   EXPECT_TRUE(ENGINE_get_flags(engine.get()) & ENGINE_FLAGS_NO_REGISTER_ALL)
       << "ENGINE_FLAGS_NO_REGISTER_ALL should be set on EngineBind since "

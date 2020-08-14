@@ -21,7 +21,7 @@ package(default_visibility = ["//src/bridge:__subpackages__"])
 cc_binary(
     name = "libengine.so",
     srcs = [
-        "main.c"
+        "main.c",
     ],
     linkopts = ["-lcrypto"],
     linkshared = 1,
@@ -48,9 +48,11 @@ cc_library(
     deps = [
         ":engine_name",
         "//src/backing",
+        "//src/bridge/crypto:rsa",
         "//src/bridge/error",
         "//src/bridge/ex_data_util",
         "//src/bridge/ex_data_util:engine_data",
+        "//src/bridge/key_loader",
     ],
 )
 
