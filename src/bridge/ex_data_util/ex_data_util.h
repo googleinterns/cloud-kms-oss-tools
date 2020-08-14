@@ -98,7 +98,7 @@ StatusOr<backing::CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslEcKey(
 // clearer and to simplify cleanup in error cases.
 Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine);
 Status AttachEngineDataToOpenSslEngine(std::unique_ptr<EngineData> data,
-                                       ENGINE *ec_key);
+                                       ENGINE *engine);
 
 // Returns a raw pointer to the `EngineData` instance attacked to the given
 // OpenSSL `ENGINE` struct, or an error status. Raw pointer will never be null
