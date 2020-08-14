@@ -198,11 +198,11 @@ Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {
   return Status::kOk;
 }
 
-Status AttachEngineDataToOpenSslEngine(std::unique_ptr<EngineData> engine_data,
+Status AttachEngineDataToOpenSslEngine(std::unique_ptr<EngineData> data,
                                        ENGINE *engine) {
   KMSENGINE_RETURN_IF_ERROR(
-      AttachEngineDataToOpenSslEngine(engine_data.get(), engine));
-  engine_data.release();  // Only release if attach was successful.
+      AttachEngineDataToOpenSslEngine(data.get(), engine));
+  data.release();  // Only release if attach was successful.
   return Status::kOk;
 }
 

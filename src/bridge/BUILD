@@ -20,7 +20,9 @@ package(default_visibility = ["//src/bridge:__subpackages__"])
 
 cc_binary(
     name = "libengine.so",
-    srcs = ["main.c"],
+    srcs = [
+        "main.c"
+    ],
     linkopts = ["-lcrypto"],
     linkshared = 1,
     linkstatic = 1,
