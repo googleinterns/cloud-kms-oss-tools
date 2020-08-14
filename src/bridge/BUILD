@@ -28,7 +28,17 @@ cc_binary(
     deps = [
         "//src/bridge:engine_bind",
         "//src/bridge:engine_name",
-        "//src/bridge:engine_setup",
+        "//src/bridge/error",
+        "//src/bridge/error:error_strings",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/ex_data_util:engine_data",
+        "//src/bridge/key_loader",
+        "//src/bridge/key_loader:ec_key_loader",
+        "//src/bridge/key_loader:rsa_key_loader",
+        "//src/bridge/memory_util:openssl_bio",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/bridge/nid_util",
+        "//src/bridge/crypto:rsa",
     ],
 )
 
@@ -39,8 +49,12 @@ cc_library(
     linkopts = ["-lcrypto"],
     deps = [
         ":engine_name",
-        ":engine_setup",
+        "//src/backing",
         "//src/bridge/error",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/ex_data_util:engine_data",
+        "//src/bridge/key_loader",
+        "//src/bridge/crypto:rsa",
     ],
 )
 
@@ -50,6 +64,12 @@ cc_test(
     srcs = ["engine_bind_test.cc"],
     deps = [
         ":engine_bind",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/testing_util:mock_client",
+        "//src/testing_util:mock_crypto_key_handle",
+        "//src/testing_util:openssl_assertions",
+        "//src/testing_util:test_matchers",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -57,11 +77,4 @@ cc_test(
 cc_library(
     name = "engine_name",
     hdrs = ["engine_name.h"],
-)
-
-cc_library(
-    name = "engine_setup",
-    srcs = ["engine_setup.cc"],
-    hdrs = ["engine_setup.h"],
-    linkopts = ["-lcrypto"],
 )
