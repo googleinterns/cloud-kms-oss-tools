@@ -35,6 +35,6 @@
 #ifdef __cplusplus
 extern "C"
 #endif  // __cplusplus
-int EngineBind(ENGINE *e, const char *id);
+int EngineBind(ENGINE *engine, const char *id);
 
 #endif  // KMSENGINE_BRIDGE_ENGINE_BIND_H_
