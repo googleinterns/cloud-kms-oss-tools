@@ -19,6 +19,7 @@
 
 #include <string>
 
+#include "src/backing/export_macros.h"
 #include "src/backing/client/digest_case.h"
 #include "src/backing/client/public_key.h"
 #include "src/backing/status/status.h"
@@ -28,7 +29,7 @@ namespace kmsengine {
 namespace backing {
 
 // Defines the interface used to communicate with the Google Cloud KMS API.
-class Client {
+class KMSENGINE_EXPORT Client {
  public:
   virtual ~Client() = default;
 

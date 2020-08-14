@@ -23,7 +23,6 @@ cc_library(
     srcs = ["key_loader.cc"],
     hdrs = ["key_loader.h"],
     deps = [
-        ":ec_key_loader",
         ":rsa_key_loader",
         "//src/backing",
         "//src/bridge/error",
@@ -44,32 +43,6 @@ cc_test(
         "//src/testing_util:test_matchers",
         "@com_google_absl//absl/memory",
         "@com_google_absl//absl/strings",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "ec_key_loader",
-    srcs = ["ec_key_loader.cc"],
-    hdrs = ["ec_key_loader.h"],
-    linkopts = ["-lcrypto"],
-    deps = [
-        "//src/backing",
-        "//src/bridge/ex_data_util",
-        "//src/bridge/memory_util:openssl_structs",
-    ],
-)
-
-cc_test(
-    name = "ec_key_loader_test",
-    size = "small",
-    srcs = ["ec_key_loader_test.cc"],
-    deps = [
-        ":ec_key_loader",
-        "//src/bridge/memory_util:openssl_bio",
-        "//src/testing_util:mock_crypto_key_handle",
-        "//src/testing_util:test_matchers",
-        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )

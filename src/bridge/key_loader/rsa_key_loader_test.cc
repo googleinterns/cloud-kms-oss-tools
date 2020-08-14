@@ -57,11 +57,11 @@ const RSA_METHOD *kDefaultOpenSslRsaMethod = RSA_PKCS1_OpenSSL();
 // the engine when it is initialized in `EngineBind`.)
 class RsaKeyLoaderTest : public ::testing::Test {
   void SetUp() override {
-    ASSERT_THAT(InitExternalIndicies(), IsOk());
+    ASSERT_THAT(InitExternalIndices(), IsOk());
   }
 
   void TearDown() override {
-    FreeExternalIndicies();
+    FreeExternalIndices();
   }
 };
 

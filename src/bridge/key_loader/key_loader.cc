@@ -22,7 +22,6 @@
 #include "src/backing/status/status_or.h"
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
-#include "src/bridge/key_loader/ec_key_loader.h"
 #include "src/bridge/key_loader/rsa_key_loader.h"
 #include "src/bridge/memory_util/openssl_bio.h"
 #include "src/bridge/memory_util/openssl_structs.h"
@@ -30,22 +29,25 @@
 namespace kmsengine {
 namespace bridge {
 
-EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
-                         UI_METHOD */*ui_method*/, void */*callback_data*/) {
+using ::kmsengine::backing::CryptoKeyHandle;
+using ::kmsengine::backing::PublicKey;
+
+EVP_PKEY *LoadCloudKmsKey(ENGINE *engine, const char *key_id,
+                          UI_METHOD */*ui_method*/, void */*callback_data*/) {
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto engine_data, GetEngineDataFromOpenSslEngine(engine), nullptr);
+      EngineData *engine_data, GetEngineDataFromOpenSslEngine(engine), nullptr);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto crypto_key_handle,
+      std::unique_ptr<CryptoKeyHandle> crypto_key_handle,
       backing::MakeCryptoKeyHandle(key_id, engine_data->client()), nullptr);
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto public_key, crypto_key_handle->GetPublicKey(), nullptr);
+      PublicKey public_key, crypto_key_handle->GetPublicKey(), nullptr);
 
   // OpenSSL provides parsing functions to generate `RSA` and `EC_KEY` structs
   // from PEM-encoded key material. These parsing functions consume the data
   // as an OpenSSL `BIO` stream, so we need to load the PublicKey's pem into a
   // `BIO` before attempting to parse the public key material.
   KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-      auto public_key_pem_bio, MakeOpenSslMemoryBufferBio(
+      OpenSslBio public_key_pem_bio, MakeOpenSslMemoryBufferBio(
           static_cast<const void *>(public_key.pem().data()),
           public_key.pem().length()),
       nullptr);
@@ -73,20 +75,24 @@ EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
     case CryptoKeyVersionAlgorithm::kEcSignP256Sha256:
     case CryptoKeyVersionAlgorithm::kEcSignP384Sha384:
       {
-        KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
-            evp_pkey,
-            key_loader::MakeKmsEcEvpPkey(std::move(public_key_pem_bio),
-                                         std::move(crypto_key_handle),
-                                         engine_data->ec_key_method()),
-            nullptr);
+        // TODO: uncomment when #113 is merged in.
+        // KMSENGINE_ASSIGN_OR_RETURN_WITH_OPENSSL_ERROR(
+        //     evp_pkey,
+        //     key_loader::MakeKmsEcEvpPkey(std::move(public_key_pem_bio),
+        //                                  std::move(crypto_key_handle),
+        //                                  engine_data->ec_key_method()),
+        //     nullptr);
+        // break;
+        KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
+            "Cloud KMS key had unsupported type " +
+            CryptoKeyVersionAlgorithmToString(public_key.algorithm())));
         break;
       }
     default:
       {
         KMSENGINE_SIGNAL_ERROR(Status(StatusCode::kFailedPrecondition,
-            "Cloud KMS key had type " +
-            CryptoKeyVersionAlgorithmToString(public_key.algorithm()) +
-            ", which is unsupported by the Cloud KMS engine"));
+            "Cloud KMS key had unsupported type " +
+            CryptoKeyVersionAlgorithmToString(public_key.algorithm())));
         break;
       }
   }

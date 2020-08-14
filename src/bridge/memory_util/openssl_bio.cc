@@ -28,15 +28,15 @@ namespace kmsengine {
 namespace bridge {
 
 StatusOr<OpenSslBio> MakeOpenSslMemoryBufferBio(const void *data, int length) {
-  BIO *pem_stream = BIO_new_mem_buf(data, length);
-  if (pem_stream == nullptr) {
+  BIO *memory_buffer = BIO_new_mem_buf(data, length);
+  if (memory_buffer == nullptr) {
     return Status(StatusCode::kInternal, "BIO_new_mem_buf failed");
   }
 
   // Second parameter of `OpenSslBio` specifies the deleter function that should
   // be called on the underlying BIO pointer when the `OpenSslBio` smart pointer
   // goes out of scope.
-  return OpenSslBio(pem_stream, &BIO_free);
+  return OpenSslBio(memory_buffer, &BIO_free);
 }
 
 }  // namespace bridge

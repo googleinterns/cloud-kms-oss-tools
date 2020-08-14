@@ -22,20 +22,31 @@
 namespace kmsengine {
 namespace bridge {
 
-// Loads a Cloud HSM private key from the `key_id` file.
+// Loads a Cloud KMS key with key resource ID `key_id`. The `ui_method` and
+// `callback_data` parameters are ignored.
 //
 // Implements the `ENGINE_LOAD_KEY_PTR` prototype from OpenSSL for use with
-// the `ENGINE_set_load_privkey_function` API function. OpenSSL will call
-// this function directly and pass it the `key_id` specified by the end
-// application.
+// the `ENGINE_set_load_privkey_function` and `ENGINE_set_load_pubkey_function`
+// API functions.
 //
-// The `ui_method` and `callback_data` parameters are ignored.
+// When OpenSSL needs to load a private key or a public key that the user has
+// specified is in "engine form", OpenSSL will call this function directly and
+// pass it the `key_id` specified by the end application. For example, OpenSSL's
+// rsautl(1) utility (https://www.openssl.org/docs/man1.1.1/man1/rsautl.html)
+// allows the user to specify a "-keyform ENGINE" flag which tells OpenSSL to
+// use the engine's key loader to interpret the input key.
 //
-// TODO(zesp): This is currently just treating the `key_id` path as the Cloud
-// KMS key resource ID itself. It may be useful to let the user instead specify
-// a real file that contains the key resource ID in it instead.
-EVP_PKEY *LoadPrivateKey(ENGINE *engine, const char *key_id,
-                         UI_METHOD *ui_method, void *callback_data);
+// OpenSSL applications (such as web servers) invoke the engine's custom key
+// loader via the ENGINE_load_private_key(3) and ENGINE_load_public_key(3)
+// functions.
+//
+// TODO(https://github.com/googleinterns/cloud-kms-oss-tools/issues/118): This
+// is currently just treating the `key_id` path as the Cloud KMS key resource ID
+// itself. However, Apache seems to require that the `key_id` exists as a real
+// file, so we'll need to make this function read the key resource ID from
+// a real file instead.
+EVP_PKEY *LoadCloudKmsKey(ENGINE *engine, const char *key_id,
+                          UI_METHOD *ui_method, void *callback_data);
 
 }  // namespace bridge
 }  // namespace kmsengine
