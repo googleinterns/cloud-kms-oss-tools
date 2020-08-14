@@ -121,10 +121,10 @@ extern "C" int EngineBind(ENGINE *e, const char *id) {
       // ENGINE_FLAGS_NO_REGISTER_ALL tells OpenSSL that our engine does not
       // supply implementations for all OpenSSL crypto methods.
       !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
-      !ENGINE_set_init_function(e, EngineInit) ||
-      !ENGINE_set_finish_function(e, EngineFinish) ||
       !ENGINE_set_load_pubkey_function(e, LoadCloudKmsKey) ||
       !ENGINE_set_load_privkey_function(e, LoadCloudKmsKey) ||
+      !ENGINE_set_init_function(e, EngineInit) ||
+      !ENGINE_set_finish_function(e, EngineFinish) ||
       !ENGINE_set_destroy_function(e, EngineDestroy)) {
     return 0;
   }
