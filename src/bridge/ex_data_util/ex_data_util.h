@@ -93,7 +93,12 @@ StatusOr<backing::CryptoKeyHandle *> GetCryptoKeyHandleFromOpenSslEcKey(
 // `data` may be null (for example, to reset attached data when freeing a
 // previously-attached `EngineData` to avoid use-after-free errors). `engine`
 // may not be null.
+//
+// When possible, use the `unique_ptr` version to make ownership semantics
+// clearer and to simplify cleanup in error cases.
 Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine);
+Status AttachEngineDataToOpenSslEngine(std::unique_ptr<EngineData> data,
+                                       ENGINE *ec_key);
 
 // Returns a raw pointer to the `EngineData` instance attacked to the given
 // OpenSSL `ENGINE` struct, or an error status. Raw pointer will never be null

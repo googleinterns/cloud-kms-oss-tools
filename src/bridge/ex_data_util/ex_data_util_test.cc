@@ -212,6 +212,29 @@ TEST_F(InitializedExDataUtilTest, EngineDataRoundtrip) {
   EXPECT_EQ(actual.value(), &engine_data);
 }
 
+TEST_F(InitializedExDataUtilTest, EngineDataUniquePtrEngineDataRoundtrip) {
+  OpenSslEngine engine = MakeEngine();
+  std::unique_ptr<EngineData> data = absl::make_unique<EngineData>(
+      nullptr, OpenSslRsaMethod(nullptr, nullptr),
+      OpenSslEcKeyMethod(nullptr, nullptr));
+  auto expected = data.get();
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(std::move(data), engine.get()),
+              IsOk());
+
+  StatusOr<EngineData *> actual =
+      GetEngineDataFromOpenSslEngine(engine.get());
+  EXPECT_THAT(actual, IsOk());
+  EXPECT_EQ(actual.value(), expected);
+}
+
+TEST_F(InitializedExDataUtilTest, EngineDataUniquePtrHandlesNullEngineData) {
+  OpenSslEngine engine = MakeEngine();
+  std::unique_ptr<EngineData> data(nullptr);
+  ASSERT_THAT(AttachEngineDataToOpenSslEngine(std::move(data), engine.get()),
+              IsOk());
+  EXPECT_THAT(GetEngineDataFromOpenSslEngine(engine.get()), Not(IsOk()));
+}
+
 TEST_F(InitializedExDataUtilTest, EngineHandlesNullEngineData) {
   OpenSslEngine engine = MakeEngine();
   ASSERT_THAT(AttachEngineDataToOpenSslEngine(nullptr, engine.get()), IsOk());

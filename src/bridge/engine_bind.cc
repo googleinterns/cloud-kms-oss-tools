@@ -22,9 +22,8 @@
 #include "src/bridge/error/error.h"
 #include "src/bridge/ex_data_util/engine_data.h"
 #include "src/bridge/ex_data_util/ex_data_util.h"
-#include "src/bridge/key_loader/key_loader.h"
-#include "src/bridge/crypto/rsa.h"
 #include "src/backing/client/client_factory.h"
+#include "src/backing/client/client.h"
 
 namespace kmsengine {
 namespace bridge {
@@ -44,7 +43,8 @@ StatusOr<std::unique_ptr<EngineData>> MakeDefaultEngineData() {
   // client using the Google Application Default Credentials strategy. See
   // https://cloud.google.com/docs/authentication/production#automatically for
   // more information.
-  std::unique_ptr<Client> client = backing::MakeDefaultClientWithoutTimeout();
+  std::unique_ptr<::kmsengine::backing::Client> client =
+      backing::MakeDefaultClientWithoutTimeout();
 
   // TODO: Add when RSA_METHOD is merged in.
   // https://github.com/googleinterns/cloud-kms-oss-tools/pull/114
@@ -88,7 +88,7 @@ int EngineInit(ENGINE *engine) {
   }
 
   KMSENGINE_RETURN_IF_OPENSSL_ERROR(
-      AttachEngineDataToOpenSslEngine(std::move(engine_data), e), 0);
+      AttachEngineDataToOpenSslEngine(std::move(engine_data), engine), 0);
   return 1;
 }
 
@@ -119,34 +119,27 @@ int EngineFinish(ENGINE *engine) {
 // EngineFinish will have executed before EngineDestroy is called.
 int EngineDestroy(ENGINE *e) {
   KMSENGINE_RETURN_IF_OPENSSL_ERROR(UnloadErrorStringsFromOpenSSL(), 0);
-  FreeExternalIndicies();
+  FreeExternalIndices();
   return 1;
 }
 
 }  // namespace
 
 extern "C" int EngineBind(ENGINE *e, const char *id) {
-  // We initialize external indicies in `EngineBind` as opposed to `EngineInit`
-  // since the external indicies are global variables that all instances of the
-  // Cloud KMS engine should share.
-  KMSENGINE_RETURN_IF_OPENSSL_ERROR(InitExternalIndicies(), 0);
-
   if (!ENGINE_set_id(e, kEngineId) ||
       !ENGINE_set_name(e, kEngineName) ||
       // ENGINE_FLAGS_NO_REGISTER_ALL tells OpenSSL that our engine does not
       // supply implementations for all OpenSSL crypto methods.
       !ENGINE_set_flags(e, ENGINE_FLAGS_NO_REGISTER_ALL) ||
-      !ENGINE_set_load_pubkey_function(e, LoadPrivateKey) ||
-      !ENGINE_set_load_privkey_function(e, LoadPrivateKey) ||
       !ENGINE_set_init_function(e, EngineInit) ||
       !ENGINE_set_finish_function(e, EngineFinish) ||
       !ENGINE_set_destroy_function(e, EngineDestroy)) {
     return 0;
   }
 
-  // The OpenSSL example engines load the error strings within `EngineBind`,
-  // which is why we do it here.
-  KMSENGINE_RETURN_IF_OPENSSL_ERROR(LoadErrorStringsIntoOpenSsl(), 0);
+  // Initialize subsystems needed for engine instances to work.
+  KMSENGINE_RETURN_IF_OPENSSL_ERROR(InitExternalIndices(), 0);
+  KMSENGINE_RETURN_IF_OPENSSL_ERROR(LoadErrorStringsIntoOpenSSL(), 0);
   return 1;
 }
 
