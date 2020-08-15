@@ -20,7 +20,9 @@ package(default_visibility = ["//src/bridge:__subpackages__"])
 
 cc_binary(
     name = "libengine.so",
-    srcs = ["main.c"],
+    srcs = [
+        "main.c",
+    ],
     linkopts = ["-lcrypto"],
     linkshared = 1,
     linkstatic = 1,
@@ -28,7 +30,13 @@ cc_binary(
     deps = [
         "//src/bridge:engine_bind",
         "//src/bridge:engine_name",
-        "//src/bridge:engine_setup",
+        "//src/bridge/error",
+        "//src/bridge/error:error_strings",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/ex_data_util:engine_data",
+        "//src/bridge/memory_util:openssl_bio",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/bridge/nid_util",
     ],
 )
 
@@ -39,8 +47,12 @@ cc_library(
     linkopts = ["-lcrypto"],
     deps = [
         ":engine_name",
-        ":engine_setup",
+        "//src/backing",
+        "//src/bridge/crypto:rsa",
         "//src/bridge/error",
+        "//src/bridge/ex_data_util",
+        "//src/bridge/ex_data_util:engine_data",
+        "//src/bridge/key_loader",
     ],
 )
 
@@ -50,6 +62,12 @@ cc_test(
     srcs = ["engine_bind_test.cc"],
     deps = [
         ":engine_bind",
+        "//src/bridge/memory_util:openssl_structs",
+        "//src/testing_util:mock_client",
+        "//src/testing_util:mock_crypto_key_handle",
+        "//src/testing_util:openssl_assertions",
+        "//src/testing_util:test_matchers",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -57,11 +75,4 @@ cc_test(
 cc_library(
     name = "engine_name",
     hdrs = ["engine_name.h"],
-)
-
-cc_library(
-    name = "engine_setup",
-    srcs = ["engine_setup.cc"],
-    hdrs = ["engine_setup.h"],
-    linkopts = ["-lcrypto"],
 )

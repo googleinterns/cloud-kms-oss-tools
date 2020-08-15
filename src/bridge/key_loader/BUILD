@@ -19,57 +19,56 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src/bridge:__subpackages__"])
 
 cc_library(
-    name = "ec",
-    srcs = ["ec.cc"],
-    hdrs = ["ec.h"],
-    linkopts = ["-lcrypto"],
+    name = "key_loader",
+    srcs = ["key_loader.cc"],
+    hdrs = ["key_loader.h"],
     deps = [
+        ":rsa_key_loader",
         "//src/backing",
         "//src/bridge/error",
         "//src/bridge/ex_data_util",
+        "//src/bridge/memory_util:openssl_bio",
         "//src/bridge/memory_util:openssl_structs",
-        "//src/bridge/nid_util",
     ],
 )
 
 cc_test(
-    name = "ec_test",
+    name = "key_loader_test",
     size = "small",
-    srcs = ["ec_test.cc"],
+    srcs = ["key_loader_test.cc"],
     deps = [
-        ":ec",
-        "//src/bridge/memory_util:openssl_bio",
-        "//src/testing_util:mock_crypto_key_handle",
+        ":key_loader",
+        "//src/testing_util:mock_client",
         "//src/testing_util:openssl_assertions",
         "//src/testing_util:test_matchers",
+        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_library(
-    name = "rsa",
-    srcs = ["rsa.cc"],
-    hdrs = ["rsa.h"],
+    name = "rsa_key_loader",
+    srcs = ["rsa_key_loader.cc"],
+    hdrs = ["rsa_key_loader.h"],
     linkopts = ["-lcrypto"],
     deps = [
         "//src/backing",
-        "//src/bridge/error",
         "//src/bridge/ex_data_util",
         "//src/bridge/memory_util:openssl_structs",
-        "//src/bridge/nid_util",
     ],
 )
 
 cc_test(
-    name = "rsa_test",
+    name = "rsa_key_loader_test",
     size = "small",
-    srcs = ["rsa_test.cc"],
+    srcs = ["rsa_key_loader_test.cc"],
     deps = [
-        ":rsa",
+        ":rsa_key_loader",
         "//src/bridge/memory_util:openssl_bio",
         "//src/testing_util:mock_crypto_key_handle",
-        "//src/testing_util:openssl_assertions",
         "//src/testing_util:test_matchers",
+        "@com_google_absl//absl/memory",
         "@com_google_googletest//:gtest_main",
     ],
 )

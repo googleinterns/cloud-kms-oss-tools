@@ -198,6 +198,14 @@ Status AttachEngineDataToOpenSslEngine(EngineData *data, ENGINE *engine) {
   return Status::kOk;
 }
 
+Status AttachEngineDataToOpenSslEngine(std::unique_ptr<EngineData> data,
+                                       ENGINE *engine) {
+  KMSENGINE_RETURN_IF_ERROR(
+      AttachEngineDataToOpenSslEngine(data.get(), engine));
+  data.release();  // Only release if attach was successful.
+  return Status::kOk;
+}
+
 StatusOr<EngineData *> GetEngineDataFromOpenSslEngine(const ENGINE *engine) {
   if (engine == nullptr) {
     return Status(StatusCode::kInvalidArgument, "ENGINE cannot be null");

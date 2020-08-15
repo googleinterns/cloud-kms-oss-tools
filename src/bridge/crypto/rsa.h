@@ -14,23 +14,24 @@
  * limitations under the License.
  */
 
-#include "src/bridge/engine_setup.h"
+#ifndef KMSENGINE_BRIDGE_CRYPTO_RSA_H_
+#define KMSENGINE_BRIDGE_CRYPTO_RSA_H_
 
-#include <openssl/engine.h>
+#include <openssl/rsa.h>
+
+#include "src/bridge/memory_util/openssl_structs.h"
+#include "src/backing/status/status_or.h"
 
 namespace kmsengine {
 namespace bridge {
+namespace crypto {
 
-int EngineInit(ENGINE *e) {
-  // TODO(zesp): Initialize necessary ex_data on ENGINE.
-  printf("Engine initialized!\n");
-  return 1;
-}
+// Allocates memory for and initializes an OpenSSL `RSA_METHOD` struct with
+// pointers to the Cloud KMS engine RSA implementations.
+StatusOr<OpenSslRsaMethod> MakeKmsRsaMethod();
 
-int EngineFinish(ENGINE *e) {
-  // TODO(zesp): Deallocate data initialized in EngineInit.
-  return 1;
-}
-
+}  // namespace crypto
 }  // namespace bridge
 }  // namespace kmsengine
+
+#endif  // KMSENGINE_BRIDGE_CRYPTO_RSA_H_
