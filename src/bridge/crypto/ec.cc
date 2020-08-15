@@ -170,8 +170,12 @@ int SignSetup(EC_KEY */*ec_key*/, BN_CTX */*context*/, BIGNUM **kinv,
               BIGNUM **rp) {
   // Set `*kinv` and `*rp` to nullptr, since calling code should not expect
   // `*kinv` and `*rp` to be populated after calling this function.
-  *kinv = nullptr;
-  *rp = nullptr;
+  if (kinv != nullptr) {
+    *kinv = nullptr;
+  }
+  if (rp != nullptr) {
+    *rp = nullptr;
+  }
 
   return 1;
 }
@@ -206,8 +210,10 @@ ECDSA_SIG *DoSignEx(const unsigned char *digest_bytes, int digest_length,
     return nullptr;
   }
 
-  // BN_bin2bn(&signature[0], signature_length, nullptr);
-
+  // TODO(https://github.com/googleinterns/cloud-kms-oss-tools/pull/115#discussion_r470916594):
+  // `DoSignEx` should convert the DER-encoded signature `signature` returned by
+  // `SignEx` to an `ECDSA_SIG` instance. See link for a potential way to do
+  // this.
   return nullptr;
 }
 
