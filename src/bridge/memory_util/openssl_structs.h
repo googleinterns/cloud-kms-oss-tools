@@ -48,6 +48,11 @@ namespace bridge {
 // be converted to smart pointers since the engine does not "own" that
 // pointer.
 
+// Smart pointer wrapper around OpenSSL's ECDSA_SIG struct. Just an alias for
+// convenience.
+using OpenSslEcdsaSignature = std::unique_ptr<ECDSA_SIG,
+                                              decltype(&ECDSA_SIG_free)>;
+
 // Smart pointer wrapper around OpenSSL's BIO struct. Just an alias for
 // convenience.
 using OpenSslBio = std::unique_ptr<BIO, decltype(&BIO_free)>;
@@ -81,6 +86,15 @@ using OpenSslRsa = std::unique_ptr<RSA, decltype(&RSA_free)>;
 // Smart pointer wrapper around OpenSSL's RSA_METHOD struct. Just an alias for
 // convenience.
 using OpenSslRsaMethod = std::unique_ptr<RSA_METHOD, decltype(&RSA_meth_free)>;
+
+// Constructs a `std::unique_ptr` object which owns a fresh ECDSA_SIG instance.
+// May return `nullptr` if no memory is available.
+//
+// The OpenSSL `ECDSA_SIG_free` function is automatically called to dispose
+// of the underlying ECDSA_SIG instance when the pointer goes out of scope.
+inline OpenSslEcdsaSignature MakeEcdsaSignature() {
+  return OpenSslEcdsaSignature(ECDSA_SIG_new(), &ECDSA_SIG_free);
+}
 
 // Constructs a `std::unique_ptr` object which owns a fresh ENGINE instance.
 // May return `nullptr` if no memory is available.

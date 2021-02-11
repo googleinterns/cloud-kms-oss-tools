@@ -71,6 +71,10 @@ class KMSENGINE_EXPORT CryptoKeyHandle {
 KMSENGINE_EXPORT StatusOr<std::unique_ptr<CryptoKeyHandle>> MakeCryptoKeyHandle(
     std::string const& key_resource_id, Client const& client);
 
+// Makes a copy of the given `CryptoKeyHandle`.
+StatusOr<std::unique_ptr<CryptoKeyHandle>> CopyCryptoKeyHandle(
+    CryptoKeyHandle const& crypto_key_handle);
+
 }  // namespace backing
 }  // namespace kmsengine
 

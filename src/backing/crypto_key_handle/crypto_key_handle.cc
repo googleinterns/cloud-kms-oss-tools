@@ -74,5 +74,17 @@ StatusOr<std::unique_ptr<CryptoKeyHandle>> MakeCryptoKeyHandle(
   return handle;
 }
 
+StatusOr<std::unique_ptr<CryptoKeyHandle>> CopyCryptoKeyHandle(
+    CryptoKeyHandle const& crypto_key_handle) {
+  std::unique_ptr<CryptoKeyHandle> handle =
+      absl::make_unique<KmsCryptoKeyHandle>(
+          static_cast<KmsCryptoKeyHandle const&>(crypto_key_handle));
+  if (handle == nullptr) {
+    return Status(StatusCode::kResourceExhausted,
+                  "Unable to allocate memory for CryptoKeyHandle");
+  }
+  return handle;
+}
+
 }  // namespace backing
 }  // namespace kmsengine
